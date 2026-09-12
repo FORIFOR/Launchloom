@@ -60,6 +60,10 @@ async def main(args):
             "() => document.documentElement.scrollWidth<=innerWidth")
         report["checks"]["outbound_links_resolve"] = await page.evaluate(
             "() => [...document.querySelectorAll('a[href^=\"http\"]')].every(a=>a.href.includes('github'))")
+        report["checks"]["language_switch_present"] = await page.locator("a.lang").count() == 1
+        other = await page.locator("a.lang").get_attribute("href")
+        landing = await page.request.get(args.url.rstrip("/") + "/" + other.strip("./"))
+        report["checks"]["other_language_resolves"] = landing.status == 200
         await page.screenshot(path=str(args.output / "homepage-desktop.png"))
 
         await page.set_viewport_size({"width": 390, "height": 844})

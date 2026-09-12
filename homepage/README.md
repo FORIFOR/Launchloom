@@ -1,6 +1,12 @@
 # homepage/
 
-Source of <https://forifor.github.io/Launchloom/>.
+Source of <https://forifor.github.io/Launchloom/> and its Japanese twin at
+<https://forifor.github.io/Launchloom/ja/>.
+
+The two pages share the stylesheet but not the media: the Japanese page shows a
+recording of the Japanese studio and the Japanese narration, because a page that
+says one thing and shows another is the problem this project exists to avoid.
+Each carries its own `og.png`, and both are cross-linked with `hreflang`.
 
 One hand-written HTML file with its styles and script inline, plus the assets it
 shows. No build step and no dependencies: edit `index.html` and publish.

@@ -2,7 +2,8 @@
 
     python homepage/publish.py
 
-Builds a commit containing exactly the contents of this folder and moves
+Builds a commit containing exactly the contents of this folder, subdirectories
+included, and moves
 gh-pages to it. The working tree is never touched: the commit is assembled with
 a temporary index, so an unfinished change on your current branch cannot be
 published by accident.
@@ -27,8 +28,9 @@ def git(*args, **kwargs):
 
 
 def main():
-    files = sorted(p for p in HOMEPAGE.iterdir() if p.is_file() and p.name not in SKIP)
-    if not any(p.name == "index.html" for p in files):
+    files = sorted(p for p in HOMEPAGE.rglob("*")
+                   if p.is_file() and not set(p.relative_to(HOMEPAGE).parts) & SKIP)
+    if not any(p.relative_to(HOMEPAGE).as_posix() == "index.html" for p in files):
         sys.exit("homepage/index.html is missing")
 
     with tempfile.TemporaryDirectory() as scratch:
@@ -37,7 +39,8 @@ def main():
             blob = subprocess.run(["git", "-C", str(ROOT), "hash-object", "-w", str(path)],
                                   capture_output=True, text=True, check=True).stdout.strip()
             subprocess.run(["git", "-C", str(ROOT), "update-index", "--add", "--cacheinfo",
-                            f"100644,{blob},{path.name}"], env=environment, check=True)
+                            f"100644,{blob},{path.relative_to(HOMEPAGE).as_posix()}"],
+                           env=environment, check=True)
         tree = subprocess.run(["git", "-C", str(ROOT), "write-tree"], env=environment,
                               capture_output=True, text=True, check=True).stdout.strip()
 

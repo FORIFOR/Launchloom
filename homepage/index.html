@@ -7,6 +7,9 @@
 <meta name="description" content="One brief and one recording of your product become a film, a vertical cut, a landing page and reviewable social posts. Local-first, open source, Apache-2.0.">
 <meta name="theme-color" content="#141b1c">
 <link rel="canonical" href="https://forifor.github.io/Launchloom/">
+<link rel="alternate" hreflang="en" href="https://forifor.github.io/Launchloom/">
+<link rel="alternate" hreflang="ja" href="https://forifor.github.io/Launchloom/ja/">
+<link rel="alternate" hreflang="x-default" href="https://forifor.github.io/Launchloom/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Launchloom — you built it, now show it">
 <meta property="og:description" content="One brief, one recording — a film, a vertical cut, a landing page and reviewable posts. On your own machine.">
@@ -158,7 +161,9 @@ footer a:hover{color:var(--dark-ink)}
 
 /* Only hide for the animation when scripting is actually available. If anything
    about the observer fails, the page still reads. */
-.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+.js .lang{border:1px solid var(--dark-line);border-radius:6px;padding:3px 9px;font-size:11.5px;letter-spacing:.06em}
+.lang:hover{border-color:#465455}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
 .js .reveal.in{opacity:1;transform:none}
 
 /* A grid track of 1fr still refuses to shrink below its content's minimum, and a
@@ -190,6 +195,7 @@ footer a:hover{color:var(--dark-ink)}
         <a href="#refuse">What it won't do</a>
         <a href="#start">Start</a>
         <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
+        <a href="ja/" class="lang">日本語</a>
       </div>
     </nav>
 
@@ -432,7 +438,7 @@ python -m launchloom serve</pre>
     </div>
     <div style="display:flex;gap:24px;flex-wrap:wrap">
       <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
-      <a href="https://github.com/FORIFOR/Launchloom/blob/main/README.ja.md">日本語</a>
+      <a href="ja/">日本語</a>
       <a href="https://github.com/FORIFOR/Launchloom/blob/main/docs/ROADMAP.md">Roadmap</a>
       <a href="https://github.com/FORIFOR/Launchloom/blob/main/LICENSE">Apache-2.0</a>
     </div>
