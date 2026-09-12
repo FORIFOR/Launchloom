@@ -129,6 +129,37 @@ section{padding:clamp(64px,9vw,118px) 0}
 .narrated-note{margin-top:26px;font-size:13px;color:var(--muted);max-width:66ch}
 @media(max-width:900px){.narrated-grid{grid-template-columns:minmax(0,1fr)}.narrated-tall{max-width:300px}}
 
+/* camera band */
+.camera{background:var(--ink);color:var(--dark-ink);padding-block:clamp(52px,7vw,86px)}
+.camera .eyebrow{color:var(--dark-muted)}
+.camera-grid{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:clamp(28px,4vw,56px);align-items:center}
+.camera h2{font-size:clamp(1.5rem,2.6vw,2.1rem);color:var(--dark-ink)}
+.camera p{color:var(--dark-muted);font-size:14.5px;margin-top:14px;max-width:46ch}
+.camera-figures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin-top:24px;border-top:1px solid var(--dark-line)}
+.camera-figures div{border-bottom:1px solid var(--dark-line);padding:11px 0;font-size:12.5px;color:var(--dark-muted);display:flex;justify-content:space-between;gap:14px}
+.camera-figures div:nth-child(odd){padding-right:20px;border-right:1px solid var(--dark-line)}
+.camera-figures div:nth-child(even){padding-left:20px}
+.camera-figures b{color:var(--dark-ink);font-weight:500;font-variant-numeric:tabular-nums}
+.camera video{display:block;width:100%;border-radius:14px;border:1px solid var(--dark-line)}
+.camera figcaption{font-size:12px;color:var(--dark-muted);margin-top:12px}
+
+/* wrote */
+.wrote-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:clamp(24px,3.5vw,44px);align-items:start}
+.wrote-shot{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);
+  box-shadow:0 30px 70px -50px rgba(20,27,28,.5)}
+.wrote-shot img{display:block}
+.wrote-shot figcaption{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:11px 14px;border-top:1px solid var(--line)}
+.excerpt{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;margin-bottom:14px}
+.excerpt h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  padding:12px 15px;border-bottom:1px solid var(--line);font-weight:500}
+.excerpt pre{background:none;color:var(--ink);font-size:12.5px;line-height:1.75;padding:14px 15px;border-radius:0;
+  white-space:pre-wrap;word-break:break-word}
+@media(max-width:900px){.camera-grid,.wrote-grid{grid-template-columns:minmax(0,1fr)}
+  .camera-figures div:nth-child(odd){border-right:0;padding-right:0}
+  .camera-figures div:nth-child(even){padding-left:0}
+  .camera-figures{grid-template-columns:minmax(0,1fr)}}
+
 /* kit */
 .kit-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.75fr);gap:clamp(26px,4vw,52px);align-items:start}
 .kit-list{border-top:1px solid var(--line)}
@@ -189,6 +220,7 @@ footer a:hover{color:var(--dark-ink)}
       <a class="brand" href="/Launchloom/"><span class="mark"></span>Launchloom</a>
       <div class="nav-links">
         <a href="#what">What you get</a>
+        <a href="#camera">The camera</a>
         <a href="#narrated">With sound</a>
         <a href="#kit">What it produces</a>
         <a href="#itself">Made by itself</a>
@@ -222,6 +254,33 @@ footer a:hover{color:var(--dark-ink)}
     </div>
   </div>
 </header>
+
+<section class="camera" id="camera">
+  <div class="shell">
+    <div class="camera-grid reveal">
+      <div>
+        <p class="eyebrow">The camera</p>
+        <h2>It holds a shot. It does not pulse.</h2>
+        <p>Most tools zoom in and back out on every click, which reads as nervousness.
+        Launchloom treats each interaction as a shot and holds it, moving only when the
+        next thing is far enough away to deserve a new one — eased on a C2-continuous
+        curve, so there is no snap at the cut.</p>
+        <div class="camera-figures">
+          <div><span>Click</span><b>1.17×</b></div>
+          <div><span>Fill</span><b>1.13×</b></div>
+          <div><span>Scroll</span><b>1.06×</b></div>
+          <div><span>Transition</span><b>0.82s</b></div>
+          <div><span>Dead zone</span><b>7.5%</b></div>
+          <div><span>Zoom pulse</span><b>none</b></div>
+        </div>
+      </div>
+      <figure style="margin:0">
+        <video src="camera.mp4" poster="camera-poster.jpg" autoplay muted loop playsinline preload="none"></video>
+        <figcaption>Nine seconds of the film above, cropped to the frame. Watch it settle and stay.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
 
 <section id="what">
   <div class="shell">
@@ -275,6 +334,40 @@ footer a:hover{color:var(--dark-ink)}
     <p class="narrated-note reveal">The music is a track the operator supplied; nothing here is
     generated audio. Launchloom mixes it under the voice, normalises the result once,
     and cuts it to the length of the film.</p>
+  </div>
+</section>
+
+<section id="wrote">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">Not a description</p>
+      <h2>This is what it wrote.</h2>
+      <p>The page below was generated from the same brief as the film — self-contained
+      HTML with the film embedded, no CDN and no build step. The files beside it are
+      copied out of the kit you can download.</p>
+    </div>
+    <div class="wrote-grid reveal">
+      <figure class="wrote-shot" style="margin:0">
+        <img src="generated-page.png" alt="The landing page Launchloom generated, with the film embedded" loading="lazy">
+        <figcaption>site/index.html · generated, not designed by hand</figcaption>
+      </figure>
+      <div>
+        <div class="excerpt"><h3>posts.json — the X draft</h3><pre>You built it. Now show it.
+
+Meet Launchloom. One brief, every asset.
+See it in action.
+
+https://github.com/FORIFOR/Launchloom?utm_source=x
+&amp;utm_medium=social&amp;utm_campaign=…</pre></div>
+        <div class="excerpt"><h3>captions.srt</h3><pre>2
+00:00:03,000 --&gt; 00:00:10,000
+One brief, every asset</pre></div>
+        <div class="excerpt"><h3>manifest.json — provenance</h3><pre>"capture": "upload",
+"concept": "local",
+"copy": "local-template",
+"raw_recording_in_export": false</pre></div>
+      </div>
+    </div>
   </div>
 </section>
 

@@ -131,6 +131,37 @@ section{padding:clamp(64px,9vw,118px) 0}
 .narrated-note{margin-top:26px;font-size:13px;color:var(--muted);max-width:66ch}
 @media(max-width:900px){.narrated-grid{grid-template-columns:minmax(0,1fr)}.narrated-tall{max-width:300px}}
 
+/* camera band */
+.camera{background:var(--ink);color:var(--dark-ink);padding-block:clamp(52px,7vw,86px)}
+.camera .eyebrow{color:var(--dark-muted)}
+.camera-grid{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:clamp(28px,4vw,56px);align-items:center}
+.camera h2{font-size:clamp(1.5rem,2.6vw,2.1rem);color:var(--dark-ink)}
+.camera p{color:var(--dark-muted);font-size:14.5px;margin-top:14px;max-width:46ch}
+.camera-figures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin-top:24px;border-top:1px solid var(--dark-line)}
+.camera-figures div{border-bottom:1px solid var(--dark-line);padding:11px 0;font-size:12.5px;color:var(--dark-muted);display:flex;justify-content:space-between;gap:14px}
+.camera-figures div:nth-child(odd){padding-right:20px;border-right:1px solid var(--dark-line)}
+.camera-figures div:nth-child(even){padding-left:20px}
+.camera-figures b{color:var(--dark-ink);font-weight:500;font-variant-numeric:tabular-nums}
+.camera video{display:block;width:100%;border-radius:14px;border:1px solid var(--dark-line)}
+.camera figcaption{font-size:12px;color:var(--dark-muted);margin-top:12px}
+
+/* wrote */
+.wrote-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:clamp(24px,3.5vw,44px);align-items:start}
+.wrote-shot{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);
+  box-shadow:0 30px 70px -50px rgba(20,27,28,.5)}
+.wrote-shot img{display:block}
+.wrote-shot figcaption{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:11px 14px;border-top:1px solid var(--line)}
+.excerpt{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;margin-bottom:14px}
+.excerpt h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  padding:12px 15px;border-bottom:1px solid var(--line);font-weight:500}
+.excerpt pre{background:none;color:var(--ink);font-size:12.5px;line-height:1.75;padding:14px 15px;border-radius:0;
+  white-space:pre-wrap;word-break:break-word}
+@media(max-width:900px){.camera-grid,.wrote-grid{grid-template-columns:minmax(0,1fr)}
+  .camera-figures div:nth-child(odd){border-right:0;padding-right:0}
+  .camera-figures div:nth-child(even){padding-left:0}
+  .camera-figures{grid-template-columns:minmax(0,1fr)}}
+
 /* kit */
 .kit-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.75fr);gap:clamp(26px,4vw,52px);align-items:start}
 .kit-list{border-top:1px solid var(--line)}
@@ -192,6 +223,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
       <a class="brand" href="./"><span class="mark"></span>Launchloom</a>
       <div class="nav-links">
         <a href="#what">できるもの</a>
+        <a href="#camera">カメラ</a>
         <a href="#narrated">音声つき</a>
         <a href="#kit">出力を見る</a>
         <a href="#refuse">やらないこと</a>
@@ -223,6 +255,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     </div>
   </div>
 </header>
+
+<section class="camera" id="camera">
+  <div class="shell">
+    <div class="camera-grid reveal">
+      <div>
+        <p class="eyebrow">カメラ</p>
+        <h2>ショットを保つ。脈打たない。</h2>
+        <p>多くのツールはクリックのたびに寄って戻ります。それは落ち着きのなさとして映ります。
+        Launchloomは操作ごとの注視点をショットとして保持し、次の対象が新しいショットに値するだけ
+        離れたときにだけ動きます。C2連続の曲線で補間するので、切り替わりで跳ねません。</p>
+        <div class="camera-figures">
+          <div><span>クリック</span><b>1.17×</b></div>
+          <div><span>入力</span><b>1.13×</b></div>
+          <div><span>スクロール</span><b>1.06×</b></div>
+          <div><span>遷移時間</span><b>0.82秒</b></div>
+          <div><span>不感帯</span><b>7.5%</b></div>
+          <div><span>ズームの脈動</span><b>なし</b></div>
+        </div>
+      </div>
+      <figure style="margin:0">
+        <video src="camera.mp4" poster="camera-poster.jpg" autoplay muted loop playsinline preload="none"></video>
+        <figcaption>上の映像の9秒を、枠の中だけ切り出したもの。寄ったあと、留まるところを見てください。</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
 
 <section id="what">
   <div class="shell">
@@ -275,6 +333,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     </div>
     <p class="narrated-note reveal">音楽は制作者が用意した素材です。生成された音声は使っていません。
     Launchloomがナレーションの下に敷き、全体を一度だけラウドネス正規化し、映像の長さに切ります。</p>
+  </div>
+</section>
+
+<section id="wrote">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">説明ではなく</p>
+      <h2>これが、書き出されたものです。</h2>
+      <p>下のページは、映像と同じ企画から生成されたものです。映像を埋め込んだ自己完結のHTMLで、
+      CDN依存もビルド工程もありません。横のファイルは、ダウンロードできるキットからそのまま写しています。</p>
+    </div>
+    <div class="wrote-grid reveal">
+      <figure class="wrote-shot" style="margin:0">
+        <img src="generated-page.png" alt="Launchloomが生成したランディングページ。映像が埋め込まれている" loading="lazy">
+        <figcaption>site/index.html ・ 手で作ったものではありません</figcaption>
+      </figure>
+      <div>
+        <div class="excerpt"><h3>posts.json — X向けの原稿</h3><pre>作った、その先まで。
+
+Launchloomで、一度の入力から、全部そろう。
+まずは操作動画をご覧ください。
+
+https://github.com/FORIFOR/Launchloom?utm_source=x
+&amp;utm_medium=social&amp;utm_campaign=…</pre></div>
+        <div class="excerpt"><h3>captions.srt</h3><pre>2
+00:00:03,000 --&gt; 00:00:10,333
+一度の入力から、全部そろう。</pre></div>
+        <div class="excerpt"><h3>manifest.json — 素材の出どころ</h3><pre>"capture": "upload",
+"concept": "local",
+"copy": "local-template",
+"raw_recording_in_export": false</pre></div>
+      </div>
+    </div>
   </div>
 </section>
 
