@@ -22,7 +22,15 @@ async def main(args):
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page(viewport={"width": 1440, "height": 950}, locale="en-US")
         page.on("pageerror", lambda e: report["errors"].append(str(e)))
-        page.on("requestfailed", lambda r: report["errors"].append("failed request: " + r.url))
+        def note_failure(request):
+            # Pausing a video aborts its range request; that is the browser being
+            # efficient, not the page being broken.
+            reason = (request.failure or "")
+            if "ERR_ABORTED" in reason and request.resource_type in {"media", "image"}:
+                report.setdefault("aborted", []).append(request.url.rsplit("/", 1)[-1])
+                return
+            report["errors"].append(f"failed request ({reason}): {request.url}")
+        page.on("requestfailed", note_failure)
         await page.goto(args.url, wait_until="load")
 
         await page.wait_for_function("() => document.querySelector('.hero video')?.readyState>=2", timeout=30000)

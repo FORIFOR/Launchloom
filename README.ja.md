@@ -7,6 +7,8 @@
 
 **v0.1.1 / 単一操作者向けアルファ / プロジェクト名は暫定**
 
+**[実際の制作物を見る → forifor.github.io/Launchloom](https://forifor.github.io/Launchloom/)**
+
 ![Launchloomが実際に制作したサンプルを表示している制作スタジオ](docs/screenshots/demo.gif)
 
 Astraを起動しなくても動く、独立したOSSです。企画・LP・実操作の収録・動画編集・

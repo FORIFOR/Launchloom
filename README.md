@@ -14,6 +14,8 @@ from the same plan, on your own machine.
 [![Local first](https://img.shields.io/badge/runs-on%20your%20machine-ed6847.svg)](#what-it-does-not-do)
 [![日本語](https://img.shields.io/badge/README-日本語-333.svg)](README.ja.md)
 
+**[Watch what it makes → forifor.github.io/Launchloom](https://forifor.github.io/Launchloom/)**
+
 ![Launchloom producing a film, a landing page and social drafts from one click](docs/screenshots/demo.gif)
 
 *One click. A real app is driven and recorded, a film is cut in both aspect
