@@ -21,7 +21,7 @@ from the same plan, on your own machine.
 
 *One click. A real app is driven and recorded, a film is cut in both aspect
 ratios, a landing page is written, and the posts are drafted — locally, with no
-API key.*
+API key. The build itself takes about twenty seconds; it is compressed here.*
 
 </div>
 
