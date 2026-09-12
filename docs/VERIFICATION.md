@@ -22,6 +22,8 @@ Date of this record: 2026-09-12.
 | Layer | Result | How to reproduce |
 |---|---|---|
 | **The README quick start** | A clean `git clone` of the published repository, through install, `doctor`, `serve` and `demo`, produced a launch kit without a single extra step | the commands in README.md, verbatim |
+| Package build | Wheel and sdist build, the wheel installs into a clean environment, the `launchloom` console script runs, and the bundled web/template assets are inside it | `python -m build` then install the wheel |
+| Continuous integration | Green on `ubuntu-latest` / Python 3.13 — the only evidence the suite passes outside this Mac and the container | `.github/workflows/check.yml` |
 | Test suite | **113 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
@@ -105,8 +107,8 @@ Making Launchloom's own launch film, with Launchloom, found two more:
 
 ## Not verified, or not implemented
 
-- Windows, and Linux desktop, on real hardware. Only macOS and the Linux
-  container were run.
+- Windows, and Linux desktop, on real hardware. Only macOS, the Linux container
+  and the Linux CI runner were run; no Linux desktop capture was exercised.
 - The native screen-share permission dialog on any OS.
 - Any real social account, any real post, any paid generation.
 - Team review and multi-user anything: the authentication here is one operator
