@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Launchloom — 作った、その先まで。</title>
-<meta name="description" content="一度の入力と実際の画面収録から、紹介映像・縦長の切り出し・ランディングページ・SNS投稿原稿が、同じ企画のまま仕上がります。ローカルで動くオープンソース、Apache-2.0。">
+<meta name="description" content="プロダクトの情報を一度書くだけで、紹介映像・縦長版・ランディングページ・SNSの投稿文が出てきます。素材は実際の画面収録。手元のマシンで動くオープンソース、Apache-2.0。">
 <meta name="theme-color" content="#141b1c">
 <link rel="canonical" href="https://forifor.github.io/Launchloom/ja/">
 <link rel="alternate" hreflang="en" href="https://forifor.github.io/Launchloom/">
@@ -13,12 +13,12 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:title" content="Launchloom — 作った、その先まで。">
-<meta property="og:description" content="一度の入力と実際の画面収録から、紹介映像・縦長・LP・投稿原稿までを、同じ企画のまま。自分のマシンで。">
+<meta property="og:description" content="一度書いた企画と実際の画面収録から、紹介映像・縦長版・LP・投稿文まで。全部、手元のマシンで。">
 <meta property="og:url" content="https://forifor.github.io/Launchloom/ja/">
 <meta property="og:image" content="https://forifor.github.io/Launchloom/ja/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Launchloom — 作った、その先まで。">
-<meta name="twitter:description" content="一度の入力と実際の画面収録から、紹介映像・縦長・LP・投稿原稿までを、同じ企画のまま。自分のマシンで。">
+<meta name="twitter:description" content="一度書いた企画と実際の画面収録から、紹介映像・縦長版・LP・投稿文まで。全部、手元のマシンで。">
 <meta name="twitter:image" content="https://forifor.github.io/Launchloom/ja/og.png">
 <script type="application/ld+json">
 {
@@ -27,7 +27,7 @@
   "name": "Launchloom",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS, Linux, Windows",
-  "description": "一度の入力と実際の画面収録から、紹介映像・縦長の切り出し・ランディングページ・SNS投稿原稿が、同じ企画のまま仕上がります。",
+  "description": "プロダクトの情報を一度書くだけで、紹介映像・縦長版・ランディングページ・SNSの投稿文が、実際の画面収録から出てきます。",
   "url": "https://forifor.github.io/Launchloom/ja/",
   "downloadUrl": "https://github.com/FORIFOR/Launchloom",
   "codeRepository": "https://github.com/FORIFOR/Launchloom",
@@ -56,7 +56,8 @@ img,video{max-width:100%;display:block}
 a{color:inherit}
 .shell{width:var(--shell);margin-inline:auto}
 .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
-h1,h2,h3{line-height:1.18;letter-spacing:-.02em;font-weight:600;margin:0}
+h1,h2,h3{line-height:1.18;letter-spacing:-.02em;font-weight:600;margin:0;line-break:strict}
+.b{display:inline-block}
 h1{font-size:clamp(2.6rem,7vw,4.6rem);letter-spacing:-.035em}
 h2{font-size:clamp(1.8rem,4vw,2.7rem)}
 h3{font-size:1.08rem;font-weight:600}
@@ -231,10 +232,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     <nav class="nav">
       <a class="brand" href="./"><span class="mark"></span>Launchloom</a>
       <div class="nav-links">
-        <a href="#what">できるもの</a>
+        <a href="#what">何が出るか</a>
         <a href="#camera">カメラ</a>
         <a href="#narrated">音声つき</a>
-        <a href="#kit">出力を見る</a>
+        <a href="#kit">キットを見る</a>
         <a href="#refuse">やらないこと</a>
         <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
         <a href="../" class="lang">English</a>
@@ -243,20 +244,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
 
     <div class="hero-grid">
       <div>
-        <p class="eyebrow">オープンソースの制作スタジオ</p>
+        <p class="eyebrow">オープンソースのローンチ制作ツール</p>
         <h1>作った、<br>その先まで。</h1>
-        <p class="lede">プロダクトの情報を一度入力すると、紹介映像・縦長の切り出し・ランディングページ・SNSの投稿原稿が、同じ企画と同じ素材から仕上がります。自分のマシンで動きます。</p>
+        <p class="lede">プロダクトの情報を一度書くだけで、紹介映像、縦長版、ランディングページ、SNSの投稿文が出てきます。どれも同じ企画と同じ収録から作るので、言っていることがずれません。すべて手元のマシンで動きます。</p>
         <div class="row">
           <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom">GitHubでスターする <span aria-hidden="true">★</span></a>
           <a class="btn btn-ghost" href="#start">3分で動かす</a>
         </div>
-        <p class="note">Apache-2.0 ・ Python 3.11+ ・ アカウント不要、APIキー不要、外に何も出ません</p>
+        <p class="note">Apache-2.0 ・ Python 3.11+ ・ アカウント不要、APIキー不要、データは外に出ません</p>
       </div>
       <div>
         <div class="frame">
           <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline preload="metadata" controls></video>
         </div>
-        <p class="caption">この映像は、Launchloomがスタジオ自身の画面収録から制作したものです。クローンして動かすと同じ工程が走ります。</p>
+        <p class="caption">この映像自体、Launchloomが作ったものです。スタジオを操作している画面を収録し、それをLaunchloomに読み込ませて書き出しました。手元で動かせば、同じ工程が走ります。</p>
       </div>
     </div>
   </div>
@@ -267,21 +268,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     <div class="camera-grid reveal">
       <div>
         <p class="eyebrow">カメラ</p>
-        <h2>ショットを保つ。脈打たない。</h2>
-        <p>多くのツールはクリックのたびに寄って戻ります。それは落ち着きのなさとして映ります。
-        Launchloomは操作ごとの注視点をショットとして保持し、次の対象が新しいショットに値するだけ離れたときにだけ動きます。C2連続の曲線で補間するので、切り替わりで跳ねません。</p>
+        <h2><span class="b">カメラが、</span><span class="b">むやみに動かない。</span></h2>
+        <p>クリックのたびに寄っては戻る動画は、見ていて落ち着きません。Launchloomは一度決めた画角をそのまま保ち、次の操作が十分に離れた場所で起きたときだけカメラを動かします。動かすときの軌道はなめらかにつながっているので、切り替わりで画面が跳ねることもありません。</p>
         <div class="camera-figures">
           <div><span>クリック</span><b>1.17×</b></div>
           <div><span>入力</span><b>1.13×</b></div>
           <div><span>スクロール</span><b>1.06×</b></div>
-          <div><span>遷移時間</span><b>0.82秒</b></div>
-          <div><span>不感帯</span><b>7.5%</b></div>
-          <div><span>ズームの脈動</span><b>なし</b></div>
+          <div><span>移動にかける時間</span><b>0.82秒</b></div>
+          <div><span>動かさない範囲</span><b>7.5%</b></div>
+          <div><span>寄り引きの繰り返し</span><b>なし</b></div>
         </div>
       </div>
       <figure style="margin:0">
         <video src="camera.mp4" poster="camera-poster.jpg" autoplay muted loop playsinline preload="none"></video>
-        <figcaption>上の映像の9秒を、枠の中だけ切り出したもの。寄ったあと、留まるところを見てください。</figcaption>
+        <figcaption>上の映像から9秒ぶんを、枠の中だけ抜き出しています。寄ったあと、そのまま止まっているのが分かります。</figcaption>
       </figure>
     </div>
   </div>
@@ -291,23 +291,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
   <div class="shell">
     <div class="section-head reveal">
       <p class="eyebrow">一度の入力から</p>
-      <h2>公開に必要なものが、そろって出てくる。</h2>
-      <p>制作画面のモックではありません。実際のMP4、実際のHTML、実際の原稿と、全ファイルのSHA-256が入ったマニフェストが出力されます。</p>
+      <h2><span class="b">公開に必要なものが、</span><span class="b">そろって出てくる。</span></h2>
+      <p>画面のモックではありません。再生できるMP4、そのまま置けるHTML、そのまま投稿できる文章、そして全ファイルのSHA-256を記録したマニフェストが出てきます。</p>
     </div>
     <div class="grid g3">
       <article class="card reveal"><span class="num">01</span><h3>実物を映した紹介映像</h3>
-        <p>1280×720、H.264。自分のプロダクトを実際に操作した収録から組み立てます。作り物の画面でも、ストック映像でもありません。</p></article>
-      <article class="card reveal"><span class="num">02</span><h3>別に組んだ縦長</h3>
-        <p>720×1280を独立したレイアウトで構成します。横長を中央で切り抜いて祈るのではありません。</p></article>
+        <p>1280×720、H.264。自分のプロダクトを実際に操作した収録から組み立てます。ダミー画面でも、ストック映像でもありません。</p></article>
+      <article class="card reveal"><span class="num">02</span><h3>組み直した縦長版</h3>
+        <p>720×1280は専用のレイアウトで組み直します。横長を真ん中で切り抜いただけ、にはしません。</p></article>
       <article class="card reveal"><span class="num">03</span><h3>ランディングページ</h3>
-        <p>映像を埋め込んだ自己完結のHTML・CSS・JS。CDN依存もビルド工程もフレームワークもありません。どこにでも置けます。</p></article>
-      <article class="card reveal"><span class="num">04</span><h3>直せる投稿原稿</h3>
-        <p>X、LinkedIn、Threads、Bluesky、YouTube、Instagram、TikTok向けに、
-        UTM付きリンクと文字数検査つきで。</p></article>
+        <p>映像を埋め込んだHTML・CSS・JSが一式で出ます。CDNもビルドもフレームワークも使っていないので、どこに置いても動きます。</p></article>
+      <article class="card reveal"><span class="num">04</span><h3>手を入れられる投稿文</h3>
+        <p>X、LinkedIn、Threads、Bluesky、YouTube、Instagram、TikTokそれぞれの体裁で。UTM付きのリンクと、文字数の検査つきです。</p></article>
       <article class="card reveal"><span class="num">05</span><h3>字幕とポスター</h3>
-        <p>画面上の見出しをSRTで（音声の書き起こしではありません）。横長・縦長それぞれの静止画も。</p></article>
-      <article class="card reveal"><span class="num">06</span><h3>渡せる形の一式</h3>
-        <p>すべてをまとめたZIP、素材の出どころを記録したマニフェスト、そして意図的に除外された非公開の根拠メモ。</p></article>
+        <p>画面に出る見出しをSRTにしたもの（音声の書き起こしではありません）。横長・縦長それぞれのサムネイル用静止画も付きます。</p></article>
+      <article class="card reveal"><span class="num">06</span><h3>そのまま渡せる一式</h3>
+        <p>全部をまとめたZIPと、素材の出どころを記録したマニフェスト。社外に出せない根拠メモと生の収録は、意図的に入れていません。</p></article>
     </div>
   </div>
 </section>
@@ -316,8 +315,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
   <div class="shell">
     <div class="section-head reveal">
       <p class="eyebrow">音声つき</p>
-      <h2>28秒の、話す版。</h2>
-      <p>同じ企画、同じ工程に、ナレーションと音楽を重ねたもの。横長と縦長を同じ書き出しで作ります。音を出して再生してください。</p>
+      <h2><span class="b">ナレーション付きの、</span><span class="b">28秒版。</span></h2>
+      <p>同じ企画・同じ工程に、ナレーションと音楽を重ねたものです。横長と縦長を一度の書き出しで作ります。音を出して再生してみてください。</p>
     </div>
     <div class="narrated-grid reveal">
       <figure class="frame narrated-wide">
@@ -326,11 +325,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
       </figure>
       <figure class="frame narrated-tall">
         <video src="intro-vertical.mp4" poster="intro-vertical-poster.jpg" controls playsinline preload="none"></video>
-        <figcaption>9:16 ・ 別に組んだ構成</figcaption>
+        <figcaption>9:16 ・ 組み直した構成</figcaption>
       </figure>
     </div>
-    <p class="narrated-note reveal">音楽は制作者が用意した素材です。生成された音声は使っていません。
-    Launchloomがナレーションの下に敷き、全体を一度だけラウドネス正規化し、映像の長さに切ります。</p>
+    <p class="narrated-note reveal">音楽はこちらで用意した既存の音源です。生成した音は使っていません。Launchloomはそれをナレーションの下に敷き、全体の音量を一度だけそろえて、映像の長さに合わせて切ります。</p>
   </div>
 </section>
 
@@ -338,17 +336,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
   <div class="shell">
     <div class="section-head reveal">
       <p class="eyebrow">説明ではなく</p>
-      <h2>これが、書き出されたものです。</h2>
-      <p>下のページは、映像と同じ企画から生成されたものです。映像を埋め込んだ自己完結のHTMLで、
-      CDN依存もビルド工程もありません。横のファイルは、ダウンロードできるキットからそのまま写しています。</p>
+      <h2><span class="b">これが、</span><span class="b">実際に書き出された</span><span class="b">ページです。</span></h2>
+      <p>下のページは、映像とまったく同じ企画から生成されたものです。映像を埋め込んだHTML一枚で、CDNもビルドも要りません。隣のファイルは、下でダウンロードできるキットからそのまま抜き出したものです。</p>
     </div>
     <div class="wrote-grid reveal">
       <figure class="wrote-shot" style="margin:0">
         <img src="generated-page.png" alt="Launchloomが生成したランディングページ。映像が埋め込まれている" loading="lazy">
-        <figcaption>site/index.html ・ 手で作ったものではありません</figcaption>
+        <figcaption>site/index.html ・ 人が書いたものではありません</figcaption>
       </figure>
       <div>
-        <div class="excerpt"><h3>posts.json — X向けの原稿</h3><pre>作った、その先まで。
+        <div class="excerpt"><h3>posts.json — X向けの投稿文</h3><pre>作った、その先まで。
 
 Launchloomで、一度の入力から、全部そろう。
 まずは操作動画をご覧ください。
@@ -371,24 +368,24 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
   <div class="shell">
     <div class="section-head reveal">
       <p class="eyebrow">インストール不要</p>
-      <h2>出てくるものを、そのまま見る。</h2>
-      <p>このページの上にある映像を出した、そのキットです。「こういうものが出ます」という見本ではありません。開いて中身を読んでください。</p>
+      <h2><span class="b">出てくるものを、</span><span class="b">そのまま確かめる。</span></h2>
+      <p>このページの上にある映像を書き出したときの、そのキットそのものです。「こういうものが出ます」という見本ではありません。開いて中を読んでみてください。</p>
     </div>
     <div class="kit-grid reveal">
       <div class="kit-list">
         <div class="kit-row"><span>landscape.mp4</span><b>1280×720 ・ 27秒 ・ H.264</b></div>
-        <div class="kit-row"><span>portrait.mp4</span><b>720×1280 ・ 27秒 ・ 別構成</b></div>
+        <div class="kit-row"><span>portrait.mp4</span><b>720×1280 ・ 27秒 ・ 組み直した構成</b></div>
         <div class="kit-row"><span>site/</span><b>index.html、CSS、JS、映像、ポスター</b></div>
-        <div class="kit-row"><span>posts.json ・ social-copy.md</span><b>SNS別の原稿とUTM付きリンク</b></div>
+        <div class="kit-row"><span>posts.json ・ social-copy.md</span><b>SNS別の投稿文とUTM付きリンク</b></div>
         <div class="kit-row"><span>captions.srt</span><b>画面上の見出し。書き起こしではありません</b></div>
-        <div class="kit-row"><span>storyboard.json ・ campaign.json</span><b>構成と、公開してよい製品情報</b></div>
-        <div class="kit-row"><span>qa.json</span><b>自動検査と、その限界の明記</b></div>
+        <div class="kit-row"><span>storyboard.json ・ campaign.json</span><b>映像の構成と、公開してよい製品情報</b></div>
+        <div class="kit-row"><span>qa.json</span><b>自動検査の結果と、それでは分からないこと</b></div>
         <div class="kit-row"><span>manifest.json</span><b>全15ファイルのSHA-256と出どころ</b></div>
       </div>
       <div class="kit-aside">
         <a class="btn btn-primary" href="launch-kit.zip" download>キットをダウンロード ・ 2.2 MB</a>
-        <p>機能の根拠として書いた非公開メモと、生の画面収録は、意図的に<em>入っていません</em>。
-        <code>manifest.json</code> にそう明記され、書き出し時に検査もされます。</p>
+        <p>機能の根拠として書いた社外秘のメモと、生の画面収録は、意図的に<em>入っていません</em>。
+        <code>manifest.json</code> にその旨が書かれ、書き出しのたびに検査されます。</p>
         <p><a href="https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATION.md">何をどこまで検証したか →</a></p>
       </div>
     </div>
@@ -398,14 +395,13 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
 <section class="dogfood" id="itself">
   <div class="shell">
     <div class="section-head reveal">
-      <p class="eyebrow">自分で自分を撮る</p>
-      <h2>上の映像が、その証拠です。</h2>
-      <p>スタジオが一通り動くところを収録し、その収録をLaunchloomに取り込んで、自分の紹介映像を作らせました。その過程で、本物のバグが2つ出ました。自分の道具を自分で使う意味は、そこにあります。</p>
+      <p class="eyebrow">自分の道具で、自分を撮る</p>
+      <h2><span class="b">上の映像が、</span><span class="b">その結果です。</span></h2>
+      <p>スタジオを一通り操作するところを収録し、その収録をLaunchloomに読み込ませて、自分自身の紹介映像を作らせました。その過程で、実際のバグが2つ見つかりました。自分の道具を自分で使う意味は、そこにあります。</p>
     </div>
     <div class="reveal">
-      <p class="bug"><b>日本語の行頭に「、」「。」が来ていた。</b>日本語で書き出した映像すべてが、この道具は自分が書いている言語を知らない、と告げていました。いまは禁則処理を適用し、
-      <code>MP4</code> を <code>MP</code> と <code>4</code> に割ることもなくなりました。</p>
-      <p class="bug"><b>縦長が、見せるはずのUIを潰していた。</b>16:10のデスクトップ収録を正方形に近い枠へ押し込んでいたため、証拠にするはずの画面が読めませんでした。いまは収録自身の比率を保ち、ほぼ全幅で見せます。</p>
+      <p class="bug"><b>日本語の行頭に「、」「。」が来ていた。</b>日本語で書き出した映像はどれも、この道具は自分が扱っている言語を分かっていない、と言っているようなものでした。いまは禁則処理を入れてあります。<code>MP4</code> が <code>MP</code> と <code>4</code> に割れることもなくなりました。</p>
+      <p class="bug"><b>縦長が、いちばん見せたい画面を潰していた。</b>16:10のデスクトップ収録を正方形に近い枠へ押し込んでいたため、見せたい画面が読めなくなっていました。いまは収録そのものの比率を保ったまま、ほぼ全幅で見せます。</p>
     </div>
     <div class="vertical-grid reveal" style="margin-top:44px">
       <div class="vertical-frame">
@@ -413,7 +409,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
       </div>
       <div>
         <h3 style="color:var(--dark-ink)">縦長は、切り抜きではなく別の映像です。</h3>
-        <p style="color:var(--dark-muted);font-size:14.5px;margin-top:12px">見出し、証拠の枠、キャプションを9:16用に別々に配置します。同じ構成から同じ書き出しで作るので、言っていることは常に一致します。</p>
+        <p style="color:var(--dark-muted);font-size:14.5px;margin-top:12px">見出し、画面を見せる枠、キャプションを、9:16用に配置し直します。元にする構成は横長と同じなので、両者で言っていることがずれることはありません。</p>
       </div>
     </div>
   </div>
@@ -423,18 +419,17 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
   <div class="shell">
     <div class="section-head reveal">
       <p class="eyebrow">書き出す前に</p>
-      <h2>読んでから、書き出す。</h2>
-      <p>収録が終わったところで制作が止まります。この時点で、映像は書き出されておらず、生成AIにも何も送っていません。実際に収録された画面の1コマと、すべての文言を見て、直してから承認します。</p>
+      <h2><span class="b">読んでから、</span><span class="b">書き出す。</span></h2>
+      <p>収録が終わった時点で、制作はいったん止まります。まだ映像は書き出されていませんし、生成AIにも何も送っていません。実際に収録された画面の1コマと、これから使われる文言をすべて確認し、直したうえで承認します。</p>
     </div>
     <div class="frame reveal" style="border-color:var(--line);box-shadow:0 30px 70px -45px rgba(20,27,28,.5)">
       <img src="review-gate.png" alt="Launchloomの構成レビュー画面。収録の1コマと、各シーンの見出し・補足・字幕が編集できる" loading="lazy">
     </div>
     <div class="grid g2 reveal" style="margin-top:26px">
-      <article class="card"><h3>編集は型付きの差分</h3>
-        <p>シーンの役割と、どの承認済み機能を指しているかは構造として固定です。言い回しを直しても、別の主張に付け替わることはありません。変更は <code>operator-edited</code> として記録されます。</p></article>
+      <article class="card"><h3>直しても、構造は壊れない</h3>
+        <p>各シーンの役割と、どの承認済み機能を指しているかは固定されています。言い回しを直しても、別の主張にすり替わることはありません。直した箇所は <code>operator-edited</code>  として記録されます。</p></article>
       <article class="card"><h3>1行だけ直す</h3>
-        <p>完成したキャンペーンは、手元の素材のまま作り直せます。CTAの言い回しを変えて
-        15秒ほどで再出力。再収録も、生成AIへの再依頼も発生しません。</p></article>
+        <p>一度仕上げたキャンペーンは、手元の素材のまま作り直せます。CTAの言い回しを変えて、15秒ほどで書き出し直し。録り直しも、生成AIへの再依頼も起きません。</p></article>
     </div>
   </div>
 </section>
@@ -442,21 +437,21 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
 <section class="refuse" id="refuse">
   <div class="shell">
     <div class="section-head reveal">
-      <p class="eyebrow">正直な部分</p>
+      <p class="eyebrow">はっきりさせておきたいこと</p>
       <h2 style="color:var(--dark-ink)">Launchloomがやらないこと。</h2>
-      <p style="color:var(--dark-muted)">多くの制作ツールは、すごく見えるものを喜んで作ります。これは、誰も確かめていないことを主張しないために作られています。</p>
+      <p style="color:var(--dark-muted)">この手のツールは、見栄えのするものなら喜んで作ってしまいます。Launchloomは逆で、誰も確かめていないことを言わないように作ってあります。</p>
     </div>
     <div class="refuse-list">
       <div class="refuse-item reveal"><span>✕</span><div><h3>機能をでっち上げる</h3>
-        <p>映像に出る主張はすべて企画から来ます。それぞれに、あなたが書いた根拠メモが付いています。生成映像はラベル付きのコンセプト部分だけで、機能が存在する証拠には決してなりません。</p></div></div>
+        <p>映像に出てくる主張は、すべてあなたが書いた企画から来ます。ひとつずつに根拠メモが付きます。生成した映像は、そうと明記した冒頭のイメージ部分だけで、機能が存在する証拠にはなりません。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>勝手に投稿する</h3>
-        <p>実投稿は既定で無効です。キャンペーンを公開可能にするのは完成とは別の判断で、投稿ごとに、原稿・メディアハッシュ・アカウント・日時に結び付いた承認が必要です。</p></div></div>
-      <div class="refuse-item reveal"><span>✕</span><div><h3>受付を公開と言い張る</h3>
-        <p>Postizから実際の状態を読み戻します。送信がタイムアウトしたらそう言い、盲目的に再送はしません。何が実在するかを見せて、判断はあなたに委ねます。タイムアウトは、どちらの証拠にもならないからです。</p></div></div>
+        <p>実際の投稿は既定で無効です。キャンペーンを公開できる状態にするのは、作り終えることとは別の判断です。投稿ごとに、その文面・メディア・アカウント・日時に結び付いた承認が要ります。</p></div></div>
+      <div class="refuse-item reveal"><span>✕</span><div><h3>「送れた」を「出た」と言い張る</h3>
+        <p>投稿が本当に存在するかどうかは、Postizから読み直して確かめます。送信がタイムアウトしたらそう表示し、やみくもに再送はしません。実際に何が存在するかを見せたうえで、判断はあなたに委ねます。タイムアウトは、出た証拠にも出ていない証拠にもならないからです。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>エンゲージメントを稼ぐ</h3>
-        <p>大量返信も、DMも、買った反応も、アカウント量産もありません。実装していませんし、する予定もなく、追加するプルリクエストはお断りします。</p></div></div>
+        <p>一括返信も、DMも、買った反応も、アカウントの量産もありません。実装していませんし、する予定もありません。追加するプルリクエストはお断りします。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>持っていない数字を埋める</h3>
-        <p>取得できない指標は取得できないままです。イベント数は人数ではありませんし、判断に足りる実測がないときは、ないと表示します。</p></div></div>
+        <p>取得できない指標は、取得できないままにします。イベント数は人数ではありませんし、判断できるだけのデータがないときは、ないと表示します。</p></div></div>
     </div>
   </div>
 </section>
@@ -466,10 +461,9 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
     <div class="start-grid">
       <div class="reveal">
         <p class="eyebrow">3分</p>
-        <h2>クローンして、何ができるか見る。</h2>
-        <p style="color:var(--muted);margin-top:16px">アカウントもAPIキーも登録も不要です。サンプルは、リポジトリに同梱された小さなタスクアプリを実際に操作・収録して、キット一式を返します。</p>
-        <p style="color:var(--muted)">必要なのは Python 3.11以降、FFmpeg、Chromium。
-        macOSとDockerは実機で確認済みです。何をどこまで検証したかは検証記録に分けて書いてあります。</p>
+        <h2><span class="b">クローンして、</span><span class="b">動かしてみる。</span></h2>
+        <p style="color:var(--muted);margin-top:16px">アカウントもAPIキーも登録も要りません。サンプルは、リポジトリに同梱した小さなタスク管理アプリを実際に操作して収録し、キット一式を書き出します。</p>
+        <p style="color:var(--muted)">必要なのは Python 3.11以降、FFmpeg、Chromium の3つだけです。macOSとDockerは実機で確認しています。どこまで確かめたかは、検証記録に分けて書いてあります。</p>
         <div class="row" style="margin-top:26px">
           <a class="btn btn-dark" href="https://github.com/FORIFOR/Launchloom">ソースを読む</a>
           <a class="btn btn-ghost" style="border-color:var(--line);color:var(--ink)" href="https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATION.md">実際に検証した範囲</a>
@@ -495,19 +489,18 @@ python -m launchloom serve</pre>
     <div class="help-grid">
       <div class="reveal">
         <p class="eyebrow">お願いしたいこと</p>
-        <h2>まだ、一人のMacでしか動かしていません。</h2>
-        <p style="color:var(--muted);margin-top:16px">それと、2つのアーキテクチャのLinuxコンテナと
-        CIランナー。それで全部です。Windowsでは一度も起動していません。実際のSNSアカウントでの投稿も、まだ一度もありません。どちらも私の手元では埋められません。自分の環境で動かした報告が一つ届くほうが、私がもう一週間書き続けるより価値があります。</p>
+        <h2><span class="b">まだ、</span><span class="b">私のMac1台でしか</span><span class="b">動かしていません。</span></h2>
+        <p style="color:var(--muted);margin-top:16px">あとはLinuxコンテナ（amd64とarm64）とCIだけです。Windowsでは一度も起動していません。実際のSNSアカウントに投稿したこともありません。どちらも、私の手元だけでは確かめようがありません。ほかの環境で動かした報告が1つ届くほうが、私がもう1週間コードを書き続けるより価値があります。</p>
         <ul>
-          <li><b>20秒です。</b> <code>selftest</code> が一時ディレクトリの中で本物のキットを作り、出力を検査します。アカウントもAPIキーもネットワークも不要で、他の場所には一切触れません。</li>
-          <li><b>ファイルは1つ。</b> <code>launchloom-selftest.txt</code> が書き出されます。それを貼るだけで報告は完了で、ご自身で状況を説明する必要はありません。</li>
-          <li><b>失敗した報告のほうが役に立ちます。</b> これまで直した不具合のうち10件は、テストでは見えず、実際に動かした瞬間に明らかになったものでした。</li>
+          <li><b>20秒で終わります。</b> <code>selftest</code>  は一時ディレクトリの中で実際にキットを作り、出来たものを検査します。アカウントもAPIキーもネットワークも不要で、ほかの場所には一切触れません。</li>
+          <li><b>貼るのは1ファイルだけ。</b> <code>launchloom-selftest.txt</code>  が書き出されます。それを貼れば報告は完了です。状況をご自身で説明していただく必要はありません。</li>
+          <li><b>うまくいかなかった報告のほうが助かります。</b> これまで直した不具合のうち10件は、テストでは見つからず、実際に動かした瞬間に分かったものでした。</li>
         </ul>
         <div class="row" style="margin-top:26px">
           <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom/issues/2">お願いの全文を読む</a>
           <a class="btn btn-ghost" style="border-color:var(--line);color:var(--ink)" href="https://github.com/FORIFOR/Launchloom/blob/main/TESTING.md">TESTING.md</a>
         </div>
-        <p class="note" style="margin-top:14px">何も入れたくない、Dockerもない場合は<a href="https://codespaces.new/FORIFOR/Launchloom" style="color:var(--ink)">Codespaceで開く</a>。環境が自動で用意され、実行するコマンドが表示されます。</p>
+        <p class="note" style="margin-top:14px">何もインストールしたくなくて、Dockerもない場合は<a href="https://codespaces.new/FORIFOR/Launchloom" style="color:var(--ink)">Codespaceで開く</a>方法もあります。環境が自動で用意され、実行するコマンドが表示されます。</p>
       </div>
       <div class="code-wrap reveal">
         <button class="copy" type="button" data-for="snippet-help">コピー</button>
@@ -528,7 +521,7 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
   <div class="shell foot">
     <div>
       <a class="brand" href="https://github.com/FORIFOR/Launchloom" style="color:var(--dark-ink)"><span class="mark"></span>Launchloom</a>
-      <p style="margin:12px 0 0">いいものを、見過ごされないものに。</p>
+      <p style="margin:12px 0 0">作ったものが、見過ごされないように。</p>
     </div>
     <div style="display:flex;gap:24px;flex-wrap:wrap">
       <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
