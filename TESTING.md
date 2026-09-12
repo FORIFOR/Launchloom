@@ -37,7 +37,9 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
   python -m launchloom selftest
 ```
 
-About twenty seconds, then copy the report out of the terminal.
+The image carries both `linux/amd64` and `linux/arm64`, so this runs on an Intel
+box and on an Apple Silicon Mac alike — both were pulled and run before this was
+written. About twenty seconds, then copy the report out of the terminal.
 
 Two honest caveats. `CHROMIUM_NO_SANDBOX=1` turns off Chromium's own sandbox,
 which is acceptable here because the selftest only ever loads HTML the image
@@ -49,11 +51,12 @@ thing I most need to know.
 
 ## What would help most, in order
 
-1. **Windows.** Never run. Fonts, FFmpeg on PATH, the Playwright browser, and
-   whether the film comes out with readable Japanese and Latin text.
-2. **A Linux desktop.** The container works; a desktop session with real fonts
-   and a real screen-share permission dialog has not been tried.
-3. **A real publish through Postiz**, on an account you own. The integration is
+1. **[Windows](https://github.com/FORIFOR/Launchloom/issues/5).** Never run. Fonts, FFmpeg on PATH, the Playwright
+   browser, and whether the film comes out with readable Japanese and Latin text.
+2. **[A Linux desktop](https://github.com/FORIFOR/Launchloom/issues/6).** The container works on both
+   architectures; a desktop session with real fonts and a real screen-share
+   permission dialog has not been tried.
+3. **[A real publish through Postiz](https://github.com/FORIFOR/Launchloom/issues/7)**, on an account you own. The integration is
    implemented and contract-tested, but no live social account has ever been
    used. The receipt, and the remote state read back afterwards, are what I have
    never seen. Live publishing is off by default and every post needs an explicit
@@ -79,3 +82,12 @@ whatever the terminal printed. `python -m launchloom doctor` on its own is also
 useful — it launches the browser and resolves the render fonts rather than
 checking that files exist, which is how several environment problems have turned
 out to be visible before a build ever starts.
+
+## If you would rather write code
+
+Two issues are scoped so that nothing else has to be understood first:
+
+- [Add a third language to the studio](https://github.com/FORIFOR/Launchloom/issues/3) — one table in one file,
+  with three tests already guarding it.
+- [A fourth visual direction for the film](https://github.com/FORIFOR/Launchloom/issues/4) — ground, ink and
+  structure, not an accent colour.

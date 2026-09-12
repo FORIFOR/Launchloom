@@ -60,6 +60,13 @@ async def main(args):
             "() => document.documentElement.scrollWidth<=innerWidth")
         report["checks"]["outbound_links_resolve"] = await page.evaluate(
             "() => [...document.querySelectorAll('a[href^=\"http\"]')].every(a=>a.href.includes('github'))")
+        # Every copy button reads a <pre> by id. A typo there fails silently — the
+        # button just does nothing — so the wiring is checked rather than the click.
+        report["checks"]["copy_buttons_wired"] = await page.evaluate(
+            "() => { const b=[...document.querySelectorAll('.copy')];"
+            " return b.length>0 && b.every(x=>document.getElementById(x.dataset.for)); }")
+        report["checks"]["tester_ask_present"] = await page.evaluate(
+            "() => !!document.querySelector('#help a[href*=\"/issues/2\"]')")
         report["checks"]["language_switch_present"] = await page.locator("a.lang").count() == 1
         other = await page.locator("a.lang").get_attribute("href")
         landing = await page.request.get(args.url.rstrip("/") + "/" + other.strip("./"))

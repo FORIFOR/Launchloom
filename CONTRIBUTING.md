@@ -49,16 +49,16 @@ the moment a film was rendered and watched. Watch the film.
 
 ## What is especially welcome
 
-- **A third language.** The studio renders Japanese and translates it at runtime
+- **[A third language](https://github.com/FORIFOR/Launchloom/issues/3).** The studio renders Japanese and translates it at runtime
   from one table in `launchloom/web/i18n.js`; adding a language means adding a
   table beside `EN`, and nothing else. Three tests guard it: keys must be unique,
   values must not still be Japanese or contain HTML entities, and every key must
   correspond to a string the studio actually produces.
-- **A real Postiz publish on an account you own**, with the receipt and the
+- **[A real Postiz publish on an account you own](https://github.com/FORIFOR/Launchloom/issues/7)**, with the receipt and the
   remote state read back. This is the largest unverified path in the project.
-- **Windows and Linux desktop verification**, including fonts and the native
+- **Windows ([#5](https://github.com/FORIFOR/Launchloom/issues/5)) and Linux desktop ([#6](https://github.com/FORIFOR/Launchloom/issues/6)) verification**, including fonts and the native
   screen-share permission dialog.
-- **Visual directions.** Three exist (`editorial`, `spotlight`, `grid`) in
+- **[Visual directions](https://github.com/FORIFOR/Launchloom/issues/4).** Three exist (`editorial`, `spotlight`, `grid`) in
   `launchloom/rendering.py`. A fourth should change ground, ink and structure —
   not just an accent colour.
 - **Typography for languages that are not Japanese or English.** Line breaking
