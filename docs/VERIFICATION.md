@@ -21,6 +21,7 @@ Date of this record: 2026-09-12.
 
 | Layer | Result | How to reproduce |
 |---|---|---|
+| **The README quick start** | A clean `git clone` of the published repository, through install, `doctor`, `serve` and `demo`, produced a launch kit without a single extra step | the commands in README.md, verbatim |
 | Test suite | **113 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
