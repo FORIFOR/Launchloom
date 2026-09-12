@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "launchloom"
+version = "0.1.1"
+description = "From a working product to a launch kit: film, site, capture, approved distribution."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+authors = [{name = "Launchloom contributors"}]
+dependencies = [
+  "fastapi>=0.128,<0.129", "uvicorn>=0.48,<0.49", "pydantic>=2.13,<3",
+  "httpx>=0.28,<0.29", "Pillow>=12.3,<13", "playwright>=1.57,<1.58", "numpy>=2.3,<3"
+]
+[project.optional-dependencies]
+dev = ["pytest>=9,<10"]
+[project.scripts]
+launchloom = "launchloom.cli:main"
+[tool.setuptools.packages.find]
+include = ["launchloom*"]
+[tool.setuptools.package-data]
+launchloom = ["web/*", "templates/*"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]

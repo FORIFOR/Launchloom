@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.launchloom/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+*.sqlite3*
+*.render.log

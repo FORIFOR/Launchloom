@@ -1,0 +1,23 @@
+{
+  "mode": "offline component snapshots",
+  "campaign_id": "c6b6d8e6d24d4f18",
+  "checks": {
+    "video_frame_decoded": true,
+    "video_playback_advances": true,
+    "real_video_metadata": {
+      "width": 1280,
+      "height": 720,
+      "duration": 16.875
+    },
+    "portrait_toggle": true,
+    "social_draft_cards": 3,
+    "no_invented_impressions": true,
+    "studio_mobile_no_overflow": true,
+    "create_form_seven_channels": true,
+    "landing_has_three_features": true,
+    "landing_contains_video": true,
+    "footer_responds_to_pointer": true,
+    "landing_mobile_no_overflow": true
+  },
+  "page_errors": []
+}

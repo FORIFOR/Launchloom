@@ -1,0 +1,23 @@
+{
+  "capture_mode": "url",
+  "capture_url": "http://localhost:3000",
+  "steps": [
+    {
+      "action": "click",
+      "selector": "#try-demo",
+      "value": "",
+      "label": "実際に試す",
+      "milliseconds": 1500,
+      "delta_y": 450
+    }
+  ],
+  "redact_selectors": [],
+  "allow_site_writes": false,
+  "staging_confirmed": true,
+  "film_provider": "local",
+  "provider_input": {},
+  "estimated_cost_usd": 0,
+  "external_data_consent": false,
+  "llm_plan": false,
+  "quality": "hd"
+}

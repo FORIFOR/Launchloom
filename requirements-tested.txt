@@ -1,0 +1,9 @@
+# Versions actually exercised in the delivered development environment.
+fastapi==0.128.2
+uvicorn==0.48.0
+pydantic==2.13.4
+httpx==0.28.1
+Pillow==12.3.0
+playwright==1.57.0
+numpy==2.3.5
+pytest==9.0.2

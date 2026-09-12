@@ -1,0 +1,19 @@
+services:
+  studio:
+    build: .
+    ports:
+      - "127.0.0.1:8787:8787"
+    env_file:
+      - .env
+    environment:
+      LAUNCHLOOM_HOST: 0.0.0.0
+      LAUNCHLOOM_DATA: /data
+    volumes:
+      - studio-data:/data
+    shm_size: 1gb
+    init: true
+    restart: unless-stopped
+    # Keep browser sandbox enabled. Some Docker hosts require a suitable
+    # user-namespace/seccomp setup; the container definition is not a sandbox.
+volumes:
+  studio-data:

@@ -1,0 +1,36 @@
+{
+  "name": "Orbit",
+  "tagline": "大切なことに、余白を。",
+  "audience": "ひとりで考え、つくる人へ",
+  "description": "思いついたことを書き留め、次の一歩を選ぶ。Orbitは、必要なことだけが静かに並ぶ、小さな作業スペースです。",
+  "product_url": "",
+  "is_sample": true,
+  "accent": "#ed6847",
+  "language": "ja",
+  "goal": "signups",
+  "channels": [
+    "x",
+    "linkedin",
+    "threads"
+  ],
+  "features": [
+    {
+      "title": "思いつきを、その場で。",
+      "detail": "入力したノートを、ワンクリックで一覧に追加できます。",
+      "evidence": "Bundled demo-app.js: add() inserts a visible task.",
+      "approved": true
+    },
+    {
+      "title": "終わったことが、見える。",
+      "detail": "完了ボタンを押すと、チェックと打ち消し線が表示されます。",
+      "evidence": "Bundled demo-app.js: paint() renders the task completion state.",
+      "approved": true
+    },
+    {
+      "title": "次の一歩だけに、集中。",
+      "detail": "フォーカスモードで、未完了のノートをひとつだけ表示します。",
+      "evidence": "Bundled demo-app.js: focus-button displays the first incomplete task.",
+      "approved": true
+    }
+  ]
+}
