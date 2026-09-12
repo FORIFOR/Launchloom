@@ -140,6 +140,24 @@ rows are marked as unverified rather than quietly implied.
 Do not expose this alpha to the internet as a multi-user service. The
 authentication is one operator with one token.
 
+## Using it at work
+
+The local path is free, Apache-2.0, and always will be — your machine, your keys,
+your footage, no account anywhere.
+
+If you are looking at this for a team or a product, the parts that are
+deliberately *not* here are the ones a company usually needs: accounts and team
+review, hosted rendering, brand continuity across campaigns, managed
+distribution, and the operational side of publishing on a schedule. Those are
+written up as P2–P4 in [the roadmap](docs/ROADMAP.md), and they are open
+questions rather than a secret paid edition.
+
+If you want any of it — or you want to use Launchloom commercially and need
+something the licence does not obviously cover — say so in
+[Discussions](https://github.com/FORIFOR/Launchloom/discussions). Concrete
+requirements from someone with a real launch to run are worth more than a
+roadmap written in the dark.
+
 ## Contributing
 
 Issues and pull requests are welcome, especially: a real Postiz publish on a
