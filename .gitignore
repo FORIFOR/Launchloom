@@ -12,3 +12,7 @@ dist/
 .DS_Store
 *.sqlite3*
 *.render.log
+
+# Any studio data directory, whatever it is called.
+.launchloom*/
+check*/
