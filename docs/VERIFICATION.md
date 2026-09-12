@@ -21,7 +21,7 @@ Date of this record: 2026-09-12.
 
 | Layer | Result | How to reproduce |
 |---|---|---|
-| **The README quick start** | A clean `git clone` of the published repository, through install, `doctor`, `serve` and `demo`, produced a launch kit without a single extra step | the commands in README.md, verbatim |
+| **A stranger's first three minutes** | A clean `git clone` of the published repository, installed with the README's commands, opened in an English browser: the access dialog, the studio, all five tabs, the storyboard and the post drafts were English with no Japanese left, one click produced a real 1280×720 film in 14.5 seconds and a launch kit, and no page errored | the commands in README.md, then press *Try the sample* |
 | Package build | Wheel and sdist build, the wheel installs into a clean environment, the `launchloom` console script runs, and the bundled web/template assets are inside it | `python -m build` then install the wheel |
 | Continuous integration | Green on `ubuntu-latest` / Python 3.13 — the only evidence the suite passes outside this Mac and the container | `.github/workflows/check.yml` |
 | English output | A brief with `language: "en"` produced an English plan, film, post copy and a landing page with `lang="en"` and no Japanese characters anywhere in it | build a campaign with `"language": "en"` |
