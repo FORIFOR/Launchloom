@@ -257,7 +257,7 @@ Chromiumが使うuser namespaceの呼び出しを塞ぐため、Chromium用の�
 
 ```bash
 python -m pip install -e '.[dev]'
-python -m pytest -q                 # 109 passed
+python -m pytest -q                 # 113 passed
 python -m compileall -q launchloom
 
 # 制作後、実ブラウザと実ファイルで確認する

@@ -21,7 +21,7 @@ Date of this record: 2026-09-12.
 
 | Layer | Result | How to reproduce |
 |---|---|---|
-| Test suite | **109 passed**, 0 failed | `python -m pytest -q` |
+| Test suite | **113 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
 | Environment readiness | Browser launches, both fonts cover Japanese | `python -m launchloom doctor` |
@@ -30,6 +30,8 @@ Date of this record: 2026-09-12.
 | **Imported footage** | An MP4/WebM upload with an operator event track produced the same camera work and on-screen labels | Create a campaign with `capture_mode: upload` |
 | Capture trimming | 12s source, 2.0s–6.0s range → 10s film instead of 18s | `tests/test_providers_and_media.py` |
 | Music + narration | Both uploaded, mixed to one AAC track cut to the film's length, music held under the voice | Upload 音楽 and ナレーション on a campaign |
+| **Launchloom filming itself** | The studio was recorded doing a full run, the recording imported back in, and the film cut by the same pipeline | `homepage/film.mp4` |
+| **Published homepage** | Live page checked in a real browser: the film decodes and plays, no section depends on an observer firing, nothing overflows at 390px, no page errors | `python homepage/check.py --url https://forifor.github.io/Launchloom/` |
 | Storyboard review gate | Build stopped after capture; scenes and captions reworded; approved; rendered with the operator's words in `captions.srt` | Tick 「レンダリング前に、構成と収録内容を確認する」 |
 | Revision | A finished campaign re-rendered in 15s with one changed CTA, reusing the recording | 「構成を直して、この素材のまま作り直す」 |
 | Three visual directions | editorial / spotlight / grid produce different frames | `tests/test_core.py::test_each_visual_direction_is_a_different_picture` |
@@ -75,6 +77,16 @@ These were not visible from reading the code or the previous test suite.
 7. **A verification check asserted a fixture, not an invariant.** "The landing
    page has three features" now reads "the landing page shows exactly the
    approved features named in the brief".
+
+Making Launchloom's own launch film, with Launchloom, found two more:
+
+8. **Japanese lines could begin with 、 or 。** Wrapping had no kinsoku shori, so
+   any film rendered in Japanese announced that the tool did not know the
+   language it was setting. Latin words were also split mid-word — `MP4` became
+   `MP` and `4`.
+9. **The vertical cut destroyed the interface it was proving.** A 16:10 desktop
+   recording was forced into a near-square box, so the product was unreadable at
+   9:16. The proof frame now keeps the recording's proportions.
 
 ## Implemented versus validated against a live service
 
