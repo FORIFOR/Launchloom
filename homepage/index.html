@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Launchloom — you built it, now show it</title>
+<meta name="description" content="One brief and one recording of your product become a film, a vertical cut, a landing page and reviewable social posts. Local-first, open source, Apache-2.0.">
+<meta name="theme-color" content="#141b1c">
+<link rel="canonical" href="https://forifor.github.io/Launchloom/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Launchloom — you built it, now show it">
+<meta property="og:description" content="One brief, one recording — a film, a vertical cut, a landing page and reviewable posts. On your own machine.">
+<meta property="og:url" content="https://forifor.github.io/Launchloom/">
+<meta property="og:image" content="https://forifor.github.io/Launchloom/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Launchloom — you built it, now show it">
+<meta name="twitter:description" content="One brief, one recording — a film, a vertical cut, a landing page and reviewable posts. On your own machine.">
+<meta name="twitter:image" content="https://forifor.github.io/Launchloom/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ed6847'/%3E%3C/svg%3E">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+:root{
+  --ink:#141b1c; --ink-soft:#1b2426; --paper:#f7f6f2; --card:#fffefa;
+  --line:#e4e4db; --muted:#6f7a75; --accent:#ed6847; --green:#5f7560;
+  --dark-ink:#f7f2e7; --dark-muted:#93a39c; --dark-line:#2b3637;
+  --shell:min(1160px,100% - 2.5rem);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif;
+  font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+img,video{max-width:100%;display:block}
+a{color:inherit}
+.shell{width:var(--shell);margin-inline:auto}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+h1,h2,h3{line-height:1.18;letter-spacing:-.02em;font-weight:600;margin:0}
+h1{font-size:clamp(2.6rem,7vw,4.6rem);letter-spacing:-.035em}
+h2{font-size:clamp(1.8rem,4vw,2.7rem)}
+h3{font-size:1.08rem;font-weight:600}
+p{margin:0 0 1rem}
+.lede{font-size:clamp(1.02rem,1.7vw,1.22rem);color:var(--muted);max-width:46ch}
+
+/* buttons */
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 24px;border-radius:999px;
+  font-size:15px;font-weight:500;text-decoration:none;border:1px solid transparent;transition:transform .18s ease,background .18s ease,border-color .18s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:#141f1e}
+.btn-primary:hover{background:#f0755a}
+.btn-ghost{border-color:var(--dark-line);color:var(--dark-ink)}
+.btn-ghost:hover{border-color:#465455}
+.btn-dark{background:var(--ink);color:var(--dark-ink)}
+
+/* hero */
+.hero{background:var(--ink);color:var(--dark-ink);padding:26px 0 clamp(64px,9vw,110px);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:-30% -10% auto 45%;height:120%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(96,117,112,.34),transparent 70%);pointer-events:none}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:16px;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:11px;font-weight:600;font-size:19px;text-decoration:none;letter-spacing:-.02em}
+.mark{width:22px;height:22px;border-radius:7px;background:var(--accent);flex:none}
+.nav-links{display:flex;gap:22px;font-size:13px;color:var(--dark-muted)}
+.nav-links a{text-decoration:none}
+.nav-links a:hover{color:var(--dark-ink)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:clamp(30px,5vw,70px);
+  align-items:center;margin-top:clamp(46px,7vw,88px);position:relative;z-index:2}
+.hero h1{color:var(--dark-ink)}
+.hero .lede{color:var(--dark-muted);margin-top:22px}
+.hero .eyebrow{color:var(--dark-muted)}
+.hero .row{margin-top:32px}
+.note{font-size:12.5px;color:var(--dark-muted);margin-top:18px}
+.frame{border-radius:16px;overflow:hidden;border:1px solid var(--dark-line);
+  box-shadow:0 40px 90px -40px rgba(0,0,0,.85);background:#0f1516}
+.caption{font-size:12px;color:var(--dark-muted);margin-top:14px;line-height:1.65}
+
+/* sections */
+section{padding:clamp(64px,9vw,118px) 0}
+.section-head{max-width:62ch;margin-bottom:clamp(34px,4vw,54px)}
+.section-head p{color:var(--muted);margin-top:16px}
+.grid{display:grid;gap:18px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 26px 28px}
+.card .num{font-size:11px;letter-spacing:.2em;color:var(--accent);display:block;margin-bottom:14px}
+.card p{color:var(--muted);font-size:14.5px;margin:10px 0 0;line-height:1.7}
+
+/* dogfood */
+.dogfood{background:var(--ink-soft);color:var(--dark-ink)}
+.dogfood .section-head p{color:var(--dark-muted)}
+.dogfood .eyebrow{color:var(--dark-muted)}
+.pair{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.62fr);gap:26px;align-items:end}
+.bug{border-left:2px solid var(--accent);padding:4px 0 4px 18px;margin:22px 0;color:var(--dark-muted);font-size:14.5px}
+.bug b{color:var(--dark-ink);font-weight:500}
+
+/* refusals */
+.refuse{background:var(--ink);color:var(--dark-ink)}
+.refuse .eyebrow{color:var(--dark-muted)}
+.refuse-list{display:grid;gap:0;margin-top:8px}
+.refuse-item{display:grid;grid-template-columns:26px 1fr;gap:18px;padding:26px 0;border-top:1px solid var(--dark-line)}
+.refuse-item span{color:var(--accent);font-size:15px;line-height:1.5}
+.refuse-item p{color:var(--dark-muted);margin:8px 0 0;font-size:14.5px;max-width:62ch}
+
+/* start */
+pre{background:var(--ink);color:#dfe6e0;border-radius:14px;padding:24px 26px;overflow-x:auto;
+  font-size:13.5px;line-height:1.95;margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre .c{color:#7f8f88}
+.copy{position:absolute;top:14px;right:14px;background:#233031;color:#cfd8d2;border:1px solid #33403f;
+  border-radius:8px;padding:7px 13px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.copy:hover{background:#2c3a3a}
+.code-wrap{position:relative}
+.start-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
+
+/* vertical showcase */
+.vertical-grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(26px,4vw,52px);align-items:center}
+.vertical-frame{border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#0f1516}
+
+footer{background:var(--ink);color:var(--dark-muted);padding:54px 0 60px;font-size:13px}
+.foot{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center}
+footer a{text-decoration:none;color:var(--dark-muted)}
+footer a:hover{color:var(--dark-ink)}
+
+/* Only hide for the animation when scripting is actually available. If anything
+   about the observer fails, the page still reads. */
+.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+
+/* A grid track of 1fr still refuses to shrink below its content's minimum, and a
+   code block's minimum is a long line. minmax(0,1fr) lets it scroll instead. */
+.grid>*,.start-grid>*,.vertical-grid>*,.pair>*,.hero-grid>*{min-width:0}
+@media (max-width:900px){
+  .hero-grid,.g3,.g2,.pair,.start-grid,.vertical-grid{grid-template-columns:minmax(0,1fr)}
+  .nav-links{display:none}
+  .pair{align-items:stretch}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="shell">
+    <nav class="nav">
+      <a class="brand" href="/Launchloom/"><span class="mark"></span>Launchloom</a>
+      <div class="nav-links">
+        <a href="#what">What you get</a>
+        <a href="#itself">Made by itself</a>
+        <a href="#refuse">What it won't do</a>
+        <a href="#start">Start</a>
+        <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
+      </div>
+    </nav>
+
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Open source launch studio</p>
+        <h1>You built it.<br>Now show it.</h1>
+        <p class="lede">One brief and one real recording of your product become a
+        film, a vertical cut, a landing page and reviewable social posts — from
+        the same plan, on your own machine.</p>
+        <div class="row">
+          <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom">Star on GitHub <span aria-hidden="true">★</span></a>
+          <a class="btn btn-ghost" href="#start">Run it in 3 minutes</a>
+        </div>
+        <p class="note">Apache-2.0 · Python 3.11+ · no account, no API key, nothing leaves your machine</p>
+      </div>
+      <div>
+        <div class="frame">
+          <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline preload="metadata" controls></video>
+        </div>
+        <p class="caption">This film was made by Launchloom, from a screen recording of Launchloom.
+        Same pipeline you get when you clone it.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="what">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">One brief in</p>
+      <h2>Everything a launch actually needs, out.</h2>
+      <p>Not a mockup of a launch — real MP4s, real HTML, real drafts, with a
+      manifest of SHA-256 hashes for every file.</p>
+    </div>
+    <div class="grid g3">
+      <article class="card reveal"><span class="num">01</span><h3>A film of the real thing</h3>
+        <p>1280×720, H.264, cut from a recording of your product being used — not
+        a simulated interface, and not stock footage.</p></article>
+      <article class="card reveal"><span class="num">02</span><h3>A vertical cut, composed</h3>
+        <p>720×1280 laid out on its own, keeping the interface legible instead of
+        centre-cropping the wide film and hoping.</p></article>
+      <article class="card reveal"><span class="num">03</span><h3>A landing page</h3>
+        <p>Self-contained HTML, CSS and JS with the film embedded. No CDN, no
+        build step, no framework. Deploy it anywhere.</p></article>
+      <article class="card reveal"><span class="num">04</span><h3>Posts you can edit</h3>
+        <p>Per-channel copy with UTM links and length checks for X, LinkedIn,
+        Threads, Bluesky, YouTube, Instagram and TikTok.</p></article>
+      <article class="card reveal"><span class="num">05</span><h3>Captions and a poster</h3>
+        <p>SRT of the on-screen headings — your words, not a transcription — plus
+        stills for both aspect ratios.</p></article>
+      <article class="card reveal"><span class="num">06</span><h3>A kit you can hand over</h3>
+        <p>One ZIP with everything, a manifest recording where each asset came
+        from, and private evidence notes deliberately left out.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="dogfood" id="itself">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">Dogfood</p>
+      <h2>The film at the top is the proof.</h2>
+      <p>We recorded the studio doing a full run, imported that recording back
+      into Launchloom, and let it cut its own launch film. Making it found two
+      real bugs — which is the point of using your own tool.</p>
+    </div>
+    <div class="reveal">
+      <p class="bug"><b>Japanese lines were breaking before 、 and 。</b> Every film
+      rendered in Japanese looked like the tool did not know the language it was
+      writing in. Line breaking now applies kinsoku shori, and keeps Latin words
+      whole instead of splitting <code>MP4</code> into <code>MP</code> and <code>4</code>.</p>
+      <p class="bug"><b>The vertical cut destroyed the interface.</b> A 16:10
+      desktop recording forced into a near-square box lost the product it was
+      supposed to prove. The vertical frame now keeps the recording's own
+      proportions and runs nearly full width.</p>
+    </div>
+    <div class="vertical-grid reveal" style="margin-top:44px">
+      <div class="vertical-frame">
+        <video src="film-vertical.mp4" poster="poster-vertical.jpg" muted loop playsinline preload="none" controls></video>
+      </div>
+      <div>
+        <h3 style="color:var(--dark-ink)">The vertical cut is a different film, not a crop.</h3>
+        <p style="color:var(--dark-muted);font-size:14.5px;margin-top:12px">Headline, proof frame and
+        caption are placed independently for 9:16. Both are rendered from the same
+        storyboard in the same pass, so they always say the same thing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="review">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">Before anything renders</p>
+      <h2>You read it first. Then it renders.</h2>
+      <p>The build stops after capture. Nothing has been encoded, and no AI
+      provider has been contacted. You see a frame of what was actually recorded
+      and every line of copy, and you edit it before approving.</p>
+    </div>
+    <div class="frame reveal" style="border-color:var(--line);box-shadow:0 30px 70px -45px rgba(20,27,28,.5)">
+      <img src="review-gate.png" alt="The Launchloom review gate: one frame of the recording, with every scene's headline, supporting line and caption editable" loading="lazy">
+    </div>
+    <div class="grid g2 reveal" style="margin-top:26px">
+      <article class="card"><h3>Edits are a typed diff</h3>
+        <p>A scene's role and the approved feature it points at are structural and
+        cannot move, so rewording can never attach new copy to a different claim.
+        Changed lines are recorded as <code>operator-edited</code>.</p></article>
+      <article class="card"><h3>Fix one line, not the whole film</h3>
+        <p>A finished campaign re-renders from the material it already has. Change
+        a CTA and get a new cut in about fifteen seconds — no re-recording, and no
+        second charge from any provider.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="refuse" id="refuse">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">The honest part</p>
+      <h2 style="color:var(--dark-ink)">What Launchloom will not do.</h2>
+      <p style="color:var(--dark-muted)">Most launch tools are happy to make
+      something that looks impressive. This one is built to stop short of
+      claiming things nobody checked.</p>
+    </div>
+    <div class="refuse-list">
+      <div class="refuse-item reveal"><span>✕</span><div><h3>Invent a feature</h3>
+        <p>Every claim comes from your brief, each with an evidence note you wrote.
+        Generated video is only ever a labelled conceptual opening — never proof
+        that a feature exists.</p></div></div>
+      <div class="refuse-item reveal"><span>✕</span><div><h3>Publish on its own</h3>
+        <p>Live publishing is off by default. Releasing a campaign is a separate
+        decision from finishing it, and every post needs its own approval bound to
+        the exact copy, media hash, account and schedule.</p></div></div>
+      <div class="refuse-item reveal"><span>✕</span><div><h3>Call acceptance a publication</h3>
+        <p>It reads the real state back from Postiz. If a send times out it says
+        so, never retries blindly, and shows you what actually exists so you can
+        decide — because a timeout is not evidence either way.</p></div></div>
+      <div class="refuse-item reveal"><span>✕</span><div><h3>Farm engagement</h3>
+        <p>No mass replies, no DMs, no bought reactions, no account farms. Not
+        implemented, not planned, and pull requests adding them will be declined.</p></div></div>
+      <div class="refuse-item reveal"><span>✕</span><div><h3>Fill in numbers it does not have</h3>
+        <p>Unavailable metrics stay unavailable. Event counts are not people, and
+        the tool says when there is not enough data to conclude anything.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="shell">
+    <div class="start-grid">
+      <div class="reveal">
+        <p class="eyebrow">Three minutes</p>
+        <h2>Clone it and watch it make something.</h2>
+        <p style="color:var(--muted);margin-top:16px">No account, no API key, no
+        signup. The sample drives a small task app bundled in the repository,
+        records it, and hands you the whole kit.</p>
+        <p style="color:var(--muted)">Needs Python 3.11+, FFmpeg and Chromium.
+        macOS and Docker are verified end to end; the verification record says
+        exactly what was run and what was not.</p>
+        <div class="row" style="margin-top:26px">
+          <a class="btn btn-dark" href="https://github.com/FORIFOR/Launchloom">Read the source</a>
+          <a class="btn btn-ghost" style="border-color:var(--line);color:var(--ink)" href="https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATION.md">What was actually verified</a>
+        </div>
+      </div>
+      <div class="code-wrap reveal">
+        <button class="copy" type="button" id="copy">Copy</button>
+<pre id="snippet">git clone https://github.com/FORIFOR/Launchloom.git
+cd Launchloom
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install -e .
+python -m playwright install chromium
+<span class="c"># checks FFmpeg, the browser, and your fonts</span>
+python -m launchloom doctor
+python -m launchloom serve</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="shell foot">
+    <div>
+      <a class="brand" href="https://github.com/FORIFOR/Launchloom" style="color:var(--dark-ink)"><span class="mark"></span>Launchloom</a>
+      <p style="margin:12px 0 0">Good work deserves to be seen.</p>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
+      <a href="https://github.com/FORIFOR/Launchloom/blob/main/README.ja.md">日本語</a>
+      <a href="https://github.com/FORIFOR/Launchloom/blob/main/docs/ROADMAP.md">Roadmap</a>
+      <a href="https://github.com/FORIFOR/Launchloom/blob/main/LICENSE">Apache-2.0</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const io=new IntersectionObserver((entries)=>{
+  for(const e of entries){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }
+},{rootMargin:'0px 0px -8% 0px',threshold:.08});
+const pending=[...document.querySelectorAll('.reveal')];
+pending.forEach(el=>io.observe(el));
+// Belt and braces: nothing stays invisible because an observer never fired.
+setTimeout(()=>pending.forEach(el=>el.classList.add('in')),6000);
+
+document.getElementById('copy').addEventListener('click',async(e)=>{
+  const text=document.getElementById('snippet').innerText;
+  try{ await navigator.clipboard.writeText(text); e.target.textContent='Copied'; }
+  catch{ e.target.textContent='Select and copy'; }
+  setTimeout(()=>{e.target.textContent='Copy';},2200);
+});
+
+// Vertical film only plays once it is actually on screen.
+const vertical=document.querySelector('#itself video');
+if(vertical){
+  new IntersectionObserver((entries)=>{
+    for(const e of entries){ if(e.isIntersecting){ e.target.play().catch(()=>{}); } else { e.target.pause(); } }
+  },{threshold:.4}).observe(vertical);
+}
+</script>
+</body>
+</html>
