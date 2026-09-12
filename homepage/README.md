@@ -24,6 +24,12 @@ film — a screen recording of the studio in English, imported back into Launchl
 and cut by the same pipeline the repository installs. Regenerate them by
 recording the studio and building a campaign with `capture_mode: upload`.
 
+`camera.mp4` is nine seconds of `film.mp4`, cropped to the proof frame, so the
+camera behaviour can be watched on its own. `generated-page.png` is a screenshot
+of `site/index.html` taken out of `launch-kit.zip` — regenerate both whenever the
+film or the kit is rebuilt, or the page will be showing something the download
+does not contain.
+
 ## Publishing
 
 The `gh-pages` branch holds these files at its root, and GitHub Pages serves it.
