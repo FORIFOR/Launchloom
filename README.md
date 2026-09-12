@@ -64,6 +64,9 @@ Requires Python 3.11+, FFmpeg and Chromium. macOS and Docker are verified;
 | **Social drafts** | Per-channel copy with UTM links, length-checked, nothing sent |
 | **Captions, poster, manifest** | SRT, JPG, and SHA-256 for every file, in one ZIP |
 
+**[Download a real kit (2.2 MB) →](https://forifor.github.io/Launchloom/launch-kit.zip)** — the
+one behind the film on the homepage, not an example of what a kit might look like.
+
 ## The film above was made by Launchloom
 
 The demo at the top is a real screen recording of the studio, imported back into

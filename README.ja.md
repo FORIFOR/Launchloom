@@ -141,6 +141,9 @@ launch-kit.zip
     └── film.mp4 / poster.jpg
 ```
 
+**[実物の制作キットをダウンロード（2.2MB）→](https://forifor.github.io/Launchloom/launch-kit.zip)**
+ホームページの映像を出した、そのキットそのものです（見本ではありません）。
+
 LPは自己完結した静的ファイルです。外部CDNや外部フォントの必須依存はありません。
 
 ### LPを公開先へ置く
