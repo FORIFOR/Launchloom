@@ -37,6 +37,7 @@ Date of this record: 2026-09-12.
 | Capture trimming | 12s source, 2.0s–6.0s range → 10s film instead of 18s | `tests/test_providers_and_media.py` |
 | Music + narration | Both uploaded, mixed to one AAC track cut to the film's length, music held under the voice | Upload 音楽 and ナレーション on a campaign |
 | **Launchloom filming itself** | The studio was recorded doing a full run in English, the recording imported back in, and the film cut by the same pipeline | `homepage/film.mp4` |
+| **Narrated explainer** | The motion-graphics path with a narration track and a music bed produced a 26s film in both cuts; both decode fully, carry one AAC track, and play in a real browser from the published page | build with `capture_mode: none`, an `audio` and a `narration` upload |
 | **The kit on the homepage** | The downloadable `launch-kit.zip` is the export of the campaign that produced the film shown above it: zip integrity holds, 16 entries, and no raw capture or input inside | `curl` it and open the archive |
 | **Published homepage** | Live page checked in a real browser: the film decodes and plays, no section depends on an observer firing, nothing overflows at 390px, no page errors | `python homepage/check.py --url https://forifor.github.io/Launchloom/` |
 | Storyboard review gate | Build stopped after capture; scenes and captions reworded; approved; rendered with the operator's words in `captions.srt` | Tick 「レンダリング前に、構成と収録内容を確認する」 |

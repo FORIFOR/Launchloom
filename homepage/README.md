@@ -8,6 +8,11 @@ shows. No build step and no dependencies: edit `index.html` and publish.
 `launch-kit.zip` is the export for that same campaign, so the page and the
 download never drift apart.
 
+`intro.mp4` and `intro-vertical.mp4` are the narrated explainer: the same brief
+run through the motion-graphics path with a narration track and a licensed music
+bed, cut for both aspect ratios in one pass. They carry audio, so they are not
+autoplayed — the page waits for the visitor to press play.
+
 `film.mp4`, `film-vertical.mp4` and their posters are Launchloom's own launch
 film — a screen recording of the studio in English, imported back into Launchloom
 and cut by the same pipeline the repository installs. Regenerate them by

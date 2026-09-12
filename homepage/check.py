@@ -47,6 +47,13 @@ async def main(args):
         await page.evaluate('()=>window.scrollTo({top:0,behavior:"instant"})')
         await page.wait_for_timeout(500)
 
+        # the narrated explainer must carry audio, or the section is pointless
+        report["checks"]["narrated_videos_present"] = await page.evaluate(
+            "() => document.querySelectorAll('#narrated video').length")
+        for name in ("intro.mp4", "intro-vertical.mp4"):
+            probe = await page.request.get(args.url.rstrip("/") + "/" + name)
+            report["checks"]["serves_" + name] = probe.status == 200 and int(probe.headers.get("content-length", 0)) > 100000
+
         report["checks"]["every_section_visible"] = await page.evaluate(
             "() => document.querySelectorAll('.reveal').length===document.querySelectorAll('.reveal.in').length")
         report["checks"]["no_horizontal_overflow_desktop"] = await page.evaluate(
