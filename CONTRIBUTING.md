@@ -49,6 +49,12 @@ the moment a film was rendered and watched. Watch the film.
 
 ## What is especially welcome
 
+- **An English studio interface.** The output is already bilingual — a brief with
+  `language: "en"` produces an entirely English film, landing page, captions and
+  posts — but the studio chrome is Japanese only. That is 328 distinct strings
+  across `launchloom/web/index.html` and `launchloom/web/app.js`. A dictionary
+  keyed by language, defaulting to `navigator.language`, would do it. This is
+  the single change that would most widen who can use the project.
 - **A real Postiz publish on an account you own**, with the receipt and the
   remote state read back. This is the largest unverified path in the project.
 - **Windows and Linux desktop verification**, including fonts and the native

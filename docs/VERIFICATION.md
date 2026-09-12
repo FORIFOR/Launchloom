@@ -24,6 +24,7 @@ Date of this record: 2026-09-12.
 | **The README quick start** | A clean `git clone` of the published repository, through install, `doctor`, `serve` and `demo`, produced a launch kit without a single extra step | the commands in README.md, verbatim |
 | Package build | Wheel and sdist build, the wheel installs into a clean environment, the `launchloom` console script runs, and the bundled web/template assets are inside it | `python -m build` then install the wheel |
 | Continuous integration | Green on `ubuntu-latest` / Python 3.13 — the only evidence the suite passes outside this Mac and the container | `.github/workflows/check.yml` |
+| English output | A brief with `language: "en"` produced an English plan, film, post copy and a landing page with `lang="en"` and no Japanese characters anywhere in it | build a campaign with `"language": "en"` |
 | Test suite | **113 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
@@ -113,6 +114,8 @@ Making Launchloom's own launch film, with Launchloom, found two more:
 - Any real social account, any real post, any paid generation.
 - Team review and multi-user anything: the authentication here is one operator
   with one token. Reviewing as a team needs accounts, which is P4 work.
+- An English studio interface. The generated output is bilingual; the studio
+  chrome is Japanese only.
 - Hosted deployment providers, automatic DNS, A/B optimization, text-to-speech or
   music generation, motion blur, callout tracks, more than two audio tracks.
 - This is not a penetration test, a license clearance, an audit of whether the
