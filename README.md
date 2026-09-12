@@ -8,6 +8,7 @@ Launchloom turns one product brief and a real recording of your product into a
 landscape film, a vertical cut, a landing page and reviewable social drafts —
 from the same plan, on your own machine.
 
+[![Checks](https://github.com/FORIFOR/Launchloom/actions/workflows/check.yml/badge.svg)](https://github.com/FORIFOR/Launchloom/actions/workflows/check.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-113%20passing-brightgreen.svg)](docs/VERIFICATION.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)](pyproject.toml)

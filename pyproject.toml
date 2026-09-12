@@ -10,10 +10,31 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [{name = "Launchloom contributors"}]
+keywords = ["launch", "product-video", "screen-recording", "landing-page", "ffmpeg", "playwright", "local-first"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Internet :: WWW/HTTP :: Site Management",
+]
+
 dependencies = [
   "fastapi>=0.128,<0.129", "uvicorn>=0.48,<0.49", "pydantic>=2.13,<3",
   "httpx>=0.28,<0.29", "Pillow>=12.3,<13", "playwright>=1.57,<1.58", "numpy>=2.3,<3"
 ]
+[project.urls]
+Homepage = "https://forifor.github.io/Launchloom/"
+Source = "https://github.com/FORIFOR/Launchloom"
+Documentation = "https://github.com/FORIFOR/Launchloom/tree/main/docs"
+Verification = "https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATION.md"
+Issues = "https://github.com/FORIFOR/Launchloom/issues"
+
 [project.optional-dependencies]
 dev = ["pytest>=9,<10"]
 [project.scripts]
