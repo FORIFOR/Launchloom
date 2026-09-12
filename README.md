@@ -146,6 +146,14 @@ LPは自己完結した静的ファイルです。外部CDNや外部フォント
 
 ホスティングのAPI連携（Netlify等）は実装していません。アップロードもDNS設定も行いません。
 
+### 音をのせる
+
+音楽とナレーションを別々にアップロードできます。両方ある場合、ナレーションの下で
+音楽の音量を下げ、全体を一度だけラウドネス正規化して、映像の長さに合わせて切ります。
+
+読み上げ音声の生成（TTS）や音楽生成は実装していません。**自分が使用権を持つ音声ファイル**を
+渡してください。何も渡さなければ、映像は無音のままです。
+
 ## SNSへ届ける
 
 **Postizを別のサービスとして連携**します。PostizのOAuth画面で自分のSNSを接続し、
@@ -247,7 +255,7 @@ Chromiumが使うuser namespaceの呼び出しを塞ぐため、Chromium用の�
 
 ```bash
 python -m pip install -e '.[dev]'
-python -m pytest -q                 # 106 passed
+python -m pytest -q                 # 109 passed
 python -m compileall -q launchloom
 
 # 制作後、実ブラウザと実ファイルで確認する

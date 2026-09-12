@@ -46,11 +46,12 @@ all representative paths have a real trace and measured cost, not only mocks.
 - Precise capture ranges (start, length), with imported event times shifted to
   match the cut.
 - Cursor-event import for footage recorded outside the studio.
+- A music track and a narration track, mixed with music held under the voice.
 
-**Still open:** multiple licensed audio tracks and narration/TTS adapters (one
-uploaded track is supported today), motion blur, callout and arrow tracks, and
-per-scene re-rendering that reuses unchanged scenes instead of composing the film
-again.
+**Still open:** text-to-speech and narration generation (today both tracks are
+files the operator supplies), more than two tracks, motion blur, callout and
+arrow tracks, and per-scene re-rendering that reuses unchanged scenes instead of
+composing the film again.
 
 Acceptance: judge actual text legibility, focus tracking, pacing and end-to-end
 intent with humans; not only pixel hashes or a model-assigned score.

@@ -100,13 +100,14 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
             await provider.generate(plan.video_prompt,options,broll)
         validate_media(broll)
     stage('render',45,'横長と縦長を別レイアウトで編集・書き出ししています。')
-    audio=root/'input/audio.bin'
-    if audio.exists():validate_media(audio,audio=True)
+    audio=root/'input/audio.bin';narration=root/'input/narration.bin'
+    for track in (audio,narration):
+        if track.exists():validate_media(track,audio=True)
     def render_progress(value):store.progress(cid,'render',45+int(value*37))
     if options.capture_start:
         # Event times are relative to the recording; the film starts at the cut.
         events=[{**e,'time':e['time']-options.capture_start} for e in events]
-    videos=await asyncio.to_thread(render,b,plan,root,capture_file,events,options.quality,broll,audio if audio.exists() else None,render_progress,options.visual_style,options.capture_start,options.capture_length)
+    videos=await asyncio.to_thread(render,b,plan,root,capture_file,events,options.quality,broll,audio if audio.exists() else None,render_progress,options.visual_style,options.capture_start,options.capture_length,narration if narration.exists() else None)
     stage('package',86,'LPに操作動画を配置し、SNS原稿と配布パッケージを作っています。')
     shutil.copy(root/'landscape.mp4',root/'site/film.mp4');shutil.copy(root/'landscape.jpg',root/'site/poster.jpg')
     build_site(b,cid,root/'site',settings,True)
@@ -129,11 +130,12 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
             'only_user_approved_features':True,'local_files_present':True,'live_publish_not_performed':True},
         'limitations':['Automated checks do not establish artistic quality, virality, or independent factual truth.',
           'Capture timing is approximate; imported recordings have no cursor metadata in v0.1.',
-          'No voice or music is generated automatically. Upload licensed audio for a soundtrack.',
+          'No voice or music is generated automatically. Music and narration are files the operator supplies and has the right to use.',
           'Generic landing-page templates are generated, not arbitrary full-stack applications.'],
         'warnings':(['公開先の product_url が未設定です。'] if not b.product_url else [])+
         (['サンプルアプリの映像です。ユーザーの実プロダクトは未収録です。'] if b.is_sample else [])+
-        (['字幕とモーショングラフィックスのみ。音声トラック未設定です。'] if not audio.exists() else [])}
+        (['字幕とモーショングラフィックスのみ。音声トラック未設定です。'] if not (audio.exists() or narration.exists()) else [])+
+        (['ナレーションの下で、音楽の音量を下げています。'] if audio.exists() and narration.exists() else [])}
     write_json(root/'qa.json',quality)
     if not poster_ok:raise ValueError('A poster appears blank; export is blocked')
     names=['campaign.json','storyboard.json','posts.json','social-copy.md','captions.srt','qa.json','landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg']

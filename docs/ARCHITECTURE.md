@@ -114,9 +114,13 @@ structure and the fade, not just an accent colour. They are chosen per campaign
 and recorded in the manifest.
 
 SRT contains the visual scene headlines, not a transcription; a scene can carry a
-caption worded differently from its on-screen headline. Audio is optional
-operator-provided licensed material, normalized and mixed separately; no voice
-cloning, automatic music generation or transcription is implemented.
+caption worded differently from its on-screen headline.
+
+Audio is optional operator-provided licensed material. A music track and a
+narration track can be supplied together: each is padded and levelled, music sits
+at a fixed level under narration, the mix is loudness-normalised once and cut to
+the film's length. No voice cloning, text-to-speech, music generation or
+transcription is implemented — these are files the operator already has.
 
 ## Metrics
 

@@ -180,7 +180,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
     async def media(cid:str,request:Request,kind:str='capture',rights_confirmed:bool=False):
         c=campaign(cid)
         if c['state']!='draft':raise HTTPException(409,'Upload before building. Finished campaigns are immutable.')
-        if kind not in {'capture','audio'} or not rights_confirmed:raise HTTPException(422,'Choose capture/audio and confirm usage rights')
+        if kind not in {'capture','audio','narration'} or not rights_confirmed:raise HTTPException(422,'Choose capture/audio/narration and confirm usage rights')
         dest=root(cid)/'input';dest.mkdir(parents=True,exist_ok=True)
         temp=dest/(secrets.token_hex(8)+'.part');size=0
         try:
@@ -189,7 +189,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
                     size+=len(chunk)
                     if size>200*1024*1024:raise HTTPException(413,'Media exceeds 200 MB')
                     f.write(chunk)
-            await asyncio.to_thread(normalize_upload,temp,kind=='audio')
+            await asyncio.to_thread(normalize_upload,temp,kind in {'audio','narration'})
             if campaign(cid)['state']!='draft':raise HTTPException(409,'Campaign started while uploading; upload was discarded')
             target=dest/(kind+'.bin');temp.replace(target)
             db.log(cid,'asset',f'Operator-authorized {kind} upload: {size} bytes')

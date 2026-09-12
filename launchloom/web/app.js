@@ -290,8 +290,8 @@ $('create-form').onsubmit=async(e)=>{
   try{
     if(state.recorder)throw new Error('画面収録を停止してから制作してください。');
     const features=str('features').split('\n').filter(Boolean).map(line=>{const [title,detail,evidence,...extra]=line.split('|').map(s=>s.trim());if(!title||!detail||!evidence||extra.length)throw new Error('機能は「機能名 | 説明 | 根拠」の3項目で入力してください。');return{title,detail,evidence,approved:true};});
-    const capture=$('capture-file').files[0]||state.recorded,audio=$('audio-file').files[0],mode=str('capture_mode');
-    if((mode==='upload'||audio)&&!flag('media_rights'))throw new Error('使用する映像・音声の権利を確認してください。');
+    const capture=$('capture-file').files[0]||state.recorded,audio=$('audio-file').files[0],narration=$('narration-file').files[0],mode=str('capture_mode');
+    if((mode==='upload'||audio||narration)&&!flag('media_rights'))throw new Error('使用する映像・音声の権利を確認してください。');
     if(mode==='upload'&&!capture)throw new Error('操作動画を選択するか、画面を収録してください。');
     const options={capture_mode:mode,capture_url:str('capture_url'),steps:JSON.parse(str('steps')||'[]'),redact_selectors:str('redactions').split('\n').filter(Boolean),staging_confirmed:flag('staging_confirmed'),allow_site_writes:flag('allow_site_writes'),film_provider:str('film_provider'),provider_input:JSON.parse(str('provider_input')||'{}'),estimated_cost_usd:Number(str('estimated_cost_usd')||0),external_data_consent:flag('external_data_consent'),llm_plan:flag('llm_plan'),quality:str('quality'),visual_style:str('visual_style')||'editorial',review_plan:flag('review_plan'),capture_events:mode==='upload'?JSON.parse(str('capture_events')||'[]'):[],capture_start:mode==='none'?0:Number(str('capture_start')||0),capture_length:mode==='none'?0:Number(str('capture_length')||0)};
     if(mode==='url'&&(!options.capture_url||!options.staging_confirmed))throw new Error('収録URLとテスト環境の確認が必要です。');
@@ -299,7 +299,7 @@ $('create-form').onsubmit=async(e)=>{
     const channels=f.getAll('channels');if(!channels.length)throw new Error('SNSを1つ以上選択してください。');
     const brief={channels,goal:str('goal'),name:str('name'),audience:str('audience'),tagline:str('tagline'),description:str('description'),product_url:str('product_url'),features,accent:str('accent'),language:str('language')};
     const c=await api('/api/campaigns',{method:'POST',body:brief});
-    for(const [kind,file] of [['capture',mode==='upload'?capture:null],['audio',audio]])if(file)await api(`/api/campaigns/${c.id}/media?kind=${kind}&rights_confirmed=true`,{method:'POST',body:file,headers:{'Content-Type':'application/octet-stream'}});
+    for(const [kind,file] of [['capture',mode==='upload'?capture:null],['audio',audio],['narration',narration]])if(file)await api(`/api/campaigns/${c.id}/media?kind=${kind}&rights_confirmed=true`,{method:'POST',body:file,headers:{'Content-Type':'application/octet-stream'}});
     await api(`/api/campaigns/${c.id}/build`,{method:'POST',body:options});state.campaigns.unshift(c);state.current=c;state.tab='film';$('create-dialog').close();state.recorded=null;form.reset();$('capture-mode').onchange();await refresh(true);
   }catch(err){$('create-error').textContent=err.message;}finally{$('create-submit').disabled=false;}
 };

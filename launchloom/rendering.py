@@ -289,7 +289,7 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
     return base.convert('RGB')
 
 
-def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events: list[dict],quality='hd',broll: Path|None=None,audio: Path|None=None,progress=None,visual_style='editorial',capture_start=0.0,capture_length=0.0):
+def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events: list[dict],quality='hd',broll: Path|None=None,audio: Path|None=None,progress=None,visual_style='editorial',capture_start=0.0,capture_length=0.0,narration: Path|None=None):
     if not shutil.which('ffmpeg') or not shutil.which('ffprobe'):raise ValueError('Install FFmpeg and ffprobe before rendering')
     output.mkdir(parents=True,exist_ok=True)
     actual_duration=float(validate_media(capture_path)['format']['duration']) if capture_path else 9
@@ -297,6 +297,10 @@ def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events
     if capture_path and available<1:
         raise ValueError('The chosen range starts at or past the end of the recording')
     proof_duration=min(capture_length or 20,available);duration=proof_duration+6
+    # Music sits under narration when both are supplied, at a fixed level: a
+    # fifteen second film does not need dynamic ducking to stay intelligible.
+    tracks=[(narration,1.0)] if narration else []
+    if audio:tracks.append((audio,0.28 if narration else 1.0))
     result={}
     for i,(name,w,h) in enumerate([('landscape',1280,720),('portrait',720,1280)]):
         if quality=='draft':w=int(w*.75);h=int(h*.75)
@@ -319,14 +323,14 @@ def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events
                 if progress and k%48==0:progress(i/2+k/count/2)
             encoder.stdin.close()
             if encoder.wait(timeout=90):raise RuntimeError('Video encoder failed; inspect the render log')
-            if audio:
-                run(['ffmpeg','-v','error','-y','-nostdin','-protocol_whitelist','file,pipe','-i',str(temp),'-i',str(audio),'-map','0:v:0','-map','1:a:0',
-                    '-c:v','copy','-af','apad,loudnorm=I=-16:TP=-1.5:LRA=11','-c:a','aac','-b:a','160k','-t',str(duration),'-movflags','+faststart',str(target)])
+            if tracks:
+                mix_audio(temp,target,tracks,duration)
                 temp.unlink(missing_ok=True)
             else:temp.replace(target)
             metadata=probe(target);video=next(s for s in metadata['streams'] if s['codec_type']=='video')
             if video['width']!=w or video['height']!=h or video['codec_name']!='h264':raise ValueError('Video quality gate failed')
-            result[name]={'file':target.name,'width':w,'height':h,'duration':float(metadata['format']['duration']),'fps':FPS,'codec':'h264','bytes':target.stat().st_size,'audio':bool(audio)}
+            result[name]={'file':target.name,'width':w,'height':h,'duration':float(metadata['format']['duration']),'fps':FPS,'codec':'h264','bytes':target.stat().st_size,
+                'audio':{'music':bool(audio),'narration':bool(narration)}}
             success=True
         finally:
             if encoder.poll() is None:encoder.kill();encoder.wait()
@@ -335,6 +339,28 @@ def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events
             if brollreader:brollreader.close()
             if not success:temp.unlink(missing_ok=True)
     return result
+
+
+def mix_audio(video: Path,target: Path,tracks: list[tuple[Path,float]],duration: float) -> None:
+    """Lay operator-supplied audio under a finished picture.
+
+    Every track is padded and levelled, mixed, then loudness-normalised once, so
+    the result is predictable regardless of how the source files were mastered.
+    Nothing is generated: these are files the operator says they may use."""
+    args=['ffmpeg','-v','error','-y','-nostdin','-protocol_whitelist','file,pipe','-i',str(video)]
+    chains=[];labels=[]
+    for index,(path,gain) in enumerate(tracks,start=1):
+        args+=['-i',str(path)]
+        chains.append(f'[{index}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,apad,volume={gain}[a{index}]')
+        labels.append(f'[a{index}]')
+    source=labels[0]
+    if len(tracks)>1:
+        chains.append(''.join(labels)+f'amix=inputs={len(tracks)}:duration=first:normalize=0[mixed]')
+        source='[mixed]'
+    chains.append(source+'loudnorm=I=-16:TP=-1.5:LRA=11[out]')
+    args+=['-filter_complex',';'.join(chains),'-map','0:v:0','-map','[out]','-c:v','copy',
+           '-c:a','aac','-b:a','160k','-t',str(duration),'-movflags','+faststart',str(target)]
+    run(args)
 
 
 def normalize_upload(path: Path,audio: bool=False) -> None:

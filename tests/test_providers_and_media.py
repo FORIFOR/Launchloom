@@ -149,3 +149,44 @@ def test_trim_shortens_the_proof_section(tmp_path):
     full=rendering.render(brief,make_plan(brief),tmp_path/'full',clip,[],quality='draft')
     cut=rendering.render(brief,make_plan(brief),tmp_path/'cut',clip,[],quality='draft',capture_start=2.0,capture_length=4.0)
     assert round(full['landscape']['duration'])==18 and round(cut['landscape']['duration'])==10
+
+
+def audio_file(path,seconds,frequency):
+    subprocess.run(['ffmpeg','-v','error','-y','-f','lavfi','-i',f'sine=frequency={frequency}:duration={seconds}',
+                    '-c:a','aac',str(path)],check=True)
+    return path
+
+def test_music_and_narration_are_mixed_into_one_track(tmp_path):
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    music=audio_file(tmp_path/'music.m4a',20,220)
+    narration=audio_file(tmp_path/'voice.m4a',6,440)
+    result=rendering.render(brief,make_plan(brief),tmp_path/'out',None,[],quality='draft',
+                            audio=music,narration=narration)
+    assert result['landscape']['audio']=={'music':True,'narration':True}
+    probe=rendering.probe(tmp_path/'out/landscape.mp4')
+    streams=[s for s in probe['streams'] if s['codec_type']=='audio']
+    assert len(streams)==1 and streams[0]['codec_name']=='aac'
+    # The soundtrack is cut to the film, never left running past the last frame.
+    assert abs(float(probe['format']['duration'])-15)<1
+
+def test_a_single_track_still_works(tmp_path):
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    result=rendering.render(brief,make_plan(brief),tmp_path/'out',None,[],quality='draft',
+                            audio=audio_file(tmp_path/'music.m4a',20,220))
+    assert result['landscape']['audio']=={'music':True,'narration':False}
+    assert [s for s in rendering.probe(tmp_path/'out/landscape.mp4')['streams'] if s['codec_type']=='audio']
+
+def test_a_silent_film_has_no_audio_stream(tmp_path):
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    result=rendering.render(brief,make_plan(brief),tmp_path/'out',None,[],quality='draft')
+    assert result['landscape']['audio']=={'music':False,'narration':False}
+    assert not [s for s in rendering.probe(tmp_path/'out/landscape.mp4')['streams'] if s['codec_type']=='audio']
