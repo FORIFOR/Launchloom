@@ -6,8 +6,9 @@ One hand-written HTML file with its styles and script inline, plus the assets it
 shows. No build step and no dependencies: edit `index.html` and publish.
 
 `film.mp4`, `film-vertical.mp4` and their posters are Launchloom's own launch
-film — a screen recording of the studio, imported back into Launchloom and cut by
-the same pipeline the repository installs.
+film — a screen recording of the studio in English, imported back into Launchloom
+and cut by the same pipeline the repository installs. Regenerate them by
+recording the studio and building a campaign with `capture_mode: upload`.
 
 ## Publishing
 
