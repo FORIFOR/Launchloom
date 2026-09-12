@@ -36,7 +36,7 @@ Verification = "https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATIO
 Issues = "https://github.com/FORIFOR/Launchloom/issues"
 
 [project.optional-dependencies]
-dev = ["pytest>=9,<10"]
+dev = ["pytest>=9,<10", "PyYAML>=6,<7"]
 [project.scripts]
 launchloom = "launchloom.cli:main"
 [tool.setuptools.dynamic]

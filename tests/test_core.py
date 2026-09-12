@@ -721,3 +721,42 @@ def test_vertical_does_not_say_the_headline_twice(brief):
         rendering.wrapped=original
     proof=[s for s in plan.scenes if s.kind=='proof'][0]
     assert drawn.count(proof.title)==1, f'the headline was set {drawn.count(proof.title)} times: {drawn}'
+
+
+# --- selftest: the command a tester runs ---
+
+def test_selftest_reports_the_environment(configured):
+    from launchloom.selftest import environment
+    report=environment(configured)
+    for key in ('launchloom','platform','python','ffmpeg','browser','browser_launches',
+                'text_font','fonts_cover_japanese','packages'):
+        assert key in report, f'{key} missing from the environment report'
+    assert report['packages'], 'package versions are what tell two reports apart'
+
+def test_selftest_report_is_readable_when_the_build_fails():
+    """A failing report is the one that matters most, so it must still render."""
+    from launchloom.selftest import render_report
+    text=render_report({'environment':{'platform':'Windows 11','packages':{'Pillow':'12.3.0'}},
+                        'build':{'ok':False,'seconds':3.2,'error':'RuntimeError: no ffmpeg'}})
+    assert 'FAILED' in text and 'no ffmpeg' in text and 'Windows 11' in text
+
+def test_selftest_report_lists_every_check():
+    from launchloom.selftest import render_report
+    checks={'landscape_decodes':True,'zip_intact':False}
+    text=render_report({'environment':{'platform':'x','packages':{}},
+                        'build':{'ok':True,'seconds':21.0,'kit_entries':16,
+                                 'landscape':{'width':960,'height':540,'duration':14.4,'bytes':1},
+                                 'portrait':{'width':540,'height':960,'duration':14.4,'bytes':1},
+                                 'checks':checks}})
+    assert 'PASS  landscape_decodes' in text and 'FAIL  zip_intact' in text
+
+def test_issue_templates_are_valid_and_point_at_the_selftest():
+    """The selftest prints this template's URL, so the template has to exist."""
+    import yaml
+    templates=Path('.github/ISSUE_TEMPLATE')
+    names={p.name for p in templates.glob('*.yml')}
+    assert 'tester-report.yml' in names, 'the selftest sends people to this form'
+    for path in templates.glob('*.yml'):
+        yaml.safe_load(path.read_text())
+    from launchloom import selftest
+    assert 'template=tester-report.yml' in Path(selftest.__file__).read_text()

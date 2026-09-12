@@ -27,7 +27,8 @@ Date of this record: 2026-09-12.
 | English output | A brief with `language: "en"` produced an English plan, film, post copy and a landing page with `lang="en"` and no Japanese characters anywhere in it | build a campaign with `"language": "en"` |
 | **English studio** | Every screen walked in an English browser — shell, all five tabs, the review gate, the create dialog in each capture mode, the connection wizard and the approval dialog — with **zero** Japanese text nodes or attributes left, and no page errors | open the studio with a non-Japanese browser locale |
 | Japanese studio unchanged | The same browser checks pass with a `ja-JP` locale after the translation layer was added | `python examples/verify_ui.py` |
-| Test suite | **113 passed**, 0 failed | `python -m pytest -q` |
+| **`launchloom selftest`** | The command a tester runs: drove the bundled app, rendered both cuts, wrote the page and the kit, and passed all eight output checks in 21s on this machine | `python -m launchloom selftest` |
+| Test suite | **128 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
 | Environment readiness | Browser launches, both fonts cover Japanese | `python -m launchloom doctor` |

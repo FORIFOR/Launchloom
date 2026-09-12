@@ -1,0 +1,29 @@
+name: Bug report
+description: Something behaved differently from what the documentation says.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected instead
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce it
+      description: The smallest sequence that shows the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `python -m launchloom doctor`
+      render: text
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        If the problem is in a film or a landing page rather than in the code,
+        attaching the file, or a screenshot of the frame, helps more than a description.

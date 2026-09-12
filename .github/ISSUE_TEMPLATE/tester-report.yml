@@ -1,0 +1,58 @@
+name: Tester report
+description: You ran it on your machine. Tell me what happened — pass or fail, both are useful.
+title: "Tester report: "
+labels: ["tester report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Running this on a machine that is not mine is the single most
+        useful thing anyone can do for the project right now.
+
+        If you have not run it yet:
+
+        ```bash
+        git clone https://github.com/FORIFOR/Launchloom.git && cd Launchloom
+        python3 -m venv .venv && source .venv/bin/activate
+        python -m pip install -e . && python -m playwright install chromium
+        python -m launchloom selftest
+        ```
+
+        That writes `launchloom-selftest.txt`. Paste it below — it already contains
+        everything I would otherwise have to ask you for.
+  - type: textarea
+    id: report
+    attributes:
+      label: launchloom-selftest.txt
+      description: Paste the whole file. If the command itself failed, paste what the terminal printed instead.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: How did it go?
+      options:
+        - Everything passed
+        - It finished, but something looked wrong
+        - It failed partway
+        - I could not get it installed
+    validations:
+      required: true
+  - type: textarea
+    id: watched
+    attributes:
+      label: Did you watch the film it made?
+      description: |
+        `--keep ./out` copies the films and the kit somewhere you can open them.
+        Automated checks say the file decodes; they cannot say whether it looks right.
+        Anything that struck you as wrong, ugly, or confusing is worth writing down.
+    validations:
+      required: false
+  - type: textarea
+    id: anything
+    attributes:
+      label: Anything else
+      description: What you expected, what surprised you, what you would have wanted instead.
+    validations:
+      required: false

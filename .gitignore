@@ -16,3 +16,5 @@ dist/
 # Any studio data directory, whatever it is called.
 .launchloom*/
 check*/
+launchloom-selftest.txt
+launchloom-selftest.json

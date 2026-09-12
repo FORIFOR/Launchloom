@@ -266,7 +266,7 @@ Chromiumが使うuser namespaceの呼び出しを塞ぐため、Chromium用の�
 
 ```bash
 python -m pip install -e '.[dev]'
-python -m pytest -q                 # 113 passed
+python -m pytest -q                 # 128 passed
 python -m compileall -q launchloom
 
 # 制作後、実ブラウザと実ファイルで確認する
@@ -293,6 +293,24 @@ python examples/verify_artifacts.py --data .launchloom --output checks
 必要なもの、あるいはライセンスだけでは判断しきれない商用利用については、
 [Discussions](https://github.com/FORIFOR/Launchloom/discussions)に書いてください。
 実際に launch を控えている人からの具体的な要件は、想像で書いたロードマップより価値があります。
+
+## 試して、教えてください
+
+このプロジェクトは、ひとりのMac１台と、コンテナとCIランナーでしか動かしていません。
+検証記録が主張できるのは、正直そこまでです。
+
+```bash
+python -m launchloom selftest
+```
+
+同梱アプリをブラウザで操作・収録し、横縦の映像を書き出し、LPとキットを作って、
+出てきたものを検査します。20秒ほど、一時ディレクトリの中だけで完結し、
+アカウントもネットワークも不要です。`launchloom-selftest.txt` が出力されるので、
+[テスター報告](https://github.com/FORIFOR/Launchloom/issues/new?template=tester-report.yml)
+に貼っていただければ、それで完了です。
+
+**失敗した報告のほうが価値があります。** 特に知りたいことは [TESTING.md](TESTING.md) に
+順番で書いています（Windows、Linuxデスクトップ、そして自分のアカウントでの実投稿）。
 
 ## OSSと事業化
 

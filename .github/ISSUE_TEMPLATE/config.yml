@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions, ideas, commercial use
+    url: https://github.com/FORIFOR/Launchloom/discussions
+    about: Discussions is a better place for anything that is not a specific defect.
+  - name: What has and has not been verified
+    url: https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATION.md
+    about: Before reporting, it may already be listed here as a known unverified path.

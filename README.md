@@ -10,7 +10,7 @@ from the same plan, on your own machine.
 
 [![Checks](https://github.com/FORIFOR/Launchloom/actions/workflows/check.yml/badge.svg)](https://github.com/FORIFOR/Launchloom/actions/workflows/check.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-113%20passing-brightgreen.svg)](docs/VERIFICATION.md)
+[![Tests](https://img.shields.io/badge/tests-128%20passing-brightgreen.svg)](docs/VERIFICATION.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)](pyproject.toml)
 [![Local first](https://img.shields.io/badge/runs-on%20your%20machine-ed6847.svg)](#what-it-does-not-do)
 [![日本語](https://img.shields.io/badge/README-日本語-333.svg)](README.ja.md)
@@ -143,7 +143,7 @@ Documentation: [architecture](docs/ARCHITECTURE.md) ·
 ## Status, honestly
 
 A single-operator alpha. macOS and Docker are verified end to end, with a real
-staging capture, a real browser UI check and 113 tests. No real social account,
+staging capture, a real browser UI check and 128 tests. No real social account,
 no paid generation endpoint and no Windows machine has been exercised — those
 rows are marked as unverified rather than quietly implied.
 
@@ -167,6 +167,25 @@ something the licence does not obviously cover — say so in
 [Discussions](https://github.com/FORIFOR/Launchloom/discussions). Concrete
 requirements from someone with a real launch to run are worth more than a
 roadmap written in the dark.
+
+## Testing it, and telling me
+
+This has only been run by one person, on one Mac, plus a container and a CI
+runner. That is the honest limit of what the verification record can claim.
+
+```bash
+python -m launchloom selftest
+```
+
+It drives the bundled app in a browser, records it, renders both cuts, writes a
+landing page and a kit, and checks what came out — about twenty seconds, in a
+temporary directory, with no account and no network. It writes
+`launchloom-selftest.txt`, which is the whole report: paste it into
+[a tester report](https://github.com/FORIFOR/Launchloom/issues/new?template=tester-report.yml).
+
+A failure is worth more to me than a pass. [TESTING.md](TESTING.md) lists what
+would help most — Windows first, then a Linux desktop, then a real publish on an
+account you own.
 
 ## Contributing
 
