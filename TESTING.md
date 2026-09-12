@@ -28,6 +28,25 @@ Add `--keep ./out` if you want the films and the kit left somewhere you can open
 them. **Please do open them.** The automated checks can tell you a file decodes;
 only a person can tell you it looks wrong.
 
+## Without installing anything
+
+If Docker is easier than a Python environment:
+
+```bash
+docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
+  python -m launchloom selftest
+```
+
+About twenty seconds, then copy the report out of the terminal.
+
+Two honest caveats. `CHROMIUM_NO_SANDBOX=1` turns off Chromium's own sandbox,
+which is acceptable here because the selftest only ever loads HTML the image
+already contains, in a container you are about to throw away — for recording
+anything of your own, use `docker compose up`, which keeps both the container's
+seccomp filter and Chromium's sandbox. And a container is Linux: it tells me
+nothing about whether Launchloom works on **your** operating system, which is the
+thing I most need to know.
+
 ## What would help most, in order
 
 1. **Windows.** Never run. Fonts, FFmpeg on PATH, the Playwright browser, and

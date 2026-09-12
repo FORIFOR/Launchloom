@@ -760,3 +760,46 @@ def test_issue_templates_are_valid_and_point_at_the_selftest():
         yaml.safe_load(path.read_text())
     from launchloom import selftest
     assert 'template=tester-report.yml' in Path(selftest.__file__).read_text()
+
+def test_selftest_falls_back_when_the_browser_will_not_launch(monkeypatch,tmp_path):
+    """On a machine where the browser failed, whether rendering and fonts work is
+    still worth knowing — and it is a different answer."""
+    from launchloom import selftest
+    monkeypatch.setattr(selftest,'environment',lambda s:{'browser_launches':False,'packages':{}})
+    seen={}
+    async def fake_build(settings,store,cid,options):
+        seen['capture_mode']=options.capture_mode
+        raise RuntimeError('stopped after options were chosen')
+    monkeypatch.setattr('launchloom.pipeline.build',fake_build)
+    report=selftest.run(Settings(data_dir=tmp_path/'d',token='selftest-token-with-enough-characters'))
+    assert seen['capture_mode']=='none', 'with no browser it must not try to record'
+    assert report['build']['ok'] is False
+
+def test_a_browser_that_never_launched_is_not_a_pass(monkeypatch,tmp_path,capsys):
+    from launchloom import selftest
+    monkeypatch.setattr(selftest,'run',lambda s,k=None:{
+        'environment':{'browser_launches':False,'platform':'x','packages':{}},
+        'build':{'ok':True,'seconds':9.0,'path':'motion graphics only','kit_entries':16,
+                 'landscape':{'width':960,'height':540,'duration':14.4,'bytes':1},
+                 'portrait':{'width':540,'height':960,'duration':14.4,'bytes':1},
+                 'checks':{'zip_intact':True}}})
+    monkeypatch.chdir(tmp_path)
+    assert selftest.main(Settings(data_dir=tmp_path,token='selftest-token-with-enough-characters'))==1
+
+def test_selftest_survives_a_directory_it_cannot_write(monkeypatch,tmp_path,capsys):
+    """A read-only mount, or a container running as another user, must not turn a
+    good run into a failure — the report is the text, not the file."""
+    from launchloom import selftest
+    monkeypatch.setattr(selftest,'run',lambda s,k=None:{
+        'environment':{'browser_launches':True,'platform':'x','packages':{}},
+        'build':{'ok':True,'seconds':20.0,'path':'recorded','kit_entries':16,
+                 'landscape':{'width':960,'height':540,'duration':14.4,'bytes':1},
+                 'portrait':{'width':540,'height':960,'duration':14.4,'bytes':1},
+                 'checks':{'zip_intact':True}}})
+    readonly=tmp_path/'readonly';readonly.mkdir();readonly.chmod(0o500)
+    monkeypatch.chdir(readonly)
+    try:
+        assert selftest.main(Settings(data_dir=tmp_path,token='selftest-token-with-enough-characters'))==0
+        assert 'not writable' in capsys.readouterr().out
+    finally:
+        readonly.chmod(0o700)

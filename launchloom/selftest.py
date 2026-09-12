@@ -104,11 +104,18 @@ def run(settings: Settings | None = None, keep: Path | None = None) -> dict:
         scratch.prepare()
         store = Store(scratch.data_dir / "launchloom.sqlite3")
         # Always the English sample, so two reports from two machines are comparable.
+        # Without a working browser there is nothing to record, but rendering,
+        # fonts and FFmpeg can still be exercised — and on a machine where the
+        # browser failed, that is exactly the distinction worth reporting.
+        recorded = report["environment"]["browser_launches"]
         campaign = store.create_campaign(SAMPLES["en"])
-        options = BuildOptions(capture_mode="sample", quality="draft")
+        options = BuildOptions(capture_mode="sample" if recorded else "none", quality="draft")
         asyncio.run(build(scratch, store, campaign["id"], options))
         root = scratch.data_dir / "campaigns" / campaign["id"]
-        report["build"] = {"ok": True, "seconds": round(time.monotonic() - started, 1), **inspect(root)}
+        report["build"] = {"ok": True, "seconds": round(time.monotonic() - started, 1),
+                           "path": "recorded the bundled app" if recorded
+                                   else "motion graphics only — the browser would not launch",
+                           **inspect(root)}
         if keep:
             keep.mkdir(parents=True, exist_ok=True)
             for name in ("landscape.mp4", "portrait.mp4", "launch-kit.zip"):
@@ -131,7 +138,8 @@ def render_report(report: dict) -> str:
     if build.get("ok"):
         checks = "\n".join(f"  {'PASS' if value else 'FAIL'}  {name}"
                            for name, value in build["checks"].items())
-        outcome = (f"  built in {build['seconds']}s\n"
+        outcome = (f"  {build.get('path','built')}\n"
+                   f"  built in {build['seconds']}s\n"
                    f"  landscape: {build['landscape']['width']}x{build['landscape']['height']}"
                    f" {build['landscape']['duration']}s {build['landscape']['bytes']} bytes\n"
                    f"  portrait:  {build['portrait']['width']}x{build['portrait']['height']}"
@@ -148,17 +156,29 @@ def main(settings: Settings, keep: Path | None = None) -> int:
     report = run(settings, keep)
     text = render_report(report)
     print(text)
-    destination = Path("launchloom-selftest.txt")
-    destination.write_text(text)
-    json_destination = Path("launchloom-selftest.json")
-    json_destination.write_text(json.dumps(report, indent=2, ensure_ascii=False))
-    passed = report["build"].get("ok") and all(report["build"].get("checks", {}).values())
-    print(f"Written to {destination} and {json_destination}.")
+    # The report is the text above. Writing it to a file is a convenience, and a
+    # directory this process cannot write to — a read-only mount, a container
+    # running as another user — must not turn a good run into a failure.
+    written = []
+    for name, payload in (("launchloom-selftest.txt", text),
+                          ("launchloom-selftest.json", json.dumps(report, indent=2, ensure_ascii=False))):
+        try:
+            Path(name).write_text(payload)
+            written.append(name)
+        except OSError as error:
+            report.setdefault("notes", []).append(f"could not write {name}: {error.strerror}")
+    passed = (report["build"].get("ok")
+              and all(report["build"].get("checks", {}).values())
+              and report["environment"]["browser_launches"])
+    if written:
+        print("Written to " + " and ".join(written) + ".")
+    else:
+        print("This directory is not writable, so nothing was saved — copy the report above instead.")
     if passed:
-        print("\nEverything passed. If you are willing, paste that file into\n"
+        print("\nEverything passed. If you are willing, paste the report into\n"
               "https://github.com/FORIFOR/Launchloom/issues/new?template=tester-report.yml\n"
               "— knowing it works on a machine that is not mine is the most useful thing anyone can send.")
     else:
-        print("\nSomething failed, which is worth more to me than a pass. Please paste that file into\n"
+        print("\nSomething failed, which is worth more to me than a pass. Please paste the report into\n"
               "https://github.com/FORIFOR/Launchloom/issues/new?template=tester-report.yml")
     return 0 if passed else 1

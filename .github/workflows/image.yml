@@ -1,0 +1,74 @@
+name: Container image
+
+# A published image removes the Python, FFmpeg and Chromium setup from "try it".
+# It runs on GitHub's own token, so nothing outside this repository is needed.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'launchloom/**'
+      - 'pyproject.toml'
+      - '.github/workflows/image.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/launchloom
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=tag
+            type=sha,format=short
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Prove the image works before anyone is told to run it. The browser
+      # sandbox needs syscalls Docker's default seccomp profile blocks, so the
+      # repository's Chromium profile is used here exactly as compose.yaml does.
+      - name: Run the selftest inside the published image
+        run: |
+          mkdir -p report && chmod 777 report
+          docker run --rm \
+            --security-opt seccomp=docker/chromium-seccomp.json \
+            --shm-size=1g \
+            -v "$PWD/report:/report" -w /report \
+            ghcr.io/${{ github.repository_owner }}/launchloom:sha-$(git rev-parse --short HEAD) \
+            python -m launchloom selftest
+          cat report/launchloom-selftest.txt || echo "(the report was printed above)"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selftest-report
+          path: report/

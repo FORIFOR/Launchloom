@@ -28,7 +28,10 @@ Date of this record: 2026-09-12.
 | **English studio** | Every screen walked in an English browser — shell, all five tabs, the review gate, the create dialog in each capture mode, the connection wizard and the approval dialog — with **zero** Japanese text nodes or attributes left, and no page errors | open the studio with a non-Japanese browser locale |
 | Japanese studio unchanged | The same browser checks pass with a `ja-JP` locale after the translation layer was added | `python examples/verify_ui.py` |
 | **`launchloom selftest`** | The command a tester runs: drove the bundled app, rendered both cuts, wrote the page and the kit, and passed all eight output checks in 21s on this machine | `python -m launchloom selftest` |
-| Test suite | **128 passed**, 0 failed | `python -m pytest -q` |
+| selftest without a browser | With `CHROMIUM_EXECUTABLE` pointed at nothing, it fell back to motion graphics in 5.5s, still produced a complete kit, and correctly reported the run as **not** a pass | `CHROMIUM_EXECUTABLE=/nonexistent python -m launchloom selftest` |
+| selftest in the container | All eight checks passed inside the image with Chromium's sandbox on, and again with the single-flag `CHROMIUM_NO_SANDBOX=1` path the docs offer | `docker run … python -m launchloom selftest` |
+| Unwritable directory | A run in a read-only directory prints the report and says nothing was saved, rather than failing | `tests/test_core.py::test_selftest_survives_a_directory_it_cannot_write` |
+| Test suite | **131 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
 | Environment readiness | Browser launches, both fonts cover Japanese | `python -m launchloom doctor` |
