@@ -58,8 +58,12 @@ async def main(args):
             "() => document.querySelectorAll('.reveal').length===document.querySelectorAll('.reveal.in').length")
         report["checks"]["no_horizontal_overflow_desktop"] = await page.evaluate(
             "() => document.documentElement.scrollWidth<=innerWidth")
+        # The page should only ever send someone to the project's own places. A link
+        # to anywhere else is either a mistake or something that should not be here.
         report["checks"]["outbound_links_resolve"] = await page.evaluate(
-            "() => [...document.querySelectorAll('a[href^=\"http\"]')].every(a=>a.href.includes('github'))")
+            "() => { const allowed=['github.com','codespaces.new','ghcr.io','forifor.github.io'];"
+            " return [...document.querySelectorAll('a[href^=\"http\"]')]"
+            "  .every(a=>allowed.includes(new URL(a.href).hostname)); }")
         # Every copy button reads a <pre> by id. A typo there fails silently — the
         # button just does nothing — so the wiring is checked rather than the click.
         report["checks"]["copy_buttons_wired"] = await page.evaluate(

@@ -185,6 +185,8 @@ pre .c{color:#7f8f88}
 .help ul{margin:22px 0 0;padding:0;list-style:none}
 .help li{padding:14px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14.5px;max-width:56ch}
 .help li b{color:var(--ink);font-weight:600}
+.help .note{color:var(--muted);max-width:56ch}
+.help .note a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
 .help li code{background:#ecebe4;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .start-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
 
@@ -554,6 +556,9 @@ python -m launchloom serve</pre>
           <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom/issues/2">Read the ask</a>
           <a class="btn btn-ghost" style="border-color:var(--line);color:var(--ink)" href="https://github.com/FORIFOR/Launchloom/blob/main/TESTING.md">TESTING.md</a>
         </div>
+        <p class="note" style="margin-top:14px">Nothing installed, and no Docker?
+        <a href="https://codespaces.new/FORIFOR/Launchloom" style="color:var(--ink)">Open it in a Codespace</a> — the
+        environment builds itself and prints the command.</p>
       </div>
       <div class="code-wrap reveal">
         <button class="copy" type="button" data-for="snippet-help">Copy</button>
