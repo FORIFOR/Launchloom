@@ -309,6 +309,13 @@ python -m launchloom selftest
 [テスター報告](https://github.com/FORIFOR/Launchloom/issues/new?template=tester-report.yml)
 に貼っていただければ、それで完了です。
 
+何もインストールしたくない場合は、公開イメージで動きます（Intel / Apple Silicon 両対応）。
+
+```bash
+docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
+  python -m launchloom selftest
+```
+
 **失敗した報告のほうが価値があります。** 特に知りたいことは [TESTING.md](TESTING.md) に
 順番で書いています（Windows、Linuxデスクトップ、そして自分のアカウントでの実投稿）。
 

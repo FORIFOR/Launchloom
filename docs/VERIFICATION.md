@@ -30,6 +30,7 @@ Date of this record: 2026-09-12.
 | **`launchloom selftest`** | The command a tester runs: drove the bundled app, rendered both cuts, wrote the page and the kit, and passed all eight output checks in 21s on this machine | `python -m launchloom selftest` |
 | selftest without a browser | With `CHROMIUM_EXECUTABLE` pointed at nothing, it fell back to motion graphics in 5.5s, still produced a complete kit, and correctly reported the run as **not** a pass | `CHROMIUM_EXECUTABLE=/nonexistent python -m launchloom selftest` |
 | selftest in the container | All eight checks passed inside the image with Chromium's sandbox on, and again with the single-flag `CHROMIUM_NO_SANDBOX=1` path the docs offer | `docker run … python -m launchloom selftest` |
+| **The published image, both architectures** | `ghcr.io/forifor/launchloom` carries linux/amd64 and linux/arm64. CI runs the selftest inside the joined image on x86_64 before publishing; the arm64 half was then pulled and run on an Apple Silicon Mac — all eight checks passed in 21s | `docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom python -m launchloom selftest` |
 | Unwritable directory | A run in a read-only directory prints the report and says nothing was saved, rather than failing | `tests/test_core.py::test_selftest_survives_a_directory_it_cannot_write` |
 | Test suite | **131 passed**, 0 failed | `python -m pytest -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
@@ -127,8 +128,9 @@ looked present and did nothing:
 
 ## Not verified, or not implemented
 
-- Windows, and Linux desktop, on real hardware. Only macOS, the Linux container
-  and the Linux CI runner were run; no Linux desktop capture was exercised.
+- Windows, and Linux desktop, on real hardware. macOS, the Linux container on
+  both architectures, and the Linux CI runners were run; no Linux desktop capture
+  was exercised.
 - The native screen-share permission dialog on any OS.
 - Any real social account, any real post, any paid generation.
 - Team review and multi-user anything: the authentication here is one operator

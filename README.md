@@ -183,6 +183,13 @@ temporary directory, with no account and no network. It writes
 `launchloom-selftest.txt`, which is the whole report: paste it into
 [a tester report](https://github.com/FORIFOR/Launchloom/issues/new?template=tester-report.yml).
 
+Nothing installed? The published image runs on Intel and Apple Silicon alike:
+
+```bash
+docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
+  python -m launchloom selftest
+```
+
 A failure is worth more to me than a pass. [TESTING.md](TESTING.md) lists what
 would help most — Windows first, then a Linux desktop, then a real publish on an
 account you own.
