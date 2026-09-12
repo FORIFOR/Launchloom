@@ -217,3 +217,31 @@ def test_review_still_respects_the_chosen_range(tmp_path):
     root=tmp_path/'campaign';root.mkdir()
     review_still(root,clip,start=3.0)
     assert (root/'review-frame.jpg').is_file()
+
+
+def test_animation_length_is_configurable_without_footage(tmp_path):
+    """With no recording there is nothing to take a length from, so the operator
+    decides how long the motion graphics run."""
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    short=rendering.render(brief,make_plan(brief),tmp_path/'short',None,[],quality='draft')
+    long=rendering.render(brief,make_plan(brief),tmp_path/'long',None,[],quality='draft',animation_seconds=18)
+    assert round(short['landscape']['duration'])==15
+    assert round(long['landscape']['duration'])==24
+    # The twenty second ceiling is for imported footage, not for graphics the
+    # operator asked for by the second.
+    longest=rendering.render(brief,make_plan(brief),tmp_path/'longest',None,[],quality='draft',animation_seconds=26)
+    assert round(longest['landscape']['duration'])==32
+
+def test_footage_still_decides_its_own_length(tmp_path):
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    clip=tmp_path/'clip.mp4'
+    subprocess.run(['ffmpeg','-v','error','-y','-f','lavfi','-i','testsrc=size=320x200:rate=24:duration=8',
+                    '-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    result=rendering.render(brief,make_plan(brief),tmp_path/'out',clip,[],quality='draft',animation_seconds=25)
+    assert round(result['landscape']['duration'])==14, 'the recording, not animation_seconds, sets the length'

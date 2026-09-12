@@ -283,12 +283,28 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
             rounded_paste(base,image,x,y,n(18))
             d=ImageDraw.Draw(base)
         else:
+            # No footage: the panel is a quiet mark, not the headline again. The
+            # headline is already set beside it, and repeating it wastes the frame.
             d.rounded_rectangle((x,y,x+cw,y+ch),n(20),fill=style['panel'])
-            wrapped(d,sc.title,(x+n(44),y+ch//3),cw-n(88),n(40),style['panel_ink'],True)
+            # Sized against the panel, so the rings fit both the wide and the tall cut.
+            cx=x+cw/2;cy=y+ch/2-n(10);span=min(cw,ch)*.42
+            for ring in range(6):
+                r=span*(.22+ring*.16)+math.sin(t*.5+ring*.6)*n(5)
+                d.ellipse((cx-r,cy-r*.92,cx+r,cy+r*.92),
+                    outline=accent if ring==2 else style['outro_rule'],width=n(2 if ring==2 else 1))
+            d.ellipse((cx-n(9),cy-n(9),cx+n(9),cy+n(9)),fill=accent)
+            index=proofs.index(sc)+1
+            d.text((x+n(44),y+n(40)),f'0{index} / 0{len(proofs)}',font=font(n(11)),fill=style['panel_muted'])
             d.text((x+n(44),y+ch-n(60)),'FEATURE OVERVIEW · NOT A SCREEN RECORDING',font=font(n(10)),fill=style['panel_muted'])
         if portrait:
-            wrapped(d,label,(margin,n(1000)),w-margin*2,n(25),dark,True,2)
-            wrapped(d,sc.detail,(margin,n(1085)),w-margin*2,n(17),muted,max_lines=3)
+            # The label is what the operator said was happening at this moment. With
+            # no event track it falls back to the headline, which is already above
+            # the frame — so show the supporting line instead of saying it twice.
+            if label and label!=sc.title:
+                wrapped(d,label,(margin,n(1000)),w-margin*2,n(25),dark,True,2)
+                wrapped(d,sc.detail,(margin,n(1085)),w-margin*2,n(17),muted,max_lines=3)
+            else:
+                wrapped(d,sc.detail,(margin,n(1005)),w-margin*2,n(22),muted,max_lines=4)
     else:
         d.rectangle((0,0,w,h),fill=style['outro'])
         cx=w*.83;cy=h*.81;r=n(210+25*math.sin((t-outro_start)*.5))
@@ -310,14 +326,17 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
     return base.convert('RGB')
 
 
-def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events: list[dict],quality='hd',broll: Path|None=None,audio: Path|None=None,progress=None,visual_style='editorial',capture_start=0.0,capture_length=0.0,narration: Path|None=None):
+def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events: list[dict],quality='hd',broll: Path|None=None,audio: Path|None=None,progress=None,visual_style='editorial',capture_start=0.0,capture_length=0.0,narration: Path|None=None,animation_seconds: float=9.0):
     if not shutil.which('ffmpeg') or not shutil.which('ffprobe'):raise ValueError('Install FFmpeg and ffprobe before rendering')
     output.mkdir(parents=True,exist_ok=True)
-    actual_duration=float(validate_media(capture_path)['format']['duration']) if capture_path else 9
+    actual_duration=float(validate_media(capture_path)['format']['duration']) if capture_path else animation_seconds
     available=actual_duration-capture_start if capture_path else actual_duration
     if capture_path and available<1:
         raise ValueError('The chosen range starts at or past the end of the recording')
-    proof_duration=min(capture_length or 20,available);duration=proof_duration+6
+    # The twenty second ceiling bounds imported footage. It has no business
+    # shortening motion graphics the operator explicitly sized.
+    proof_duration=min(capture_length or 20,available) if capture_path else available
+    duration=proof_duration+6
     # Music sits under narration when both are supplied, at a fixed level: a
     # fifteen second film does not need dynamic ducking to stay intelligible.
     tracks=[(narration,1.0)] if narration else []

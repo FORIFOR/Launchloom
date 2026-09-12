@@ -701,3 +701,23 @@ def test_translations_contain_no_html_entities():
     """Values land in text nodes, so &nbsp; would be shown to the reader literally."""
     offenders=[(key,value) for key,value in i18n_entries() if '&' in value and ';' in value.split('&',1)[1][:8]]
     assert offenders==[], f'HTML entities in translated values: {offenders}'
+
+def test_vertical_does_not_say_the_headline_twice(brief):
+    """With no event track the caption falls back to the headline, which is
+    already set above the frame."""
+    from PIL import Image, ImageDraw
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    drawn=[]
+    original=rendering.wrapped
+    def spy(draw,text,xy,width,size,fill,bold=False,max_lines=4):
+        drawn.append(str(text))
+        return original(draw,text,xy,width,size,fill,bold,max_lines)
+    rendering.wrapped=spy
+    try:
+        plan=make_plan(brief)
+        rendering.render_frame(brief,plan,720,1280,5.0,12,None,[],None,'editorial')
+    finally:
+        rendering.wrapped=original
+    proof=[s for s in plan.scenes if s.kind=='proof'][0]
+    assert drawn.count(proof.title)==1, f'the headline was set {drawn.count(proof.title)} times: {drawn}'

@@ -95,6 +95,9 @@ class BuildOptions(StrictModel):
     # "from the start point, up to the built-in 20 second ceiling".
     capture_start: float = Field(default=0, ge=0, le=290)
     capture_length: float = Field(default=0, ge=0, le=120)
+    # How long the motion-graphics section runs when there is no recording.
+    # With footage, the recording's own length decides.
+    animation_seconds: float = Field(default=9, ge=4, le=30)
     @model_validator(mode="after")
     def guard(self):
         if self.capture_mode == "url" and (not self.capture_url or not self.staging_confirmed):

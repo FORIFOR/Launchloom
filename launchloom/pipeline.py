@@ -137,7 +137,7 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     if options.capture_start:
         # Event times are relative to the recording; the film starts at the cut.
         events=[{**e,'time':e['time']-options.capture_start} for e in events]
-    videos=await asyncio.to_thread(render,b,plan,root,capture_file,events,options.quality,broll,audio if audio.exists() else None,render_progress,options.visual_style,options.capture_start,options.capture_length,narration if narration.exists() else None)
+    videos=await asyncio.to_thread(render,b,plan,root,capture_file,events,options.quality,broll,audio if audio.exists() else None,render_progress,options.visual_style,options.capture_start,options.capture_length,narration if narration.exists() else None,options.animation_seconds)
     stage('package',86,'LPに操作動画を配置し、SNS原稿と配布パッケージを作っています。')
     shutil.copy(root/'landscape.mp4',root/'site/film.mp4');shutil.copy(root/'landscape.jpg',root/'site/poster.jpg')
     build_site(b,cid,root/'site',settings,True)
