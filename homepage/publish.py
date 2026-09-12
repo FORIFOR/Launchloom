@@ -17,6 +17,7 @@ from pathlib import Path
 HOMEPAGE = Path(__file__).resolve().parent
 ROOT = HOMEPAGE.parent
 SKIP = {"README.md", "publish.py", "check.py", "__pycache__"}
+TEXT = {".html", ".xml", ".txt", ".json", ".css", ".js"}
 
 
 def git(*args, **kwargs):
