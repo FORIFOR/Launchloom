@@ -190,6 +190,9 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
   python -m launchloom selftest
 ```
 
+No Docker either? [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/FORIFOR/Launchloom) — the devcontainer installs
+everything and prints the command.
+
 A failure is worth more to me than a pass. [TESTING.md](TESTING.md) lists what
 would help most — Windows first, then a Linux desktop, then a real publish on an
 account you own.

@@ -49,6 +49,16 @@ seccomp filter and Chromium's sandbox. And a container is Linux: it tells me
 nothing about whether Launchloom works on **your** operating system, which is the
 thing I most need to know.
 
+### Or in a browser, with nothing installed
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/FORIFOR/Launchloom)
+
+The devcontainer installs FFmpeg, Chromium and the package for you, then prints
+the two commands worth running. The recipe was verified by running it in the same
+base image Codespaces uses: all eight checks passed in 20.3s, with
+`CHROMIUM_NO_SANDBOX=1`, which a Codespace needs because it cannot supply the
+seccomp profile Chromium's sandbox requires.
+
 ## What would help most, in order
 
 1. **[Windows](https://github.com/FORIFOR/Launchloom/issues/5).** Never run. Fonts, FFmpeg on PATH, the Playwright

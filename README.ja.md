@@ -316,6 +316,9 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
   python -m launchloom selftest
 ```
 
+Dockerもない場合は [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/FORIFOR/Launchloom) — devcontainer が必要なものを入れて、
+実行するコマンドを表示します。
+
 **失敗した報告のほうが価値があります。** 特に知りたいことは [TESTING.md](TESTING.md) に
 順番で書いています（Windows、Linuxデスクトップ、そして自分のアカウントでの実投稿）。
 
