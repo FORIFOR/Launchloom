@@ -2,6 +2,10 @@ name: Container image
 
 # A published image removes the Python, FFmpeg and Chromium setup from "try it".
 # It runs on GitHub's own token, so nothing outside this repository is needed.
+#
+# Built for amd64 and arm64 on native runners rather than under emulation. An
+# amd64-only image does not run on an Apple Silicon Mac at all — Docker refuses
+# the manifest outright — and that is most of the people who might try this.
 on:
   push:
     branches: [main]
@@ -18,9 +22,20 @@ concurrency:
   group: image-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  IMAGE: ghcr.io/forifor/launchloom
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
@@ -35,31 +50,69 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+
+      - name: Record the digest
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${{ steps.push.outputs.digest }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ strategy.job-index }}
+          path: /tmp/digests/*
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/launchloom
+          images: ${{ env.IMAGE }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
             type=sha,format=short
 
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Join the two builds into one image
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE }}@sha256:%s ' *)
+          docker buildx imagetools inspect ${{ env.IMAGE }}:latest
 
-      # The image reference comes from the metadata action, which lowercases the
-      # owner. Rebuilding it by hand from github.repository_owner does not, and
-      # Docker rejects an uppercase repository name.
-      #
-      # Prove the image works before anyone is told to run it. The browser
-      # sandbox needs syscalls Docker's default seccomp profile blocks, so the
-      # repository's Chromium profile is used here exactly as compose.yaml does.
+      # Prove the image works before anyone is told to run it. The browser sandbox
+      # needs syscalls Docker's default seccomp profile blocks, so the repository's
+      # Chromium profile is used here exactly as compose.yaml does.
       - name: Run the selftest inside the published image
         run: |
           mkdir -p report && chmod 777 report
@@ -67,7 +120,7 @@ jobs:
             --security-opt seccomp=docker/chromium-seccomp.json \
             --shm-size=1g \
             -v "$PWD/report:/report" -w /report \
-            ${{ fromJSON(steps.meta.outputs.json).tags[0] }} \
+            ${{ env.IMAGE }}:latest \
             python -m launchloom selftest
           cat report/launchloom-selftest.txt || echo "(the report was printed above)"
 
