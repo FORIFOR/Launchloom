@@ -53,6 +53,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # The image reference comes from the metadata action, which lowercases the
+      # owner. Rebuilding it by hand from github.repository_owner does not, and
+      # Docker rejects an uppercase repository name.
+      #
       # Prove the image works before anyone is told to run it. The browser
       # sandbox needs syscalls Docker's default seccomp profile blocks, so the
       # repository's Chromium profile is used here exactly as compose.yaml does.
@@ -63,7 +67,7 @@ jobs:
             --security-opt seccomp=docker/chromium-seccomp.json \
             --shm-size=1g \
             -v "$PWD/report:/report" -w /report \
-            ghcr.io/${{ github.repository_owner }}/launchloom:sha-$(git rev-parse --short HEAD) \
+            ${{ fromJSON(steps.meta.outputs.json).tags[0] }} \
             python -m launchloom selftest
           cat report/launchloom-selftest.txt || echo "(the report was printed above)"
 
