@@ -117,6 +117,15 @@ section{padding:clamp(64px,9vw,118px) 0}
 .refuse-item span{color:var(--accent);font-size:15px;line-height:1.5}
 .refuse-item p{color:var(--dark-muted);margin:8px 0 0;font-size:14.5px;max-width:62ch}
 
+/* narrated explainer */
+.narrated{background:var(--card);border-block:1px solid var(--line)}
+.narrated-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.34fr);gap:clamp(20px,3vw,34px);align-items:start}
+.narrated .frame{margin:0;border-color:var(--line);box-shadow:0 26px 60px -45px rgba(20,27,28,.55)}
+.narrated figcaption{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:11px 14px;background:var(--paper);border-top:1px solid var(--line)}
+.narrated-note{margin-top:26px;font-size:13px;color:var(--muted);max-width:66ch}
+@media(max-width:900px){.narrated-grid{grid-template-columns:minmax(0,1fr)}.narrated-tall{max-width:300px}}
+
 /* kit */
 .kit-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.75fr);gap:clamp(26px,4vw,52px);align-items:start}
 .kit-list{border-top:1px solid var(--line)}
@@ -175,6 +184,7 @@ footer a:hover{color:var(--dark-ink)}
       <a class="brand" href="/Launchloom/"><span class="mark"></span>Launchloom</a>
       <div class="nav-links">
         <a href="#what">What you get</a>
+        <a href="#narrated">With sound</a>
         <a href="#kit">What it produces</a>
         <a href="#itself">Made by itself</a>
         <a href="#refuse">What it won't do</a>
@@ -235,6 +245,30 @@ footer a:hover{color:var(--dark-ink)}
         <p>One ZIP with everything, a manifest recording where each asset came
         from, and private evidence notes deliberately left out.</p></article>
     </div>
+  </div>
+</section>
+
+<section class="narrated" id="narrated">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">With sound</p>
+      <h2>The twenty-six second version.</h2>
+      <p>Same brief, same pipeline, with narration and music laid underneath — and
+      cut for wide and for vertical in the same pass. Play it with the sound on.</p>
+    </div>
+    <div class="narrated-grid reveal">
+      <figure class="frame narrated-wide">
+        <video src="intro.mp4" poster="intro-poster.jpg" controls playsinline preload="none"></video>
+        <figcaption>16:9 · 26s · narrated</figcaption>
+      </figure>
+      <figure class="frame narrated-tall">
+        <video src="intro-vertical.mp4" poster="intro-vertical-poster.jpg" controls playsinline preload="none"></video>
+        <figcaption>9:16 · laid out on its own</figcaption>
+      </figure>
+    </div>
+    <p class="narrated-note reveal">The music is a track the operator supplied; nothing here is
+    generated audio. Launchloom mixes it under the voice, normalises the result once,
+    and cuts it to the length of the film.</p>
   </div>
 </section>
 
