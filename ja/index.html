@@ -181,6 +181,13 @@ pre .c{color:#7f8f88}
   border-radius:8px;padding:7px 13px;font-size:11.5px;cursor:pointer;font-family:inherit}
 .copy:hover{background:#2c3a3a}
 .code-wrap{position:relative}
+/* The ask. One machine is not verification, and only someone else can fix that. */
+.help{border-top:1px solid var(--line)}
+.help-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(28px,4vw,56px);align-items:start}
+.help ul{margin:22px 0 0;padding:0;list-style:none}
+.help li{padding:14px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14.5px;max-width:56ch}
+.help li b{color:var(--ink);font-weight:600}
+.help li code{background:#ecebe4;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .start-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
 
 /* vertical showcase */
@@ -199,9 +206,9 @@ footer a:hover{color:var(--dark-ink)}
 
 /* A grid track of 1fr still refuses to shrink below its content's minimum, and a
    code block's minimum is a long line. minmax(0,1fr) lets it scroll instead. */
-.grid>*,.start-grid>*,.vertical-grid>*,.pair>*,.hero-grid>*{min-width:0}
+.grid>*,.start-grid>*,.help-grid>*,.vertical-grid>*,.pair>*,.hero-grid>*{min-width:0}
 @media (max-width:900px){
-  .hero-grid,.g3,.g2,.pair,.start-grid,.vertical-grid{grid-template-columns:minmax(0,1fr)}
+  .hero-grid,.g3,.g2,.pair,.start-grid,.vertical-grid,.help-grid{grid-template-columns:minmax(0,1fr)}
   .nav-links{display:none}
   .pair{align-items:stretch}
 }
@@ -236,9 +243,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
       <div>
         <p class="eyebrow">オープンソースの制作スタジオ</p>
         <h1>作った、<br>その先まで。</h1>
-        <p class="lede">プロダクトの情報を一度入力すると、紹介映像・縦長の切り出し・
-        ランディングページ・SNSの投稿原稿が、同じ企画と同じ素材から仕上がります。
-        自分のマシンで動きます。</p>
+        <p class="lede">プロダクトの情報を一度入力すると、紹介映像・縦長の切り出し・ランディングページ・SNSの投稿原稿が、同じ企画と同じ素材から仕上がります。自分のマシンで動きます。</p>
         <div class="row">
           <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom">GitHubでスターする <span aria-hidden="true">★</span></a>
           <a class="btn btn-ghost" href="#start">3分で動かす</a>
@@ -249,8 +254,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
         <div class="frame">
           <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline preload="metadata" controls></video>
         </div>
-        <p class="caption">この映像は、Launchloomがスタジオ自身の画面収録から制作したものです。
-        クローンして動かすと同じ工程が走ります。</p>
+        <p class="caption">この映像は、Launchloomがスタジオ自身の画面収録から制作したものです。クローンして動かすと同じ工程が走ります。</p>
       </div>
     </div>
   </div>
@@ -263,8 +267,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
         <p class="eyebrow">カメラ</p>
         <h2>ショットを保つ。脈打たない。</h2>
         <p>多くのツールはクリックのたびに寄って戻ります。それは落ち着きのなさとして映ります。
-        Launchloomは操作ごとの注視点をショットとして保持し、次の対象が新しいショットに値するだけ
-        離れたときにだけ動きます。C2連続の曲線で補間するので、切り替わりで跳ねません。</p>
+        Launchloomは操作ごとの注視点をショットとして保持し、次の対象が新しいショットに値するだけ離れたときにだけ動きます。C2連続の曲線で補間するので、切り替わりで跳ねません。</p>
         <div class="camera-figures">
           <div><span>クリック</span><b>1.17×</b></div>
           <div><span>入力</span><b>1.13×</b></div>
@@ -287,28 +290,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     <div class="section-head reveal">
       <p class="eyebrow">一度の入力から</p>
       <h2>公開に必要なものが、そろって出てくる。</h2>
-      <p>制作画面のモックではありません。実際のMP4、実際のHTML、実際の原稿と、
-      全ファイルのSHA-256が入ったマニフェストが出力されます。</p>
+      <p>制作画面のモックではありません。実際のMP4、実際のHTML、実際の原稿と、全ファイルのSHA-256が入ったマニフェストが出力されます。</p>
     </div>
     <div class="grid g3">
       <article class="card reveal"><span class="num">01</span><h3>実物を映した紹介映像</h3>
-        <p>1280×720、H.264。自分のプロダクトを実際に操作した収録から組み立てます。
-        作り物の画面でも、ストック映像でもありません。</p></article>
+        <p>1280×720、H.264。自分のプロダクトを実際に操作した収録から組み立てます。作り物の画面でも、ストック映像でもありません。</p></article>
       <article class="card reveal"><span class="num">02</span><h3>別に組んだ縦長</h3>
-        <p>720×1280を独立したレイアウトで構成します。横長を中央で切り抜いて
-        祈るのではありません。</p></article>
+        <p>720×1280を独立したレイアウトで構成します。横長を中央で切り抜いて祈るのではありません。</p></article>
       <article class="card reveal"><span class="num">03</span><h3>ランディングページ</h3>
-        <p>映像を埋め込んだ自己完結のHTML・CSS・JS。CDN依存もビルド工程も
-        フレームワークもありません。どこにでも置けます。</p></article>
+        <p>映像を埋め込んだ自己完結のHTML・CSS・JS。CDN依存もビルド工程もフレームワークもありません。どこにでも置けます。</p></article>
       <article class="card reveal"><span class="num">04</span><h3>直せる投稿原稿</h3>
         <p>X、LinkedIn、Threads、Bluesky、YouTube、Instagram、TikTok向けに、
         UTM付きリンクと文字数検査つきで。</p></article>
       <article class="card reveal"><span class="num">05</span><h3>字幕とポスター</h3>
-        <p>画面上の見出しをSRTで（音声の書き起こしではありません）。
-        横長・縦長それぞれの静止画も。</p></article>
+        <p>画面上の見出しをSRTで（音声の書き起こしではありません）。横長・縦長それぞれの静止画も。</p></article>
       <article class="card reveal"><span class="num">06</span><h3>渡せる形の一式</h3>
-        <p>すべてをまとめたZIP、素材の出どころを記録したマニフェスト、
-        そして意図的に除外された非公開の根拠メモ。</p></article>
+        <p>すべてをまとめたZIP、素材の出どころを記録したマニフェスト、そして意図的に除外された非公開の根拠メモ。</p></article>
     </div>
   </div>
 </section>
@@ -318,8 +315,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     <div class="section-head reveal">
       <p class="eyebrow">音声つき</p>
       <h2>28秒の、話す版。</h2>
-      <p>同じ企画、同じ工程に、ナレーションと音楽を重ねたもの。
-      横長と縦長を同じ書き出しで作ります。音を出して再生してください。</p>
+      <p>同じ企画、同じ工程に、ナレーションと音楽を重ねたもの。横長と縦長を同じ書き出しで作ります。音を出して再生してください。</p>
     </div>
     <div class="narrated-grid reveal">
       <figure class="frame narrated-wide">
@@ -374,8 +370,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
     <div class="section-head reveal">
       <p class="eyebrow">インストール不要</p>
       <h2>出てくるものを、そのまま見る。</h2>
-      <p>このページの上にある映像を出した、そのキットです。
-      「こういうものが出ます」という見本ではありません。開いて中身を読んでください。</p>
+      <p>このページの上にある映像を出した、そのキットです。「こういうものが出ます」という見本ではありません。開いて中身を読んでください。</p>
     </div>
     <div class="kit-grid reveal">
       <div class="kit-list">
@@ -403,17 +398,12 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
     <div class="section-head reveal">
       <p class="eyebrow">自分で自分を撮る</p>
       <h2>上の映像が、その証拠です。</h2>
-      <p>スタジオが一通り動くところを収録し、その収録をLaunchloomに取り込んで、
-      自分の紹介映像を作らせました。その過程で、本物のバグが2つ出ました。
-      自分の道具を自分で使う意味は、そこにあります。</p>
+      <p>スタジオが一通り動くところを収録し、その収録をLaunchloomに取り込んで、自分の紹介映像を作らせました。その過程で、本物のバグが2つ出ました。自分の道具を自分で使う意味は、そこにあります。</p>
     </div>
     <div class="reveal">
-      <p class="bug"><b>日本語の行頭に「、」「。」が来ていた。</b>日本語で書き出した映像すべてが、
-      この道具は自分が書いている言語を知らない、と告げていました。いまは禁則処理を適用し、
+      <p class="bug"><b>日本語の行頭に「、」「。」が来ていた。</b>日本語で書き出した映像すべてが、この道具は自分が書いている言語を知らない、と告げていました。いまは禁則処理を適用し、
       <code>MP4</code> を <code>MP</code> と <code>4</code> に割ることもなくなりました。</p>
-      <p class="bug"><b>縦長が、見せるはずのUIを潰していた。</b>16:10のデスクトップ収録を
-      正方形に近い枠へ押し込んでいたため、証拠にするはずの画面が読めませんでした。
-      いまは収録自身の比率を保ち、ほぼ全幅で見せます。</p>
+      <p class="bug"><b>縦長が、見せるはずのUIを潰していた。</b>16:10のデスクトップ収録を正方形に近い枠へ押し込んでいたため、証拠にするはずの画面が読めませんでした。いまは収録自身の比率を保ち、ほぼ全幅で見せます。</p>
     </div>
     <div class="vertical-grid reveal" style="margin-top:44px">
       <div class="vertical-frame">
@@ -421,9 +411,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
       </div>
       <div>
         <h3 style="color:var(--dark-ink)">縦長は、切り抜きではなく別の映像です。</h3>
-        <p style="color:var(--dark-muted);font-size:14.5px;margin-top:12px">見出し、証拠の枠、
-        キャプションを9:16用に別々に配置します。同じ構成から同じ書き出しで作るので、
-        言っていることは常に一致します。</p>
+        <p style="color:var(--dark-muted);font-size:14.5px;margin-top:12px">見出し、証拠の枠、キャプションを9:16用に別々に配置します。同じ構成から同じ書き出しで作るので、言っていることは常に一致します。</p>
       </div>
     </div>
   </div>
@@ -434,18 +422,14 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
     <div class="section-head reveal">
       <p class="eyebrow">書き出す前に</p>
       <h2>読んでから、書き出す。</h2>
-      <p>収録が終わったところで制作が止まります。この時点で、映像は書き出されておらず、
-      生成AIにも何も送っていません。実際に収録された画面の1コマと、すべての文言を見て、
-      直してから承認します。</p>
+      <p>収録が終わったところで制作が止まります。この時点で、映像は書き出されておらず、生成AIにも何も送っていません。実際に収録された画面の1コマと、すべての文言を見て、直してから承認します。</p>
     </div>
     <div class="frame reveal" style="border-color:var(--line);box-shadow:0 30px 70px -45px rgba(20,27,28,.5)">
       <img src="review-gate.png" alt="Launchloomの構成レビュー画面。収録の1コマと、各シーンの見出し・補足・字幕が編集できる" loading="lazy">
     </div>
     <div class="grid g2 reveal" style="margin-top:26px">
       <article class="card"><h3>編集は型付きの差分</h3>
-        <p>シーンの役割と、どの承認済み機能を指しているかは構造として固定です。
-        言い回しを直しても、別の主張に付け替わることはありません。
-        変更は <code>operator-edited</code> として記録されます。</p></article>
+        <p>シーンの役割と、どの承認済み機能を指しているかは構造として固定です。言い回しを直しても、別の主張に付け替わることはありません。変更は <code>operator-edited</code> として記録されます。</p></article>
       <article class="card"><h3>1行だけ直す</h3>
         <p>完成したキャンペーンは、手元の素材のまま作り直せます。CTAの言い回しを変えて
         15秒ほどで再出力。再収録も、生成AIへの再依頼も発生しません。</p></article>
@@ -458,26 +442,19 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
     <div class="section-head reveal">
       <p class="eyebrow">正直な部分</p>
       <h2 style="color:var(--dark-ink)">Launchloomがやらないこと。</h2>
-      <p style="color:var(--dark-muted)">多くの制作ツールは、すごく見えるものを喜んで作ります。
-      これは、誰も確かめていないことを主張しないために作られています。</p>
+      <p style="color:var(--dark-muted)">多くの制作ツールは、すごく見えるものを喜んで作ります。これは、誰も確かめていないことを主張しないために作られています。</p>
     </div>
     <div class="refuse-list">
       <div class="refuse-item reveal"><span>✕</span><div><h3>機能をでっち上げる</h3>
-        <p>映像に出る主張はすべて企画から来ます。それぞれに、あなたが書いた根拠メモが付いています。
-        生成映像はラベル付きのコンセプト部分だけで、機能が存在する証拠には決してなりません。</p></div></div>
+        <p>映像に出る主張はすべて企画から来ます。それぞれに、あなたが書いた根拠メモが付いています。生成映像はラベル付きのコンセプト部分だけで、機能が存在する証拠には決してなりません。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>勝手に投稿する</h3>
-        <p>実投稿は既定で無効です。キャンペーンを公開可能にするのは完成とは別の判断で、
-        投稿ごとに、原稿・メディアハッシュ・アカウント・日時に結び付いた承認が必要です。</p></div></div>
+        <p>実投稿は既定で無効です。キャンペーンを公開可能にするのは完成とは別の判断で、投稿ごとに、原稿・メディアハッシュ・アカウント・日時に結び付いた承認が必要です。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>受付を公開と言い張る</h3>
-        <p>Postizから実際の状態を読み戻します。送信がタイムアウトしたらそう言い、
-        盲目的に再送はしません。何が実在するかを見せて、判断はあなたに委ねます。
-        タイムアウトは、どちらの証拠にもならないからです。</p></div></div>
+        <p>Postizから実際の状態を読み戻します。送信がタイムアウトしたらそう言い、盲目的に再送はしません。何が実在するかを見せて、判断はあなたに委ねます。タイムアウトは、どちらの証拠にもならないからです。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>エンゲージメントを稼ぐ</h3>
-        <p>大量返信も、DMも、買った反応も、アカウント量産もありません。実装していませんし、
-        する予定もなく、追加するプルリクエストはお断りします。</p></div></div>
+        <p>大量返信も、DMも、買った反応も、アカウント量産もありません。実装していませんし、する予定もなく、追加するプルリクエストはお断りします。</p></div></div>
       <div class="refuse-item reveal"><span>✕</span><div><h3>持っていない数字を埋める</h3>
-        <p>取得できない指標は取得できないままです。イベント数は人数ではありませんし、
-        判断に足りる実測がないときは、ないと表示します。</p></div></div>
+        <p>取得できない指標は取得できないままです。イベント数は人数ではありませんし、判断に足りる実測がないときは、ないと表示します。</p></div></div>
     </div>
   </div>
 </section>
@@ -488,9 +465,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
       <div class="reveal">
         <p class="eyebrow">3分</p>
         <h2>クローンして、何ができるか見る。</h2>
-        <p style="color:var(--muted);margin-top:16px">アカウントもAPIキーも登録も不要です。
-        サンプルは、リポジトリに同梱された小さなタスクアプリを実際に操作・収録して、
-        キット一式を返します。</p>
+        <p style="color:var(--muted);margin-top:16px">アカウントもAPIキーも登録も不要です。サンプルは、リポジトリに同梱された小さなタスクアプリを実際に操作・収録して、キット一式を返します。</p>
         <p style="color:var(--muted)">必要なのは Python 3.11以降、FFmpeg、Chromium。
         macOSとDockerは実機で確認済みです。何をどこまで検証したかは検証記録に分けて書いてあります。</p>
         <div class="row" style="margin-top:26px">
@@ -499,7 +474,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
         </div>
       </div>
       <div class="code-wrap reveal">
-        <button class="copy" type="button" id="copy">コピー</button>
+        <button class="copy" type="button" data-for="snippet">コピー</button>
 <pre id="snippet">git clone https://github.com/FORIFOR/Launchloom.git
 cd Launchloom
 python3 -m venv .venv &amp;&amp; source .venv/bin/activate
@@ -508,6 +483,39 @@ python -m playwright install chromium
 <span class="c"># FFmpeg・ブラウザ・フォントを先に確かめる</span>
 python -m launchloom doctor
 python -m launchloom serve</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="help" id="help">
+  <div class="shell">
+    <div class="help-grid">
+      <div class="reveal">
+        <p class="eyebrow">お願いしたいこと</p>
+        <h2>まだ、一人のMacでしか動かしていません。</h2>
+        <p style="color:var(--muted);margin-top:16px">それと、2つのアーキテクチャのLinuxコンテナと
+        CIランナー。それで全部です。Windowsでは一度も起動していません。実際のSNSアカウントでの投稿も、まだ一度もありません。どちらも私の手元では埋められません。自分の環境で動かした報告が一つ届くほうが、私がもう一週間書き続けるより価値があります。</p>
+        <ul>
+          <li><b>20秒です。</b> <code>selftest</code> が一時ディレクトリの中で本物のキットを作り、出力を検査します。アカウントもAPIキーもネットワークも不要で、他の場所には一切触れません。</li>
+          <li><b>ファイルは1つ。</b> <code>launchloom-selftest.txt</code> が書き出されます。それを貼るだけで報告は完了で、ご自身で状況を説明する必要はありません。</li>
+          <li><b>失敗した報告のほうが役に立ちます。</b> これまで直した不具合のうち6件は、テストでは見えず、実際に動かした瞬間に明らかになったものでした。</li>
+        </ul>
+        <div class="row" style="margin-top:26px">
+          <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom/issues/2">お願いの全文を読む</a>
+          <a class="btn btn-ghost" style="border-color:var(--line);color:var(--ink)" href="https://github.com/FORIFOR/Launchloom/blob/main/TESTING.md">TESTING.md</a>
+        </div>
+      </div>
+      <div class="code-wrap reveal">
+        <button class="copy" type="button" data-for="snippet-help">コピー</button>
+<pre id="snippet-help"><span class="c"># すでにクローン済みなら</span>
+python -m launchloom selftest
+
+<span class="c"># 何もインストールしたくない場合 &mdash;</span>
+<span class="c"># イメージは amd64 と arm64 の両方に対応</span>
+docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
+  ghcr.io/forifor/launchloom \
+  python -m launchloom selftest</pre>
       </div>
     </div>
   </div>
@@ -536,11 +544,14 @@ pending.forEach(el=>io.observe(el));
 // Belt and braces: nothing stays invisible because an observer never fired.
 setTimeout(()=>pending.forEach(el=>el.classList.add('in')),6000);
 
-document.getElementById('copy').addEventListener('click',async(e)=>{
-  const text=document.getElementById('snippet').innerText;
-  try{ await navigator.clipboard.writeText(text); e.target.textContent='Copied'; }
-  catch{ e.target.textContent='Select and copy'; }
-  setTimeout(()=>{e.target.textContent='Copy';},2200);
+document.querySelectorAll('.copy').forEach((button)=>{
+  const source=document.getElementById(button.dataset.for);
+  if(!source) return;
+  button.addEventListener('click',async()=>{
+    try{ await navigator.clipboard.writeText(source.innerText); button.textContent='コピーしました'; }
+    catch{ button.textContent='手動で選択してください'; }
+    setTimeout(()=>{button.textContent='コピー';},2200);
+  });
 });
 
 // Vertical film only plays once it is actually on screen.

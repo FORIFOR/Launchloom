@@ -179,6 +179,13 @@ pre .c{color:#7f8f88}
   border-radius:8px;padding:7px 13px;font-size:11.5px;cursor:pointer;font-family:inherit}
 .copy:hover{background:#2c3a3a}
 .code-wrap{position:relative}
+/* The ask. One machine is not verification, and only someone else can fix that. */
+.help{border-top:1px solid var(--line)}
+.help-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(28px,4vw,56px);align-items:start}
+.help ul{margin:22px 0 0;padding:0;list-style:none}
+.help li{padding:14px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14.5px;max-width:56ch}
+.help li b{color:var(--ink);font-weight:600}
+.help li code{background:#ecebe4;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .start-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
 
 /* vertical showcase */
@@ -199,9 +206,9 @@ footer a:hover{color:var(--dark-ink)}
 
 /* A grid track of 1fr still refuses to shrink below its content's minimum, and a
    code block's minimum is a long line. minmax(0,1fr) lets it scroll instead. */
-.grid>*,.start-grid>*,.vertical-grid>*,.pair>*,.hero-grid>*{min-width:0}
+.grid>*,.start-grid>*,.help-grid>*,.vertical-grid>*,.pair>*,.hero-grid>*{min-width:0}
 @media (max-width:900px){
-  .hero-grid,.g3,.g2,.pair,.start-grid,.vertical-grid{grid-template-columns:minmax(0,1fr)}
+  .hero-grid,.g3,.g2,.pair,.start-grid,.vertical-grid,.help-grid{grid-template-columns:minmax(0,1fr)}
   .nav-links{display:none}
   .pair{align-items:stretch}
 }
@@ -509,7 +516,7 @@ One brief, every asset</pre></div>
         </div>
       </div>
       <div class="code-wrap reveal">
-        <button class="copy" type="button" id="copy">Copy</button>
+        <button class="copy" type="button" data-for="snippet">Copy</button>
 <pre id="snippet">git clone https://github.com/FORIFOR/Launchloom.git
 cd Launchloom
 python3 -m venv .venv &amp;&amp; source .venv/bin/activate
@@ -518,6 +525,46 @@ python -m playwright install chromium
 <span class="c"># checks FFmpeg, the browser, and your fonts</span>
 python -m launchloom doctor
 python -m launchloom serve</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="help" id="help">
+  <div class="shell">
+    <div class="help-grid">
+      <div class="reveal">
+        <p class="eyebrow">What this needs from you</p>
+        <h2>It has only ever run on one person&rsquo;s Mac.</h2>
+        <p style="color:var(--muted);margin-top:16px">That, a Linux container on
+        two architectures, and a CI runner is the whole of it. Windows has never
+        been started. No live social account has ever been used. Neither of those
+        moves from where I am sitting &mdash; and a report from a machine that is
+        not mine is worth more than another week of my own work.</p>
+        <ul>
+          <li><b>Twenty seconds.</b> <code>selftest</code> builds a real launch kit in a
+          temporary directory and checks what came out. No account, no API key, no network,
+          nothing else on your disk touched.</li>
+          <li><b>One file.</b> It writes <code>launchloom-selftest.txt</code>. Paste that in;
+          it is the entire report, and you do not have to describe anything yourself.</li>
+          <li><b>A failure helps more than a pass.</b> Six of the defects fixed so far were
+          invisible to the test suite and obvious the moment something actually ran.</li>
+        </ul>
+        <div class="row" style="margin-top:26px">
+          <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom/issues/2">Read the ask</a>
+          <a class="btn btn-ghost" style="border-color:var(--line);color:var(--ink)" href="https://github.com/FORIFOR/Launchloom/blob/main/TESTING.md">TESTING.md</a>
+        </div>
+      </div>
+      <div class="code-wrap reveal">
+        <button class="copy" type="button" data-for="snippet-help">Copy</button>
+<pre id="snippet-help"><span class="c"># if you already have the repo</span>
+python -m launchloom selftest
+
+<span class="c"># or, without installing anything at all &mdash;</span>
+<span class="c"># the image carries amd64 and arm64</span>
+docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
+  ghcr.io/forifor/launchloom \
+  python -m launchloom selftest</pre>
       </div>
     </div>
   </div>
@@ -547,11 +594,14 @@ pending.forEach(el=>io.observe(el));
 // Belt and braces: nothing stays invisible because an observer never fired.
 setTimeout(()=>pending.forEach(el=>el.classList.add('in')),6000);
 
-document.getElementById('copy').addEventListener('click',async(e)=>{
-  const text=document.getElementById('snippet').innerText;
-  try{ await navigator.clipboard.writeText(text); e.target.textContent='Copied'; }
-  catch{ e.target.textContent='Select and copy'; }
-  setTimeout(()=>{e.target.textContent='Copy';},2200);
+document.querySelectorAll('.copy').forEach((button)=>{
+  const source=document.getElementById(button.dataset.for);
+  if(!source) return;
+  button.addEventListener('click',async()=>{
+    try{ await navigator.clipboard.writeText(source.innerText); button.textContent='Copied'; }
+    catch{ button.textContent='Select and copy'; }
+    setTimeout(()=>{button.textContent='Copy';},2200);
+  });
 });
 
 // Vertical film only plays once it is actually on screen.
