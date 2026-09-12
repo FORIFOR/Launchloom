@@ -9,6 +9,9 @@
 
 **[実際の制作物を見る → forifor.github.io/Launchloom](https://forifor.github.io/Launchloom/)**
 
+画面はブラウザの言語に合わせて日本語・英語が切り替わります（サイドバーで手動切り替えも可）。
+出力の言語は企画の `language` に従います。
+
 ![Launchloomが実際に制作したサンプルを表示している制作スタジオ](docs/screenshots/demo.gif)
 
 *ワンクリックで、実アプリの操作収録・横長縦長の書き出し・LP・投稿原稿まで。APIキー不要、ローカル完結。

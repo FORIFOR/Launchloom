@@ -47,12 +47,12 @@ page, captions, social drafts and a ZIP.
 Requires Python 3.11+, FFmpeg and Chromium. macOS and Docker are verified;
 `docs/VERIFICATION.md` says exactly what was run and what was not.
 
-> **A note on language.** What Launchloom *produces* follows your brief: set
-> `language` to `en` and the film, landing page, captions and posts come out in
-> English, with no Japanese anywhere in them. The studio interface itself is
-> still Japanese — that is the contribution I would most like, and it is a good
-> first one: 328 strings across two files, listed in
-> [CONTRIBUTING.md](CONTRIBUTING.md).
+> **A note on language.** The studio follows your browser: English unless your
+> browser asks for Japanese, with a toggle in the sidebar either way. The sample
+> comes out in the same language, and what Launchloom *produces* follows your
+> brief — set `language` to `en` and the film, landing page, captions and posts
+> are English throughout. A third language is one table in
+> [`web/i18n.js`](launchloom/web/i18n.js).
 
 ## What you get from one brief
 

@@ -19,7 +19,7 @@ from . import __version__
 from .config import Settings
 from .models import Brief, BuildOptions, PublicationDraft, Approval, PlanEdit, Reconciliation
 from .store import Store
-from .pipeline import SAMPLE_BRIEF, worker_loop
+from .pipeline import SAMPLE_BRIEF, SAMPLES, worker_loop
 from .planning import apply_plan_edit
 from .providers import PostizPublisher, validate_publication, receipt_ids, match_remote, remote_candidates, REMOTE_STATES, CHANNEL_SETTINGS, CHANNEL_LIMITS
 from .security import valid_id,safe_path,file_sha,tracking_token,conversion_secret,signed_body,scrub_error
@@ -117,8 +117,8 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/campaigns',status_code=201)
     async def create(brief:Brief):return db.create_campaign(brief.model_dump())
     @app.post('/api/demo',status_code=202)
-    async def demo():
-        c=db.create_campaign(SAMPLE_BRIEF)
+    async def demo(language:str='ja'):
+        c=db.create_campaign(SAMPLES.get(language,SAMPLE_BRIEF))
         db.enqueue(c['id'],BuildOptions(capture_mode='sample').model_dump())
         return db.campaign(c['id'])
     @app.get('/api/campaigns/{cid}')

@@ -190,3 +190,30 @@ def test_a_silent_film_has_no_audio_stream(tmp_path):
     result=rendering.render(brief,make_plan(brief),tmp_path/'out',None,[],quality='draft')
     assert result['landscape']['audio']=={'music':False,'narration':False}
     assert not [s for s in rendering.probe(tmp_path/'out/landscape.mp4')['streams'] if s['codec_type']=='audio']
+
+
+def test_review_still_skips_a_blank_opening_frame(tmp_path):
+    """Screen recordings often open on a white page. A blank still proves nothing,
+    so the review gate must sample further in."""
+    from PIL import Image, ImageStat
+    from launchloom.pipeline import review_still
+    clip=tmp_path/'clip.mp4'
+    # two seconds of white, then a test pattern
+    subprocess.run(['ffmpeg','-v','error','-y','-f','lavfi','-i','color=white:size=320x200:rate=24:duration=2',
+                    '-f','lavfi','-i','testsrc=size=320x200:rate=24:duration=6',
+                    '-filter_complex','[0:v][1:v]concat=n=2:v=1[v]','-map','[v]',
+                    '-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    root=tmp_path/'campaign';root.mkdir()
+    review_still(root,clip)
+    still=root/'review-frame.jpg'
+    assert still.is_file()
+    assert max(ImageStat.Stat(Image.open(still)).stddev)>12, 'the review still is blank'
+
+def test_review_still_respects_the_chosen_range(tmp_path):
+    from launchloom.pipeline import review_still
+    clip=tmp_path/'clip.mp4'
+    subprocess.run(['ffmpeg','-v','error','-y','-f','lavfi','-i','testsrc=size=320x200:rate=24:duration=6',
+                    '-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    root=tmp_path/'campaign';root.mkdir()
+    review_still(root,clip,start=3.0)
+    assert (root/'review-frame.jpg').is_file()

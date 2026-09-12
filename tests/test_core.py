@@ -2,6 +2,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -640,3 +641,63 @@ def test_vertical_keeps_the_recording_readable(brief):
     box=crop_camera(source,(668,418),5.0,[])
     assert box.size==(668,418)
     assert abs(668/418-1280/800)<0.05
+
+
+# --- Studio translation table ---
+
+def i18n_entries():
+    """Read the key/value pairs out of web/i18n.js without a JavaScript engine."""
+    source=Path('launchloom/web/i18n.js').read_text()
+    table=source.split('const EN = {',1)[1].split('\n};',1)[0]
+    return re.findall(r"\n\s*'((?:[^'\\]|\\.)*)':\s*\n?\s*'((?:[^'\\]|\\.)*)'",table)
+
+def test_translation_keys_are_unique():
+    """A duplicate key in a JavaScript object literal silently wins, and the
+    earlier translation disappears without any error."""
+    keys=[key for key,_ in i18n_entries()]
+    duplicates=sorted({key for key in keys if keys.count(key)>1})
+    assert not duplicates, f'duplicate keys in web/i18n.js: {duplicates}'
+    assert len(keys)>200, f'only {len(keys)} entries parsed; the extractor is out of step with the file'
+
+def test_translations_are_not_still_japanese():
+    japanese=re.compile(r'[\u3040-\u30ff\u3400-\u9fff]')
+    untranslated=[key for key,value in i18n_entries() if japanese.search(value)]
+    assert untranslated==[], f'these values are still Japanese: {untranslated}'
+
+def test_every_translation_key_appears_in_the_studio():
+    """A key nothing renders is dead weight, and usually a typo. Compare with
+    &nbsp; folded to a space, because that is what reaches the DOM."""
+    corpus=''
+    for path in sorted(Path('launchloom').rglob('*')):
+        if path.suffix in {'.py','.js','.html'} and 'i18n' not in path.name:
+            corpus+=path.read_text()+'\n'
+    corpus=corpus.replace('&nbsp;',' ')
+    orphans=[]
+    for key,_ in i18n_entries():
+        for candidate in (key, key.replace('&nbsp;',' '), key.replace('\\n','\n')):
+            if candidate in corpus:break
+        else:
+            orphans.append(key)
+    assert orphans==[], f'translation keys that no source string produces: {orphans}'
+
+
+def test_the_sample_speaks_the_studio_language(client,configured):
+    """An English studio handing back a Japanese film is a bad first run."""
+    from launchloom.pipeline import SAMPLES
+    login(client,configured)
+    for language in ('ja','en'):
+        r=client.post(f'/api/demo?language={language}')
+        assert r.status_code==202
+        assert r.json()['brief']['language']==language
+        assert Brief.model_validate(SAMPLES[language]).is_sample
+    assert client.post('/api/demo?language=xx').json()['brief']['language']=='ja', 'unknown languages fall back, they do not fail'
+
+def test_both_sample_briefs_describe_the_same_bundled_app():
+    from launchloom.pipeline import SAMPLES
+    evidence={language:sorted(f['evidence'] for f in brief['features']) for language,brief in SAMPLES.items()}
+    assert evidence['ja']==evidence['en'], 'the evidence points at the same code in both languages'
+
+def test_translations_contain_no_html_entities():
+    """Values land in text nodes, so &nbsp; would be shown to the reader literally."""
+    offenders=[(key,value) for key,value in i18n_entries() if '&' in value and ';' in value.split('&',1)[1][:8]]
+    assert offenders==[], f'HTML entities in translated values: {offenders}'

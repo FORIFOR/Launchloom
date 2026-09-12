@@ -27,19 +27,49 @@ SAMPLE_BRIEF={
         {'title':'次の一歩だけに、集中。','detail':'フォーカスモードで、未完了のノートをひとつだけ表示します。','evidence':'Bundled demo-app.js: focus-button displays the first incomplete task.','approved':True}]
 }
 
+# The bundled Orbit app is in English, so an English studio should not hand back a
+# Japanese film. Same app, same evidence, the operator's language.
+SAMPLE_BRIEF_EN={
+    'name':'Orbit','tagline':'Room for what matters.','audience':'people who think and build alone',
+    'description':'Write the thought down, then pick the next step. Orbit is a small workspace where only what matters stays on screen.',
+    'product_url':'','is_sample':True,'accent':'#ed6847','language':'en','goal':'signups',
+    'channels':['x','linkedin','threads'],
+    'features':[
+        {'title':'Catch it while you have it.','detail':'Type a note and one click puts it at the top of the list.','evidence':'Bundled demo-app.js: add() inserts a visible task.','approved':True},
+        {'title':'See what you finished.','detail':'Completing a note draws a line through it and keeps the state.','evidence':'Bundled demo-app.js: paint() renders the task completion state.','approved':True},
+        {'title':'One next step at a time.','detail':'Focus mode shows a single unfinished note and nothing else.','evidence':'Bundled demo-app.js: focus-button displays the first incomplete task.','approved':True}]
+}
+
+SAMPLES={'ja':SAMPLE_BRIEF,'en':SAMPLE_BRIEF_EN}
+
 def write_json(path: Path,value):
     path.write_text(json.dumps(value,ensure_ascii=False,indent=2))
 
 
-def review_still(root: Path,capture_file: Path) -> None:
+def review_still(root: Path,capture_file: Path,start: float=0.0) -> None:
     """One frame of the operator's own recording, so the review gate shows what was
-    actually captured. Authenticated review only: it is not part of the launch kit."""
+    actually captured. Authenticated review only: it is not part of the launch kit.
+
+    Never the first frame: a screen recording usually opens on a blank or
+    half-painted page, and a white rectangle proves nothing. Sample a few points
+    inside the range the operator chose and keep the first one with real content.
+    """
     try:
-        from .rendering import FrameReader
-        reader=FrameReader(capture_file,960,600)
-        frame=reader.next()
-        reader.close()
-        if frame is not None:frame.save(root/'review-frame.jpg',quality=82)
+        from PIL import ImageStat
+        from .rendering import FrameReader, probe
+        try:duration=float(probe(capture_file)['format']['duration'])
+        except Exception:duration=0.0
+        usable=max(0.0,duration-start)
+        chosen=None
+        for fraction in (.35,.55,.15,.75,0.0):
+            reader=FrameReader(capture_file,960,600,start=start+usable*fraction)
+            frame=reader.next()
+            reader.close()
+            if frame is None:continue
+            chosen=chosen or frame
+            if max(ImageStat.Stat(frame).stddev)>12:
+                chosen=frame;break
+        if chosen is not None:chosen.save(root/'review-frame.jpg',quality=82)
     except Exception:
         pass
 
@@ -87,7 +117,7 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
         events=[e.model_dump() for e in options.capture_events]
     if options.review_plan and not record.get('plan_approved'):
         if capture_file and capture_file.exists():
-            review_still(root,capture_file)
+            review_still(root,capture_file,options.capture_start)
         store.progress(cid,'awaiting_review',40,state='awaiting_review')
         store.log(cid,'review','構成と収録内容を確認してください。承認するまでレンダリングも生成AIも実行しません。')
         return None
