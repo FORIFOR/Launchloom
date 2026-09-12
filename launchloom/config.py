@@ -27,6 +27,10 @@ class Settings:
     enable_paid_generation: bool = field(default_factory=lambda: os.getenv("ENABLE_PAID_GENERATION") == "1")
     budget_usd: float = field(default_factory=lambda: float(os.getenv("GENERATION_BUDGET_USD", "0")))
     secure_cookie: bool = field(default_factory=lambda: os.getenv("SECURE_COOKIE") == "1")
+    # Pacing guards: a launch should not turn into a burst on one account.
+    max_posts_per_channel_per_day: int = field(default_factory=lambda: int(os.getenv("MAX_POSTS_PER_CHANNEL_PER_DAY", "3")))
+    min_post_gap_minutes: int = field(default_factory=lambda: int(os.getenv("MIN_POST_GAP_MINUTES", "30")))
+    deploy_dir: str = field(default_factory=lambda: os.getenv("SITE_DEPLOY_DIR", ""))
 
     @property
     def base_url(self) -> str:

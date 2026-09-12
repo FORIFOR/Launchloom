@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "launchloom"
-version = "0.1.1"
+dynamic = ["version"]
 description = "From a working product to a launch kit: film, site, capture, approved distribution."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,6 +18,9 @@ dependencies = [
 dev = ["pytest>=9,<10"]
 [project.scripts]
 launchloom = "launchloom.cli:main"
+[tool.setuptools.dynamic]
+version = {attr = "launchloom.__version__"}
+
 [tool.setuptools.packages.find]
 include = ["launchloom*"]
 [tool.setuptools.package-data]

@@ -124,3 +124,28 @@ def test_camera_ignores_tiny_retarget_jitter():
     b=camera_pose(2.6,events)
     assert abs(a[0]-b[0]) < .005
     assert abs(a[1]-b[1]) < .005
+
+
+def test_trim_needs_footage_to_exist(tmp_path,monkeypatch):
+    """A start point past the end must fail before an encoder is opened."""
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    clip=tmp_path/'clip.mp4'
+    subprocess.run(['ffmpeg','-v','error','-y','-f','lavfi','-i','testsrc=size=320x200:rate=24:duration=4',
+                    '-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    with pytest.raises(ValueError,match='past the end'):
+        rendering.render(brief,make_plan(brief),tmp_path/'out',clip,[],capture_start=4.0)
+
+def test_trim_shortens_the_proof_section(tmp_path):
+    from launchloom.models import Brief
+    from launchloom.planning import make_plan
+    from launchloom import rendering
+    brief=Brief.model_validate(SAMPLE_BRIEF)
+    clip=tmp_path/'clip.mp4'
+    subprocess.run(['ffmpeg','-v','error','-y','-f','lavfi','-i','testsrc=size=320x200:rate=24:duration=12',
+                    '-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    full=rendering.render(brief,make_plan(brief),tmp_path/'full',clip,[],quality='draft')
+    cut=rendering.render(brief,make_plan(brief),tmp_path/'cut',clip,[],quality='draft',capture_start=2.0,capture_length=4.0)
+    assert round(full['landscape']['duration'])==18 and round(cut['landscape']['duration'])==10

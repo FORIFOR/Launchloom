@@ -12,16 +12,39 @@ from .models import Brief, Plan
 
 FPS=24
 
+# Fonts that cover Japanese. A Latin-only fallback renders CJK as tofu boxes,
+# so the resolved file is reported by `launchloom doctor` before a build starts.
+CJK_FONTS={True:['/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
+                 '/usr/share/fonts/opentype/noto/NotoSansJP-Bold.otf',
+                 '/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc',
+                 '/Library/Fonts/ヒラギノ角ゴシック W6.ttc',
+                 'C:/Windows/Fonts/YuGothB.ttc','C:/Windows/Fonts/meiryob.ttc'],
+           False:['/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+                  '/usr/share/fonts/opentype/noto/NotoSansJP-Regular.otf',
+                  '/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc',
+                  '/Library/Fonts/ヒラギノ角ゴシック W3.ttc',
+                  'C:/Windows/Fonts/YuGothR.ttc','C:/Windows/Fonts/meiryo.ttc']}
+LATIN_FONTS={True:['/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf','/System/Library/Fonts/Helvetica.ttc','C:/Windows/Fonts/arialbd.ttf'],
+             False:['/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','/System/Library/Fonts/Helvetica.ttc','C:/Windows/Fonts/arial.ttf']}
+
+
+def font_source(bold: bool = False) -> tuple[str,bool]:
+    """Return the font file used for rendering and whether it covers Japanese."""
+    chosen=os.getenv('LAUNCHLOOM_FONT_BOLD' if bold else 'LAUNCHLOOM_FONT','')
+    if chosen and Path(chosen).exists():return chosen,True
+    for candidate in CJK_FONTS[bold]:
+        if Path(candidate).exists():return candidate,True
+    for candidate in LATIN_FONTS[bold]:
+        if Path(candidate).exists():return candidate,False
+    return '',False
+
+
 @functools.lru_cache(maxsize=64)
 def font(size: int, bold: bool = False):
-    chosen=os.getenv('LAUNCHLOOM_FONT_BOLD' if bold else 'LAUNCHLOOM_FONT','')
-    candidates=[chosen,
-      '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc' if bold else '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-      '/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc' if bold else '/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc',
-      'C:/Windows/Fonts/YuGothB.ttc' if bold else 'C:/Windows/Fonts/YuGothR.ttc',
-      '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf' if bold else '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf']
-    for p in candidates:
-        if p and Path(p).exists():return ImageFont.truetype(p,size)
+    path,_=font_source(bold)
+    if path:
+        try:return ImageFont.truetype(path,size)
+        except OSError:pass
     return ImageFont.load_default(size=size)
 
 
@@ -52,9 +75,11 @@ def validate_media(path: Path,audio=False):
 
 
 class FrameReader:
-    def __init__(self,path: Path,width=1280,height=800):
+    def __init__(self,path: Path,width=1280,height=800,start=0.0):
         self.width=width;self.height=height;self.last=None
-        self.proc=subprocess.Popen(['ffmpeg','-v','error','-nostdin','-protocol_whitelist','file,pipe','-i',str(path),
+        # -ss before -i seeks by keyframe index instead of decoding the skipped part.
+        seek=['-ss',f'{start:.3f}'] if start>0 else []
+        self.proc=subprocess.Popen(['ffmpeg','-v','error','-nostdin','-protocol_whitelist','file,pipe',*seek,'-i',str(path),
             '-vf',f'fps={FPS},scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2',
             '-an','-threads','2','-f','rawvideo','-pix_fmt','rgb24','pipe:1'],stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
     def next(self):
@@ -148,14 +173,37 @@ def crop_camera(frame: Image.Image,size: tuple[int,int],t: float,events: list[di
     return frame.crop(box).resize(size,Image.Resampling.LANCZOS)
 
 
-@functools.lru_cache(maxsize=8)
-def background(w,h,accent):
+# Three original visual directions. They change ground, ink and structure, so a
+# second take reads as a different film rather than the same film recoloured.
+STYLES={
+  'editorial':{'ground':(241,239,233),'light':(5,-3,-8),'ink':'#182324','muted':'#687575','rule':'#d8d7cf',
+    'panel':'#182324','panel_ink':'#f5f0e5','panel_muted':'#a0b1a9','outro':'#182324','outro_ink':'#f9f4e9',
+    'outro_muted':'#a2b4ab','outro_rule':'#344848','fade':'#f1efe9','glow':True,'grid':False,
+    'direction':'Quiet typography, a warm accent, restrained motion, readable real-product footage.'},
+  'spotlight':{'ground':(22,26,28),'light':(16,14,10),'ink':'#f7f2e7','muted':'#95a59e','rule':'#31403f',
+    'panel':'#0d1314','panel_ink':'#f5f0e5','panel_muted':'#8fa39b','outro':'#0d1314','outro_ink':'#f9f4e9',
+    'outro_muted':'#93a39c','outro_rule':'#2b3a3a','fade':'#101617','glow':True,'grid':False,
+    'direction':'A dark room and one pool of light. The product is the only lit surface; type stays small and certain.'},
+  'grid':{'ground':(236,238,235),'light':(3,-2,-5),'ink':'#141f1e','muted':'#69786f','rule':'#ccd3cc',
+    'panel':'#1b2626','panel_ink':'#f2efe6','panel_muted':'#9fb0a8','outro':'#1b2626','outro_ink':'#f7f3e9',
+    'outro_muted':'#9fb0a8','outro_rule':'#344444','fade':'#eceeea','glow':False,'grid':True,
+    'direction':'A measured grid, small capitals and hard edges. Structure carries the message; nothing floats.'}}
+
+
+@functools.lru_cache(maxsize=12)
+def background(w,h,visual_style='editorial'):
+    style=STYLES.get(visual_style,STYLES['editorial'])
     yy,xx=np.mgrid[0:h,0:w]
-    light=np.exp(-(((xx-w*.82)/(w*.5))**2+((yy-h*.2)/(h*.6))**2))
+    light=np.exp(-(((xx-w*.82)/(w*.5))**2+((yy-h*.2)/(h*.6))**2)) if style['glow'] else np.zeros((h,w))
     base=np.empty((h,w,3),dtype=np.uint8)
-    for c,value in enumerate((241,239,233)):
-        base[:,:,c]=np.clip(value+light*(5 if c==0 else -3 if c==1 else -8),0,255)
-    return Image.fromarray(base)
+    for c,value in enumerate(style['ground']):
+        base[:,:,c]=np.clip(value+light*style['light'][c],0,255)
+    image=Image.fromarray(base)
+    if style['grid']:
+        d=ImageDraw.Draw(image);step=max(24,round(w/32))
+        for x in range(0,w,step):d.line((x,0,x,h),fill=style['rule'],width=1)
+        for y in range(0,h,step):d.line((0,y,w,y),fill=style['rule'],width=1)
+    return image
 
 
 def rounded_paste(base,content,x,y,radius=20):
@@ -166,11 +214,12 @@ def rounded_paste(base,content,x,y,radius=20):
     base.paste(content,(x,y),mask)
 
 
-def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None):
+def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_style='editorial'):
     portrait=h>w;s=w/720 if portrait else w/1280
     def n(v):return max(1,round(v*s))
-    accent=brief.accent;dark='#182324';muted='#687575'
-    base=background(w,h,accent).convert('RGBA');d=ImageDraw.Draw(base)
+    style=STYLES.get(visual_style,STYLES['editorial'])
+    accent=brief.accent;dark=style['ink'];muted=style['muted']
+    base=background(w,h,visual_style).convert('RGBA');d=ImageDraw.Draw(base)
     margin=n(48 if portrait else 54)
     d.rounded_rectangle((margin,margin,margin+n(25),margin+n(25)),n(7),fill=accent)
     d.text((margin+n(38),margin-n(2)),brief.name,font=font(n(19),True),fill=dark)
@@ -187,7 +236,7 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None):
             shift=math.sin(t*.6)*n(14)
             for i in range(9):
                 r=n(90+i*25)+shift
-                d.ellipse((cx-r,cy-r*.86,cx+r,cy+r*.86),outline=accent if i==4 else '#d8d7cf',width=n(3 if i==4 else 1))
+                d.ellipse((cx-r,cy-r*.86,cx+r,cy+r*.86),outline=accent if i==4 else style['rule'],width=n(3 if i==4 else 1))
             d.ellipse((cx-n(13),cy-n(13),cx+n(13),cy+n(13)),fill=accent)
         offset=n(25)*(1-smooth(t/.7))
         d.text((margin,n(183 if portrait else 196)+offset),'GOOD WORK DESERVES TO BE SEEN.',font=font(n(11)),fill=muted)
@@ -213,42 +262,45 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None):
             rounded_paste(base,image,x,y,n(18))
             d=ImageDraw.Draw(base)
         else:
-            d.rounded_rectangle((x,y,x+cw,y+ch),n(20),fill=dark)
-            wrapped(d,sc.title,(x+n(44),y+ch//3),cw-n(88),n(40), '#f5f0e5',True)
-            d.text((x+n(44),y+ch-n(60)),'FEATURE OVERVIEW · NOT A SCREEN RECORDING',font=font(n(10)),fill='#a0b1a9')
+            d.rounded_rectangle((x,y,x+cw,y+ch),n(20),fill=style['panel'])
+            wrapped(d,sc.title,(x+n(44),y+ch//3),cw-n(88),n(40),style['panel_ink'],True)
+            d.text((x+n(44),y+ch-n(60)),'FEATURE OVERVIEW · NOT A SCREEN RECORDING',font=font(n(10)),fill=style['panel_muted'])
         if portrait:
             wrapped(d,label,(margin,n(1015)),w-margin*2,n(25),dark,True,2)
             wrapped(d,sc.detail,(margin,n(1100)),w-margin*2,n(17),muted,max_lines=2)
     else:
-        d.rectangle((0,0,w,h),fill=dark)
+        d.rectangle((0,0,w,h),fill=style['outro'])
         cx=w*.83;cy=h*.81;r=n(210+25*math.sin((t-outro_start)*.5))
         for i in range(5):
             rr=r+i*n(22)
-            d.ellipse((cx-rr,cy-rr,cx+rr,cy+rr),outline='#344848',width=n(1))
+            d.ellipse((cx-rr,cy-rr,cx+rr,cy+rr),outline=style['outro_rule'],width=n(1))
         d.rounded_rectangle((margin,margin,margin+n(25),margin+n(25)),n(7),fill=accent)
-        d.text((margin+n(40),margin-n(2)),brief.name,font=font(n(19),True),fill='#faf6eb')
-        d.text((margin,n(244 if portrait else 201)),'LESS EXPLAINING. MORE EXPERIENCING.',font=font(n(11)),fill='#a2b4ab')
-        yy=wrapped(d,plan.scenes[-1].title,(margin,n(297 if portrait else 254)),w-margin*2,n(58 if portrait else 56),'#f9f4e9',True,4)
+        d.text((margin+n(40),margin-n(2)),brief.name,font=font(n(19),True),fill=style['outro_ink'])
+        d.text((margin,n(244 if portrait else 201)),'LESS EXPLAINING. MORE EXPERIENCING.',font=font(n(11)),fill=style['outro_muted'])
+        yy=wrapped(d,plan.scenes[-1].title,(margin,n(297 if portrait else 254)),w-margin*2,n(58 if portrait else 56),style['outro_ink'],True,4)
         py=min(h-n(195),yy+n(56));buttonw=min(w-margin*2,n(280));buttonh=n(59)
         d.rounded_rectangle((margin,py,margin+buttonw,py+buttonh),n(29),fill=accent)
         d.text((margin+n(24),py+n(12)),plan.scenes[-1].detail+'  ↗',font=font(n(19),True),fill='#142122')
-        if brief.is_sample:d.text((margin,h-n(82)),'SAMPLE PRODUCT · LOCAL DEMO',font=font(n(11)),fill='#a2b4ab')
+        if brief.is_sample:d.text((margin,h-n(82)),'SAMPLE PRODUCT · LOCAL DEMO',font=font(n(11)),fill=style['outro_muted'])
     # Stable frame-specific animation and a legible timeline; no wall-clock dependency.
     d=ImageDraw.Draw(base)
     d.rectangle((0,h-n(4),round(w*t/duration),h),fill=accent)
-    if t<.28:base=Image.blend(Image.new('RGBA',(w,h),'#f1efe9'),base,smooth(t/.28))
+    if t<.28:base=Image.blend(Image.new('RGBA',(w,h),style['fade']),base,smooth(t/.28))
     return base.convert('RGB')
 
 
-def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events: list[dict],quality='hd',broll: Path|None=None,audio: Path|None=None,progress=None):
+def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events: list[dict],quality='hd',broll: Path|None=None,audio: Path|None=None,progress=None,visual_style='editorial',capture_start=0.0,capture_length=0.0):
     if not shutil.which('ffmpeg') or not shutil.which('ffprobe'):raise ValueError('Install FFmpeg and ffprobe before rendering')
     output.mkdir(parents=True,exist_ok=True)
     actual_duration=float(validate_media(capture_path)['format']['duration']) if capture_path else 9
-    proof_duration=min(20,actual_duration);duration=proof_duration+6
+    available=actual_duration-capture_start if capture_path else actual_duration
+    if capture_path and available<1:
+        raise ValueError('The chosen range starts at or past the end of the recording')
+    proof_duration=min(capture_length or 20,available);duration=proof_duration+6
     result={}
     for i,(name,w,h) in enumerate([('landscape',1280,720),('portrait',720,1280)]):
         if quality=='draft':w=int(w*.75);h=int(h*.75)
-        rawreader=FrameReader(capture_path) if capture_path else None
+        rawreader=FrameReader(capture_path,start=capture_start) if capture_path else None
         brollreader=FrameReader(broll) if broll else None
         target=output/(name+'.mp4');temp=output/(name+'.rendering.mp4')
         log=(output/(name+'.render.log')).open('wb')
@@ -261,7 +313,7 @@ def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events
                 t=k/FPS
                 raw=rawreader.next() if rawreader and 3<=t<3+proof_duration else None
                 bframe=brollreader.next() if brollreader and t<3 else None
-                image=render_frame(brief,plan,w,h,t,proof_duration,raw,events,bframe)
+                image=render_frame(brief,plan,w,h,t,proof_duration,raw,events,bframe,visual_style)
                 if k==int(4.5*FPS):image.save(output/(name+'.jpg'),quality=90)
                 encoder.stdin.write(image.tobytes())
                 if progress and k%48==0:progress(i/2+k/count/2)

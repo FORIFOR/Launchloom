@@ -42,3 +42,11 @@ Primary sources reviewed for the implementation:
 
 Consult the currently installed releases and their license files, not only this
 summary. No implied affiliation with the referenced creators or services.
+
+## docker/chromium-seccomp.json
+
+Chromium-compatible Docker seccomp profile, taken from the Playwright repository
+(`utils/docker/seccomp_profile.json`, microsoft/playwright, Apache-2.0). It keeps
+container syscall filtering default-deny while permitting the user-namespace calls
+Chromium's own sandbox requires. Without it, Docker's default profile forces the
+operator to choose between `CHROMIUM_NO_SANDBOX=1` and `seccomp=unconfined`.

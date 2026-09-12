@@ -27,6 +27,8 @@ async def main(args):
     cid=campaign['id'];root=args.data/'campaigns'/cid
     source=Path(__file__).resolve().parents[1]/'launchloom'
     args.output.mkdir(parents=True,exist_ok=True)
+    # Every page expression below is a function, not a string: the studio serves
+    # Content-Security-Policy script-src 'self', so string evaluation is blocked.
     report={'mode':'offline component snapshots' if args.snapshot else 'live browser','campaign_id':cid,'checks':{},'page_errors':[]}
     async with async_playwright() as p:
         browser=await p.chromium.launch(executable_path=os.getenv('CHROMIUM_EXECUTABLE') or shutil.which('chromium') or shutil.which('chromium-browser'),headless=True,chromium_sandbox=os.getenv('CHROMIUM_NO_SANDBOX')!='1',args=['--disable-dev-shm-usage'])
@@ -53,11 +55,11 @@ async def main(args):
             await page.goto(args.base)
             await page.locator('#access-token').fill(token)
             await page.locator('#access-form button').click()
-        await page.wait_for_function("document.getElementById('film-player')?.readyState>=1")
+        await page.wait_for_function("() => document.getElementById('film-player')?.readyState>=1")
         await page.locator('#film-player').evaluate('(v)=>{v.preload="auto";v.load()}')
-        await page.wait_for_function("document.getElementById('film-player')?.readyState>=2",timeout=15000)
+        await page.wait_for_function("() => document.getElementById('film-player')?.readyState>=2",timeout=15000)
         await page.locator('#film-player').evaluate('(v)=>{v.currentTime=4.5}')
-        await page.wait_for_function("!document.getElementById('film-player').seeking",timeout=15000)
+        await page.wait_for_function("() => !document.getElementById('film-player').seeking",timeout=15000)
         await page.locator('#film-player').evaluate('async(v)=>{v.muted=true;await v.play()}')
         await page.wait_for_timeout(300)
         await page.locator('#film-player').evaluate('(v)=>v.pause()')
@@ -75,12 +77,12 @@ async def main(args):
         report['checks']['no_invented_impressions']='SNSインプレッション：未取得' in await page.locator('#workbench').inner_text()
         await page.click('[data-tab="film"]');await page.click('[data-ratio="landscape"]')
         await page.locator('#film-player').evaluate('(v)=>{v.preload="auto";v.load();v.currentTime=4.5}')
-        await page.wait_for_function("document.getElementById('film-player')?.readyState>=2 && !document.getElementById('film-player').seeking")
+        await page.wait_for_function("() => document.getElementById('film-player')?.readyState>=2 && !document.getElementById('film-player').seeking")
         await page.locator('#film-player').evaluate('async(v)=>{v.muted=true;await v.play()}')
         await page.wait_for_timeout(300)
         await page.locator('#film-player').evaluate('(v)=>v.pause()')
         await page.set_viewport_size({'width':390,'height':844});await page.wait_for_timeout(200)
-        report['checks']['studio_mobile_no_overflow']=await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+        report['checks']['studio_mobile_no_overflow']=await page.evaluate('() => document.documentElement.scrollWidth<=innerWidth')
         await page.screenshot(path=str(args.output/'launchloom-mobile.png'),full_page=True)
         await page.click('#new-button')
         report['checks']['create_form_seven_channels']=await page.locator('input[name="channels"]').count()==7
@@ -97,15 +99,15 @@ async def main(args):
         else:await page.goto(args.base+campaign['outputs']['site/index.html'])
         await page.set_viewport_size({'width':1440,'height':1000});await page.wait_for_timeout(300)
         for y in range(0,5000,600):await page.evaluate('(y)=>scrollTo(0,y)',y);await page.wait_for_timeout(100)
-        await page.evaluate('scrollTo(0,0)');await page.wait_for_timeout(300)
+        await page.evaluate('() => scrollTo(0,0)');await page.wait_for_timeout(300)
         await page.screenshot(path=str(args.output/'launchloom-landing.png'),full_page=True)
         report['checks']['landing_has_three_features']=await page.locator('.feature').count()==3
         report['checks']['landing_contains_video']=await page.locator('video').count()==1
         await page.locator('footer').scroll_into_view_if_needed()
         await page.locator('footer').hover()
         report['checks']['footer_responds_to_pointer']=await page.locator('footer').evaluate('(e)=>!!e.style.getPropertyValue("--mx")')
-        await page.set_viewport_size({'width':390,'height':844});await page.evaluate('scrollTo(0,0)');await page.wait_for_timeout(300)
-        report['checks']['landing_mobile_no_overflow']=await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+        await page.set_viewport_size({'width':390,'height':844});await page.evaluate('() => scrollTo(0,0)');await page.wait_for_timeout(300)
+        report['checks']['landing_mobile_no_overflow']=await page.evaluate('() => document.documentElement.scrollWidth<=innerWidth')
         await page.screenshot(path=str(args.output/'launchloom-landing-mobile.png'),full_page=True)
         await browser.close()
     (args.output/'browser-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))

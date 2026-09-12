@@ -29,7 +29,16 @@ def main():
     if args.command=='doctor':
         import importlib.metadata
         for binary in ['ffmpeg','ffprobe']:print(f'{binary}: {shutil.which(binary) or "MISSING"}')
-        print(f'Chromium: {s.chromium or "Playwright managed browser (run playwright install chromium)"}')
+        from .capture import browser_status
+        path,ready,problem=browser_status(s)
+        source='CHROMIUM_EXECUTABLE / system' if s.chromium else 'Playwright managed'
+        print(f'Chromium ({source}): {path or "not resolved"}')
+        print('Browser launch:','OK' if ready else 'FAILED — '+problem)
+        from .rendering import font_source
+        for bold in (False,True):
+            path,cjk=font_source(bold)
+            label='Bold font' if bold else 'Text font'
+            print(f'{label}: {path or "Pillow built-in bitmap font"}' + ('' if cjk else '  <- no Japanese coverage; set LAUNCHLOOM_FONT/LAUNCHLOOM_FONT_BOLD'))
         for package in ['fastapi','playwright','Pillow','pydantic']:print(f'{package}: {importlib.metadata.version(package)}')
         print('Chromium sandbox:', 'DISABLED — trusted staging only' if s.no_sandbox else 'enabled')
         print('Live publishing:',s.enable_live_publish,'| Paid video generation:',s.enable_paid_generation)

@@ -26,6 +26,18 @@ class CaptureStep(StrictModel):
             raise ValueError("click/fill requires a selector")
         return self
 
+class CaptureEvent(StrictModel):
+    """A moment in an imported recording: what happened, where, and when.
+
+    Supplied by the operator for uploaded footage, which carries no cursor
+    metadata of its own. Coordinates are fractions of the frame."""
+    time: float = Field(ge=0, le=300)
+    label: str = Field(default="", max_length=70)
+    action: Literal["click", "fill", "scroll"] = "click"
+    x: float = Field(default=0.5, ge=0, le=1)
+    y: float = Field(default=0.5, ge=0, le=1)
+
+
 class Brief(StrictModel):
     name: str = Field(min_length=1, max_length=40)
     tagline: str = Field(min_length=1, max_length=90)
@@ -75,6 +87,14 @@ class BuildOptions(StrictModel):
     external_data_consent: bool = False
     llm_plan: bool = False
     quality: Literal["draft", "hd"] = "hd"
+    # Stop after capture so scenes can be read and reworded before any rendering.
+    review_plan: bool = False
+    visual_style: Literal["editorial", "spotlight", "grid"] = "editorial"
+    capture_events: list[CaptureEvent] = Field(default_factory=list, max_length=24)
+    # Which part of the recording becomes the proof section. 0 length means
+    # "from the start point, up to the built-in 20 second ceiling".
+    capture_start: float = Field(default=0, ge=0, le=290)
+    capture_length: float = Field(default=0, ge=0, le=120)
     @model_validator(mode="after")
     def guard(self):
         if self.capture_mode == "url" and (not self.capture_url or not self.staging_confirmed):
@@ -85,6 +105,14 @@ class BuildOptions(StrictModel):
             raise ValueError("Explicit external-data consent is required for configured AI providers")
         if self.film_provider == "fal" and self.estimated_cost_usd <= 0:
             raise ValueError("Provide a current cost estimate before requesting a paid generation")
+        if self.capture_events and self.capture_mode != "upload":
+            raise ValueError("An imported event track belongs to uploaded footage; recorded captures time themselves")
+        if self.capture_events != sorted(self.capture_events, key=lambda e: e.time):
+            raise ValueError("Imported events must be ordered by time")
+        if self.capture_length and self.capture_length < 1:
+            raise ValueError("A trimmed range needs at least one second of footage")
+        if (self.capture_start or self.capture_length) and self.capture_mode == "none":
+            raise ValueError("There is no recording to trim")
         return self
 
 class Scene(StrictModel):
@@ -92,13 +120,39 @@ class Scene(StrictModel):
     title: str = Field(max_length=90)
     detail: str = Field(default="", max_length=180)
     feature_index: int | None = None
+    # Empty means "use the title". Captions are on-screen scene headings, not a
+    # transcript of speech, so the operator can word them differently.
+    caption: str = Field(default="", max_length=120)
 
 class Plan(StrictModel):
     concept: str = Field(max_length=300)
     visual_direction: str = Field(max_length=500)
     scenes: list[Scene] = Field(min_length=3, max_length=6)
     video_prompt: str = Field(max_length=1800)
-    source: Literal["local-template", "configured-llm"] = "local-template"
+    source: Literal["local-template", "configured-llm", "operator-edited"] = "local-template"
+
+class SceneEdit(StrictModel):
+    """One scene's operator wording. The scene's kind and the feature it points at
+    are structural and stay where the brief put them."""
+    index: int = Field(ge=0, le=5)
+    title: str | None = Field(default=None, min_length=1, max_length=90)
+    detail: str | None = Field(default=None, max_length=180)
+    caption: str | None = Field(default=None, max_length=120)
+
+
+class PlanEdit(StrictModel):
+    concept: str | None = Field(default=None, max_length=300)
+    visual_direction: str | None = Field(default=None, max_length=500)
+    scenes: list[SceneEdit] = Field(default_factory=list, max_length=6)
+    @model_validator(mode="after")
+    def one_edit_per_scene(self):
+        indexes=[s.index for s in self.scenes]
+        if len(set(indexes)) != len(indexes):
+            raise ValueError("Each scene can be edited once per request")
+        if not self.scenes and self.concept is None and self.visual_direction is None:
+            raise ValueError("Nothing to change")
+        return self
+
 
 class PublicationDraft(StrictModel):
     channel: Literal["x", "linkedin", "threads", "bluesky", "youtube", "instagram", "tiktok"]
@@ -107,6 +161,21 @@ class PublicationDraft(StrictModel):
     media: Literal["landscape.mp4", "portrait.mp4"] = "landscape.mp4"
     schedule_at: str = ""
     settings: dict[str, Any] = Field(default_factory=dict)
+
+class Reconciliation(StrictModel):
+    """What the operator found when they looked at the platform themselves.
+
+    Launchloom never decides this. A timeout proves nothing either way, so the
+    only way out of `needs_reconciliation` is a person reporting what exists."""
+    resolution: Literal["published", "not_published"]
+    remote_id: str = Field(default="", max_length=200)
+    note: str = Field(default="", max_length=400)
+    @model_validator(mode="after")
+    def evidence(self):
+        if self.resolution == "published" and not self.remote_id:
+            raise ValueError("Give the post id you found, so the record points at the real post")
+        return self
+
 
 class Approval(StrictModel):
     fingerprint: str = Field(min_length=64, max_length=64)

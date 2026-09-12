@@ -163,13 +163,41 @@ class ComfyFilm:
         return destination
 
 
+# Platform settings Postiz requires before it will accept a post on that channel.
+CHANNEL_SETTINGS={'youtube':['title','type'],'instagram':['post_type'],
+  'tiktok':['privacy_level','duet','stitch','comment','autoAddMusic','brand_content_toggle',
+            'brand_organic_toggle','content_posting_method']}
+CHANNEL_LIMITS={'x':280,'bluesky':300,'threads':500,'linkedin':3000}
+REMOTE_STATES={'QUEUE':'queued','PUBLISHED':'published','ERROR':'failed','DRAFT':'draft'}
+
+
+def receipt_ids(receipt) -> list[str]:
+    """Post ids Postiz returned when it accepted a submission."""
+    entries=receipt if isinstance(receipt,list) else [receipt]
+    return [str(e['postId']) for e in entries if isinstance(e,dict) and e.get('postId')]
+
+
+def match_remote(posts: list[dict],ids: list[str]) -> dict | None:
+    """Find our post among what Postiz holds. Only an id match counts as proof;
+    look-alikes are offered to the operator by remote_candidates instead."""
+    for post in posts:
+        if str(post.get('id','')) in ids:return post
+    return None
+
+
+def remote_candidates(posts: list[dict],integration_id: str,content: str) -> list[dict]:
+    head=content.strip()[:60]
+    return [p for p in posts if (p.get('integration') or {}).get('id')==integration_id
+            and head and str(p.get('content','')).strip()[:60]==head]
+
+
 def validate_publication(payload: dict) -> dict:
     channel=payload['channel'];content=payload['content'];settings=dict(payload.get('settings',{}))
     if channel=='x' and x_weight(content)>280:raise ValueError('X post exceeds conservative 280 weighted-character check')
     if channel=='bluesky' and len(content)>300:raise ValueError('Bluesky post exceeds 300 characters')
     if channel=='threads' and len(content)>500:raise ValueError('Threads post exceeds 500 characters')
     if channel=='linkedin' and len(content)>3000:raise ValueError('LinkedIn post exceeds 3000 characters')
-    required={'youtube':['title','type'],'instagram':['post_type'],'tiktok':['privacy_level','duet','stitch','comment','autoAddMusic','brand_content_toggle','brand_organic_toggle','content_posting_method']}.get(channel,[])
+    required=CHANNEL_SETTINGS.get(channel,[])
     if any(k not in settings for k in required):raise ValueError('Missing platform settings: '+', '.join(required))
     settings['__type']=channel
     if channel=='x':settings.setdefault('who_can_reply_post','everyone')
@@ -206,6 +234,25 @@ class PostizPublisher:
             r=await c.post('posts',json=body);r.raise_for_status();receipt=r.json()
             if not receipt:raise ValueError('Empty Postiz response; check remote status before repeating')
             return receipt
+    async def posts(self,start,end):
+        """Posts Postiz holds in a window. This is the only way to learn what the
+        platform actually did: a create response proves acceptance, nothing more.
+        GET /posts?startDate&endDate returns {'posts':[{id,state,releaseURL,...}]}."""
+        async with self.client() as c:
+            r=await c.get('posts',params={'startDate':start.astimezone(timezone.utc).isoformat(),
+                                          'endDate':end.astimezone(timezone.utc).isoformat()})
+            r.raise_for_status();data=r.json()
+            items=data.get('posts') if isinstance(data,dict) else data
+            return [p for p in items if isinstance(p,dict)] if isinstance(items,list) else []
+
+    async def missing_content(self,remote_id):
+        """Candidate platform items for a post whose release id came back missing.
+        Providers that do not support it return an empty list."""
+        async with self.client() as c:
+            r=await c.get('posts/'+quote(str(remote_id),safe='')+'/missing')
+            r.raise_for_status();items=r.json()
+            return [i for i in items if isinstance(i,dict)] if isinstance(items,list) else []
+
     async def analytics(self,remote_id):
         async with self.client() as c:
             r=await c.get('analytics/post/'+quote(remote_id,safe=''),params={'date':'30'});r.raise_for_status();return r.json()

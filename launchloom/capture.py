@@ -15,6 +15,39 @@ SAMPLE_STEPS=[
     CaptureStep(action='click',selector='#focus-button',label='次の一歩だけに、集中する。',milliseconds=1800)
 ]
 
+MISSING_BROWSER=("Chromium is not installed for this Playwright version. Run "
+    "`python -m playwright install chromium`, or set CHROMIUM_EXECUTABLE to an existing browser.")
+
+def browser_status(settings: Settings) -> tuple[str,bool,str]:
+    """Launch the browser once. Checking a path is not enough: the headless shell
+    is a separate download from the full Chromium build."""
+    from playwright.sync_api import sync_playwright
+    path=settings.chromium or ''
+    try:
+        with sync_playwright() as p:
+            path=settings.chromium or p.chromium.executable_path
+            browser=p.chromium.launch(executable_path=settings.chromium,headless=True,
+                chromium_sandbox=not settings.no_sandbox,args=['--disable-dev-shm-usage'])
+            browser.close()
+        return path,True,''
+    except Exception as e:
+        text=str(e)
+        if "Executable doesn't exist" in text or 'playwright install' in text:
+            return path,False,MISSING_BROWSER
+        return path,False,text.strip().splitlines()[0][:200]
+
+async def launch_chromium(playwright,settings: Settings):
+    """Fail with an actionable message instead of Playwright's install banner."""
+    try:
+        return await playwright.chromium.launch(executable_path=settings.chromium,headless=True,
+            chromium_sandbox=not settings.no_sandbox,args=['--disable-dev-shm-usage'])
+    except Exception as e:
+        text=str(e)
+        if "Executable doesn't exist" in text or 'playwright install' in text:
+            raise ValueError(MISSING_BROWSER) from e
+        raise
+
+
 async def capture(settings: Settings,options: BuildOptions,dest: Path) -> dict:
     url=settings.base_url+'/demo-app' if options.capture_mode=='sample' else options.capture_url
     studio_origin=origin(settings.base_url)
@@ -25,8 +58,7 @@ async def capture(settings: Settings,options: BuildOptions,dest: Path) -> dict:
     dest.mkdir(parents=True,exist_ok=True)
     events=[]
     async with async_playwright() as p:
-        browser=await p.chromium.launch(executable_path=settings.chromium,headless=True,
-            chromium_sandbox=not settings.no_sandbox,args=['--disable-dev-shm-usage'])
+        browser=await launch_chromium(p,settings)
         context=await browser.new_context(viewport={'width':1280,'height':800},
             record_video_dir=str(dest),record_video_size={'width':1280,'height':800},
             accept_downloads=False,service_workers='block')

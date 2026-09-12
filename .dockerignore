@@ -1,9 +1,15 @@
-.git
-.env
-.launchloom
-.venv
 __pycache__
 .pytest_cache
 *.egg-info
 dist
 build
+# Never bake local state, secrets or a host virtualenv into the image.
+.venv
+.env
+.launchloom
+checks
+docs/verification
+*.mp4
+*.webm
+*.zip
+.git

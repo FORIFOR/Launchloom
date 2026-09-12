@@ -13,7 +13,11 @@ services:
     shm_size: 1gb
     init: true
     restart: unless-stopped
-    # Keep browser sandbox enabled. Some Docker hosts require a suitable
-    # user-namespace/seccomp setup; the container definition is not a sandbox.
+    # Chromium's own sandbox stays ON. Docker's default seccomp profile blocks the
+    # user-namespace syscalls it needs, so a Chromium-aware profile is supplied
+    # instead of disabling either boundary. Verify with: docker compose exec studio
+    # python -m launchloom doctor  ->  "Browser launch: OK".
+    security_opt:
+      - seccomp=./docker/chromium-seccomp.json
 volumes:
   studio-data:

@@ -62,6 +62,16 @@ def check_capture_url(url: str, permitted_origins: set[str], internal_demo_origi
 def tracking_token(secret: str, cid: str) -> str:
     return hmac.new(secret.encode(), ("tracking:" + cid).encode(), hashlib.sha256).hexdigest()[:32]
 
+def conversion_secret(secret: str, cid: str) -> str:
+    """Signing key for one campaign's server-to-server conversions.
+
+    Derived, not stored: an operator can paste it into their own backend without
+    sharing the studio access token, and it dies with the campaign id."""
+    return hmac.new(secret.encode(), ("conversion:" + cid).encode(), hashlib.sha256).hexdigest()
+
+def signed_body(secret: str, body: bytes) -> str:
+    return "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+
 def scrub_error(error: Exception, secrets: list[str]) -> str:
     text = str(error)
     for secret in secrets:

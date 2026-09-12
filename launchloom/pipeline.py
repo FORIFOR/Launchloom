@@ -5,8 +5,9 @@ import shutil
 import zipfile
 from pathlib import Path
 from PIL import Image, ImageStat
+from . import __version__
 from .config import Settings
-from .models import Brief, BuildOptions
+from .models import Brief, BuildOptions, Plan
 from .store import Store
 from .planning import make_plan, make_posts
 from .providers import llm_plan, FalFilm, ComfyFilm
@@ -30,6 +31,19 @@ def write_json(path: Path,value):
     path.write_text(json.dumps(value,ensure_ascii=False,indent=2))
 
 
+def review_still(root: Path,capture_file: Path) -> None:
+    """One frame of the operator's own recording, so the review gate shows what was
+    actually captured. Authenticated review only: it is not part of the launch kit."""
+    try:
+        from .rendering import FrameReader
+        reader=FrameReader(capture_file,960,600)
+        frame=reader.next()
+        reader.close()
+        if frame is not None:frame.save(root/'review-frame.jpg',quality=82)
+    except Exception:
+        pass
+
+
 def srt_time(t):
     ms=round(t*1000);return f'{ms//3600000:02}:{ms//60000%60:02}:{ms//1000%60:02},{ms%1000:03}'
 
@@ -42,8 +56,14 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     def stage(name,pct,message):
         store.progress(cid,name,pct);store.log(cid,name,message)
     stage('direction',7,'企画と根拠を整理しています。未承認の機能は宣伝に使いません。')
-    plan=await llm_plan(b,settings) if options.llm_plan else make_plan(b)
-    store.progress(cid,'direction',12,plan=plan.model_dump())
+    if record.get('plan_approved') and record.get('plan'):
+        # A reviewed storyboard is the instruction for this render. Regenerating it
+        # here would quietly discard the operator's wording.
+        plan=Plan.model_validate(record['plan'])
+        store.log(cid,'direction','承認済みの構成で制作します。文言は上書きしません。')
+    else:
+        plan=await llm_plan(b,settings) if options.llm_plan else make_plan(b,options.visual_style)
+        store.progress(cid,'direction',12,plan=plan.model_dump())
     write_json(root/'brief.json',b.model_dump())
     public_brief=b.model_dump(exclude={'features': {'__all__': {'evidence'}}, 'references': True})
     write_json(root/'campaign.json',public_brief)
@@ -62,6 +82,15 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
         capture_file=root/'input/capture.bin'
         if not capture_file.exists():raise ValueError('Upload a recording before building')
         validate_media(capture_file)
+        # Imported footage carries no cursor metadata. An operator-supplied track
+        # gives the same camera work and on-screen labels as a recorded capture.
+        events=[e.model_dump() for e in options.capture_events]
+    if options.review_plan and not record.get('plan_approved'):
+        if capture_file and capture_file.exists():
+            review_still(root,capture_file)
+        store.progress(cid,'awaiting_review',40,state='awaiting_review')
+        store.log(cid,'review','構成と収録内容を確認してください。承認するまでレンダリングも生成AIも実行しません。')
+        return None
     broll=None
     if options.film_provider!='local':
         stage('generation',38,'設定した生成映像Providerへ接続します。操作画面の証拠としては使用しません。')
@@ -74,7 +103,10 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     audio=root/'input/audio.bin'
     if audio.exists():validate_media(audio,audio=True)
     def render_progress(value):store.progress(cid,'render',45+int(value*37))
-    videos=await asyncio.to_thread(render,b,plan,root,capture_file,events,options.quality,broll,audio if audio.exists() else None,render_progress)
+    if options.capture_start:
+        # Event times are relative to the recording; the film starts at the cut.
+        events=[{**e,'time':e['time']-options.capture_start} for e in events]
+    videos=await asyncio.to_thread(render,b,plan,root,capture_file,events,options.quality,broll,audio if audio.exists() else None,render_progress,options.visual_style,options.capture_start,options.capture_length)
     stage('package',86,'LPに操作動画を配置し、SNS原稿と配布パッケージを作っています。')
     shutil.copy(root/'landscape.mp4',root/'site/film.mp4');shutil.copy(root/'landscape.jpg',root/'site/poster.jpg')
     build_site(b,cid,root/'site',settings,True)
@@ -87,7 +119,8 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     (root/'social-copy.md').write_text('# Launch copy — drafts requiring review\n\n'+script)
     duration=videos['landscape']['duration'];proof_duration=duration-6
     proof=[s for s in plan.scenes if s.kind=='proof']
-    captions=[(0,3,b.tagline)]+[(3+i*proof_duration/len(proof),3+(i+1)*proof_duration/len(proof),s.title) for i,s in enumerate(proof)]+[(duration-3,duration,plan.scenes[-1].title)]
+    line=lambda scene:scene.caption or scene.title
+    captions=[(0,3,line(plan.scenes[0]))]+[(3+i*proof_duration/len(proof),3+(i+1)*proof_duration/len(proof),line(s)) for i,s in enumerate(proof)]+[(duration-3,duration,line(plan.scenes[-1]))]
     (root/'captions.srt').write_text('\n\n'.join(f'{i+1}\n{srt_time(a)} --> {srt_time(z)}\n{text}' for i,(a,z,text) in enumerate(captions)))
     stage('quality',92,'出力の解像度・動画形式・欠損・原稿の根拠を検査しています。')
     poster_ok=all(max(ImageStat.Stat(Image.open(root/(k+'.jpg'))).stddev)>8 for k in videos)
@@ -104,8 +137,10 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     write_json(root/'qa.json',quality)
     if not poster_ok:raise ValueError('A poster appears blank; export is blocked')
     names=['campaign.json','storyboard.json','posts.json','social-copy.md','captions.srt','qa.json','landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg']
-    manifest={'version':'0.1.0','campaign_id':cid,'videos':videos,
-        'provenance':{'capture':'bundled-sample' if b.is_sample else options.capture_mode,'concept':options.film_provider,'copy':plan.source,'raw_recording_in_export':False},
+    manifest={'version':__version__,'campaign_id':cid,'revision':store.campaign(cid)['revision'],'videos':videos,
+        'provenance':{'capture':'bundled-sample' if b.is_sample else options.capture_mode,'concept':options.film_provider,
+            'copy':plan.source,'visual_style':options.visual_style,'reviewed_before_render':bool(options.review_plan),
+            'imported_event_track':bool(options.capture_events),'raw_recording_in_export':False},
         'files':{name:{'sha256':file_sha(root/name),'bytes':(root/name).stat().st_size} for name in names},
         'rights':'Original output templates; operator-provided product claims, recordings, music and provider output require operator clearance. Reference-post media is NOT bundled.'}
     write_json(root/'manifest.json',manifest)

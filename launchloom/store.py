@@ -18,7 +18,8 @@ class Store:
             CREATE TABLE IF NOT EXISTS campaigns(
               id TEXT PRIMARY KEY, brief TEXT NOT NULL, options TEXT, plan TEXT,
               state TEXT NOT NULL DEFAULT 'draft', progress INTEGER DEFAULT 0,
-              stage TEXT DEFAULT 'brief', error TEXT, created REAL NOT NULL);
+              stage TEXT DEFAULT 'brief', error TEXT, created REAL NOT NULL,
+              plan_approved INTEGER NOT NULL DEFAULT 0, revision INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS jobs(
               id TEXT PRIMARY KEY, campaign_id TEXT NOT NULL, state TEXT NOT NULL,
               options TEXT NOT NULL, created REAL NOT NULL, started REAL, ended REAL);
@@ -30,14 +31,29 @@ class Store:
             CREATE TABLE IF NOT EXISTS publications(
               id TEXT PRIMARY KEY, campaign_id TEXT NOT NULL, payload TEXT NOT NULL,
               fingerprint TEXT UNIQUE NOT NULL, state TEXT NOT NULL, receipt TEXT,
-              error TEXT, created REAL NOT NULL);
+              error TEXT, created REAL NOT NULL,
+              remote_state TEXT, remote_url TEXT, checked REAL);
             CREATE TABLE IF NOT EXISTS provider_runs(
               key TEXT PRIMARY KEY, provider TEXT NOT NULL, request TEXT,
               state TEXT NOT NULL, estimated_cost REAL NOT NULL DEFAULT 0, created REAL NOT NULL);
             CREATE TABLE IF NOT EXISTS metrics(
               id INTEGER PRIMARY KEY AUTOINCREMENT, campaign_id TEXT NOT NULL,
-              event TEXT NOT NULL, channel TEXT NOT NULL, created REAL NOT NULL);
+              event TEXT NOT NULL, channel TEXT NOT NULL, created REAL NOT NULL,
+              dedupe_key TEXT);
             ''')
+            # Older databases predate the review gate and revision counter.
+            existing={r['name'] for r in c.execute('PRAGMA table_info(campaigns)')}
+            for name,declaration in (('plan_approved','INTEGER NOT NULL DEFAULT 0'),('revision','INTEGER NOT NULL DEFAULT 0'),
+                                     ('released','INTEGER NOT NULL DEFAULT 0')):
+                if name not in existing: c.execute(f'ALTER TABLE campaigns ADD COLUMN {name} {declaration}')
+            existing={r['name'] for r in c.execute('PRAGMA table_info(publications)')}
+            for name,declaration in (('remote_state','TEXT'),('remote_url','TEXT'),('checked','REAL')):
+                if name not in existing: c.execute(f'ALTER TABLE publications ADD COLUMN {name} {declaration}')
+            if 'dedupe_key' not in {r['name'] for r in c.execute('PRAGMA table_info(metrics)')}:
+                c.execute('ALTER TABLE metrics ADD COLUMN dedupe_key TEXT')
+            # Indexes come after migration: on an existing database the column
+            # this one covers does not exist until the ALTER above has run.
+            c.execute('CREATE UNIQUE INDEX IF NOT EXISTS one_event_per_key ON metrics(dedupe_key) WHERE dedupe_key IS NOT NULL')
     @contextmanager
     def connect(self):
         c = sqlite3.connect(self.path, timeout=15)
@@ -76,7 +92,10 @@ class Store:
             c.execute("INSERT INTO events(campaign_id,kind,message,created) VALUES(?,?,?,?)",(cid,kind,message,time.time()))
     def events(self,cid):
         with self.connect() as c: return [dict(r) for r in c.execute("SELECT * FROM events WHERE campaign_id=? ORDER BY id DESC LIMIT 80",(cid,))]
-    def enqueue(self,cid,options):
+    def enqueue(self,cid,options,revision=False):
+        """Queue one build. A revision re-renders an existing campaign from the
+        material it already has; it never changes the build options, so nothing is
+        re-recorded and no paid generation is repeated."""
         jid=uuid.uuid4().hex[:16]
         with self.connect() as c:
             c.execute("BEGIN IMMEDIATE")
@@ -84,12 +103,24 @@ class Store:
             if not row: raise ValueError("Campaign not found")
             active=c.execute("SELECT * FROM jobs WHERE campaign_id=? AND state IN ('queued','running')",(cid,)).fetchone()
             if active: return self.decode(active)
-            if row['state'] == 'ready': raise ValueError("Finished campaigns are immutable. Create a new campaign to revise content.")
+            if row['state']=='ready' and not revision:
+                raise ValueError("This campaign is finished. Revise it from the review panel, or create a new campaign to change the brief.")
+            if revision and row['state'] not in {'ready','awaiting_review'}:
+                raise ValueError("Only a finished or reviewable campaign can be revised")
             if row['options'] and json.loads(row['options']) != options:
                 raise ValueError("Retries must use the original build options. Clone the brief to change them.")
             c.execute("INSERT INTO jobs(id,campaign_id,state,options,created) VALUES(?,?,'queued',?,?)",(jid,cid,canonical(options),time.time()))
             c.execute("UPDATE campaigns SET state='queued',options=?,error=NULL WHERE id=?",(canonical(options),cid))
+            # Resuming a reviewed campaign is the first render, not a revision.
+            if revision and row['state']=='ready': c.execute("UPDATE campaigns SET revision=revision+1 WHERE id=?",(cid,))
             return self.decode(c.execute("SELECT * FROM jobs WHERE id=?",(jid,)).fetchone())
+
+    def save_plan(self,cid,plan,approved=None):
+        """Store the storyboard the next render must use."""
+        with self.connect() as c:
+            c.execute("UPDATE campaigns SET plan=? WHERE id=?",(canonical(plan),cid))
+            if approved is not None: c.execute("UPDATE campaigns SET plan_approved=? WHERE id=?",(1 if approved else 0,cid))
+        return self.campaign(cid)
     def claim_job(self):
         with self.connect() as c:
             c.execute("BEGIN IMMEDIATE")
@@ -127,6 +158,26 @@ class Store:
             r=c.execute("UPDATE publications SET state='submitting' WHERE id=? AND state='approved'",(pid,))
             if r.rowcount != 1: raise ValueError("Publication is not approved or is already being submitted")
         return self.publication(pid)
+    def release_campaign(self,cid,released=True):
+        """An explicit, separate act from finishing the film: the operator says this
+        campaign may leave the machine."""
+        with self.connect() as c:
+            c.execute("UPDATE campaigns SET released=? WHERE id=?",(1 if released else 0,cid))
+        return self.campaign(cid)
+
+    def record_remote_state(self,pid,state,url=None):
+        """What the platform says, kept apart from what our submission said."""
+        with self.connect() as c:
+            c.execute("UPDATE publications SET remote_state=?,remote_url=?,checked=? WHERE id=?",(state,url,time.time(),pid))
+
+    def channel_schedule(self,cid,channel):
+        """Times already claimed on one channel, for spacing and daily limits."""
+        entries=[]
+        for p in self.publications(cid):
+            if p['payload'].get('channel')!=channel or p['state'] in {'draft','cancelled'}:continue
+            entries.append({'id':p['id'],'state':p['state'],'at':p['payload'].get('schedule_at') or '','created':p['created']})
+        return entries
+
     def publication_result(self,pid,state,receipt=None,error=None):
         with self.connect() as c:
             c.execute("UPDATE publications SET state=?,receipt=?,error=? WHERE id=?",(state,canonical(receipt) if receipt else None,error,pid))
@@ -145,9 +196,12 @@ class Store:
         with self.connect() as c:
             if request is None:c.execute("UPDATE provider_runs SET state=? WHERE key=?",(state,key))
             else:c.execute("UPDATE provider_runs SET state=?,request=? WHERE key=?",(state,canonical(request),key))
-    def record_metric(self,cid,event,channel):
+    def record_metric(self,cid,event,channel,dedupe_key=None):
+        """Returns False when this exact event was already counted."""
         with self.connect() as c:
-            c.execute("INSERT INTO metrics(campaign_id,event,channel,created) VALUES(?,?,?,?)",(cid,event,channel,time.time()))
+            cursor=c.execute("INSERT OR IGNORE INTO metrics(campaign_id,event,channel,created,dedupe_key) VALUES(?,?,?,?,?)",
+                             (cid,event,channel,time.time(),dedupe_key))
+            return cursor.rowcount==1
     def metrics(self,cid):
         with self.connect() as c:
             counts={r['event']:r['n'] for r in c.execute("SELECT event,count(*) n FROM metrics WHERE campaign_id=? GROUP BY event",(cid,))}

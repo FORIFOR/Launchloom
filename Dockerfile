@@ -3,8 +3,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
     PLAYWRIGHT_BROWSERS_PATH=/opt/playwright \
     LAUNCHLOOM_HOST=0.0.0.0 LAUNCHLOOM_PORT=8787 \
     LAUNCHLOOM_DATA=/data CHROMIUM_EXECUTABLE=/usr/bin/chromium
+# chromium-sandbox ships the setuid helper. Without it Debian's chromium reports
+# "No usable sandbox!" and capture only works with CHROMIUM_NO_SANDBOX=1.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg chromium fonts-noto-cjk ca-certificates \
+    ffmpeg chromium chromium-sandbox fonts-noto-cjk ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
