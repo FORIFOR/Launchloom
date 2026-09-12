@@ -10,7 +10,8 @@
 | capture.py | Explicit browser actions, recordings, cursor-event timeline | Inherit the studio session or a user's browser cookies |
 | rendering.py | Decode, camera motion, typography, two independent layouts, encode | Generate counterfeit product screens |
 | site.py + templates | Escape supplied text; emit original static LP | Run untrusted generated code |
-| store.py | Durable jobs, immutable payload fingerprints, provider tickets | Treat in-memory process state as authoritative |
+| store.py | Durable jobs, immutable payload fingerprints, provider tickets, schema migration | Treat in-memory process state as authoritative |
+| deploy.py | Copy an approved landing page into one operator-owned directory | Delete, write outside it, or upload anywhere |
 | pipeline.py | Orchestration, provenance, packaging, QA | Publish social posts as part of a render |
 | server.py | Local authenticated API, upload boundaries, explicit publishing | Claim to be a multi-tenant IAM system |
 | web/ | Studio UI, review, permission-based screen capture | Read external API keys |
@@ -24,6 +25,15 @@ HTTP contracts, not link both products' lifecycles.
 
 `draft → queued → building → ready`
 
+With `review_plan`, a build stops once the cheap, reversible work is done:
+
+`draft → queued → building → awaiting_review → queued → building → ready`
+
+The gate sits after planning, the landing page and capture, and **before**
+rendering and before any generative provider is contacted. A reviewed storyboard
+is stored with `plan_approved`, and the next build uses it verbatim instead of
+regenerating one.
+
 Errors: `failed` or `interrupted`. SQLite claims a queued job in a transaction.
 A partial unique index prevents two active jobs for one campaign. The worker is
 single-process/single-consumer: **do not start Uvicorn with multiple workers**.
@@ -33,11 +43,27 @@ Render stages restart rather than checkpointing every frame. There is no hard
 render cancellation API in v0.1.
 
 The options comparison handles JSON integer/float equivalence, e.g. 0 == 0.0.
-Changing the brief/options after a ready campaign is deliberately unsupported.
-Create a new campaign for a revision. Asset roots and hashes make what was reviewed
-explicit; they are not a tamper-proof audit ledger against a malicious machine owner.
 
-## Publication state
+A finished campaign can be **revised**: the storyboard changes and the film is
+composed again from the recording and concept clip already on disk. Build options
+are compared on every enqueue and cannot change, so a revision can never trigger a
+new capture or a second paid generation; the revision counter lands in the
+manifest. Changing the brief itself — the claims — still means a new campaign.
+
+Schema changes are applied as `ALTER TABLE` on open, and indexes are created after
+that migration: an index declared alongside its table would otherwise run against
+a database that does not have the column yet.
+
+Asset roots and hashes make what was reviewed explicit; they are not a tamper-proof
+audit ledger against a malicious machine owner.
+
+## Release and publication state
+
+Finishing a film and permitting it to leave the machine are separate decisions.
+A campaign carries a `released` flag; `submit` refuses while it is off, and it can
+be withdrawn again. Per-channel pacing (a minimum gap, a daily ceiling) is checked
+at approval time across every publication of the campaign, so variants cannot
+stack up on one account by being created separately.
 
 `draft → approved → submitting → submitted`
 
@@ -54,6 +80,14 @@ server crash or ambiguous remote outcome => needs_reconciliation, never an autom
 second POST. This is local duplicate prevention, not mathematically exact-once
 execution across an external service without an idempotency guarantee.
 
+Remote state is **read**, not inferred: `GET /posts?startDate&endDate` is matched
+against the stored post ids, and the result (`published`, `queued`, `failed`,
+`absent`) is kept in its own columns beside our submission record. For an
+uncertain send, same-account look-alikes are offered to the operator as
+candidates; only a person decides which, if any, is theirs. Choosing "not
+published" returns the record to `approved` so that sending again is an act, not
+a retry button.
+
 ## Provider state
 
 A paid video request reserves an operator-provided cost estimate before POST.
@@ -69,10 +103,18 @@ A three-second opening, up to twenty seconds of proof, three-second CTA.
 24fps H.264/yuv420p, faststart, separate 1280×720 and 720×1280 layouts.
 Draft = 960×540 and 540×960. Product screen footage is recorded or uploaded;
 generated b-roll is only an explicitly labeled conceptual opening.
-Cursor coordinates drive clamped eased zoom. Imported/native footage has no
-cursor metadata in v0.1 and therefore uses a restrained central zoom.
+Cursor coordinates drive clamped eased zoom. Imported footage carries no cursor
+metadata; an operator can supply an event track (time, position, action, label)
+and it drives the same camera and on-screen labels. Without one, the camera holds
+centre. A capture range (start, length) selects which part of the recording
+becomes the proof section, and event times shift with the cut.
 
-SRT contains the visual scene headlines, not a transcription. Audio is optional
+Three visual directions — editorial, spotlight, grid — change ground, ink,
+structure and the fade, not just an accent colour. They are chosen per campaign
+and recorded in the manifest.
+
+SRT contains the visual scene headlines, not a transcription; a scene can carry a
+caption worded differently from its on-screen headline. Audio is optional
 operator-provided licensed material, normalized and mixed separately; no voice
 cloning, automatic music generation or transcription is implemented.
 
@@ -80,7 +122,22 @@ cloning, automatic music generation or transcription is implemented.
 
 No invented impressions, reach, stars or signups. The optional static-site tracker
 sends page_view and cta_click without cookies or visitor identifiers. Counts are
-events, not unique people; public client events are forgeable. A server-authorized
-endpoint accepts backend-confirmed signup events. No unique-conversion IDs or
-attribution deduplication exists yet. There is no statistical A/B experiment engine.
+events, not unique people; public client events are forgeable. Confirmed conversions arrive server-to-server on `/conversions`, signed with a key
+derived from the studio token for one campaign, so a backend never holds studio
+credentials. Each carries the caller's own unique id and is stored under a unique
+index, so retries cannot inflate a count; a timestamp, when present, must fall
+inside a five-minute window. There is no statistical A/B experiment engine.
 The UI gives a limited next-step hint, not a causal growth conclusion.
+
+## Landing page deployment
+
+`deploy.py` writes five generated files into one directory the operator
+configured, and does nothing else: no deletion, no path outside that directory, no
+upload, no DNS. The target is refused if it overlaps the studio's data directory
+or the installed package, if it is a home or filesystem root, or if a destination
+name there is a symlink. A preview lists every file, its status against what is
+already there, and everything that will be left alone; approval carries that
+preview's fingerprint, so a landing page regenerated in the meantime invalidates
+it. Hosted provider APIs are deliberately absent — a directory is what a static
+host or a repository working copy actually needs, and it is the only target that
+can be verified without someone's credentials.

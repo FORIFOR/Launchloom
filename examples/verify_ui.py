@@ -101,7 +101,11 @@ async def main(args):
         for y in range(0,5000,600):await page.evaluate('(y)=>scrollTo(0,y)',y);await page.wait_for_timeout(100)
         await page.evaluate('() => scrollTo(0,0)');await page.wait_for_timeout(300)
         await page.screenshot(path=str(args.output/'launchloom-landing.png'),full_page=True)
-        report['checks']['landing_has_three_features']=await page.locator('.feature').count()==3
+        # The page must show the approved features, and only those.
+        approved=[f for f in campaign['brief']['features'] if f['approved']]
+        report['checks']['landing_shows_every_approved_feature']=await page.locator('.feature').count()==len(approved)
+        shown=await page.locator('.feature h3').all_inner_texts()
+        report['checks']['landing_claims_match_the_brief']=sorted(shown)==sorted(f['title'] for f in approved)
         report['checks']['landing_contains_video']=await page.locator('video').count()==1
         await page.locator('footer').scroll_into_view_if_needed()
         await page.locator('footer').hover()

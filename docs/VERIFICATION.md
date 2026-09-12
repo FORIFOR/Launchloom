@@ -1,84 +1,106 @@
-# Verification — 2026-09-12 JST
+# Verification
+
+What was actually executed, on which machine, and what remains untested.
+Every row below can be reproduced from a clone; nothing here is a screenshot
+of a claim someone made earlier.
+
+## The machine
+
+| | |
+|---|---|
+| Hardware / OS | Apple Silicon Mac, macOS 26.6.2 |
+| Python | 3.14.6 (Homebrew) |
+| FFmpeg / ffprobe | 9.0.1 |
+| Browser | Playwright-managed Chromium (build 1200), sandbox enabled |
+| Fonts | Hiragino Sans W3 / W6 (resolved by `launchloom doctor`) |
+| Container | Docker Desktop, image built from the bundled `Dockerfile` |
+
+Date of this record: 2026-09-12.
 
 ## Executed
 
-| Layer | Result | Evidence |
+| Layer | Result | How to reproduce |
 |---|---|---|
-| Python tests | **66 passed**, 0 failed | verification/pytest.xml |
-| Python import/compile | Passed | python -m compileall -q launchloom |
-| Browser JavaScript syntax | Passed | node --check launchloom/web/app.js |
-| Package build | Python wheel built without fetching dependencies | setuptools / pip wheel --no-deps --no-build-isolation |
-| Real local production | Bundled Orbit application interacted with, recorded, composed and packaged | verification/artifact-report.json |
-| Landscape film | 1280×720 / H.264 / 24fps / **16.875s** | landscape.mp4, full FFmpeg decode passed |
-| Portrait film | 720×1280 / H.264 / 24fps / **16.875s** | portrait.mp4, full FFmpeg decode passed |
-| Landing page | Actual exported HTML/CSS/JS, 3 features, video, pointer-reactive footer | verification/browser-report.json |
-| Browser component checks | Film decoded and played; aspect switch, 3 post drafts, 7 selectable channels, no page errors | verification/browser-report.json |
-| Mobile layout | Studio and LP at 390px: no horizontal overflow | Browser component checks |
-| Export | ZIP integrity; all manifest hashes; no raw captures/input/evidence notes | verification/artifact-report.json |
-| Artifact authorization | Authenticated kit retrieval succeeds; unauthenticated media request returns 401 | Artifact report + API tests |
-| External publication | **None**; no publication records in the delivered demo campaign | Artifact report |
+| Test suite | **106 passed**, 0 failed | `python -m pytest -q` |
+| Import / compile | Passed | `python -m compileall -q launchloom` |
+| Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
+| Environment readiness | Browser launches, both fonts cover Japanese | `python -m launchloom doctor` |
+| Bundled sample, end to end | Recorded, rendered, packaged in ~22s | `python -m launchloom demo` |
+| **Staging URL capture** | A real local app at `http://127.0.0.1:3177` was navigated, driven and recorded; `.tag` elements were masked as instructed | `examples/browser-capture.json` against your own staging origin |
+| **Imported footage** | An MP4/WebM upload with an operator event track produced the same camera work and on-screen labels | Create a campaign with `capture_mode: upload` |
+| Capture trimming | 12s source, 2.0s–6.0s range → 10s film instead of 18s | `tests/test_providers_and_media.py` |
+| Storyboard review gate | Build stopped after capture; scenes and captions reworded; approved; rendered with the operator's words in `captions.srt` | Tick 「レンダリング前に、構成と収録内容を確認する」 |
+| Revision | A finished campaign re-rendered in 15s with one changed CTA, reusing the recording | 「構成を直して、この素材のまま作り直す」 |
+| Three visual directions | editorial / spotlight / grid produce different frames | `tests/test_core.py::test_each_visual_direction_is_a_different_picture` |
+| Landscape film | 1280×720 / H.264 / 24fps, full decode | `verification/artifact-report.json` |
+| Portrait film | 720×1280 / H.264 / 24fps, full decode | same |
+| Export integrity | ZIP intact, every manifest hash matches, no raw capture, input, logs or private evidence notes | `python examples/verify_artifacts.py` |
+| Artifact authorization | Authenticated kit download 200, unauthenticated media 401 | same |
+| **Live browser UI** | 14 checks including real video decode and playback, aspect switch, mobile layout at 390px, the exported landing page, pointer-reactive footer; no page errors | `python examples/verify_ui.py --data .launchloom --output checks` |
+| Landing page claims | The page shows exactly the approved features from the brief, and no others | same |
+| **Landing page deployment** | Five site files written into a configured directory; an unrelated `CNAME` in that directory was left alone; a second preview reported "unchanged" | Set `SITE_DEPLOY_DIR`, then 「書き込む内容を確認」 |
+| **Docker** | Image builds; container serves; `doctor` reports `Browser launch: OK`; the bundled sample builds to completion inside the container | `docker compose up -d && docker compose exec studio python -m launchloom demo` |
+| Database upgrade | A database written by the previous schema opens and migrates | `tests/test_core.py::test_store_upgrades_an_existing_database` |
+| External publication | **None.** No publication records exist in any campaign built here | `verification/artifact-report.json` |
 
-The sample clip length is the recorded operation time plus the opening and closing,
-not the time it takes to generate a clip. Render speed has not been benchmarked
-across machines. Both sample videos are intentionally **silent** because no audio
-asset was supplied. They show the bundled real Orbit demo app, not Astra or any
-of the user's existing products. They do not use media from the reference posts.
+Clip length is the recorded interaction plus the opening and closing card, not
+the time it takes to produce a clip. Render speed was measured only on the
+machine above. Sample films are silent because no audio was supplied.
 
-## What “browser checked” means here
+## Defects found by running it, and fixed
 
-The execution environment's managed Chromium **blocks URL navigation**, including
-localhost. That administrative URL policy was not changed. The real bundled app
-was loaded from its owned HTML/CSS/JS into an offline browser page. Its buttons,
-input, task completion and focus mode actually ran; Playwright recorded the page.
-The footage was then processed by the normal renderer and packaged by the normal
-persistent API worker.
+These were not visible from reading the code or the previous test suite.
 
-UI/layout tests used actual API snapshots and the actual generated media loaded
-in memory, not invented metrics or pre-drawn interface screenshots. They executed
-the real front-end JavaScript and proved decoding/playback, layout and component
-behavior. They **do not prove browser network, cookie/CSP integration, external URL
-capture or the native screen-share permission flow**. Backend authorization/CSRF
-and API logic were tested independently with FastAPI TestClient and local HTTP.
+1. **`.dockerignore` leaked local state into the image.** `.env`, `.launchloom/`
+   (which holds the access token and every campaign) and `.venv/` were all inside
+   the build context and copied by `COPY . .`.
+2. **Chromium's sandbox could not start in Docker.** Debian's `chromium` package
+   does not include the setuid helper — `chromium-sandbox` is a separate package —
+   and Docker's default seccomp profile blocks the user-namespace syscalls
+   Chromium needs. Both are now handled without disabling either boundary.
+3. **`examples/verify_ui.py` could never run in live mode.** It passed page
+   predicates as strings, which Playwright evaluates as `eval`, which the
+   studio's own `script-src 'self'` correctly forbids. The tool had only ever
+   been exercised against an offline snapshot with no CSP.
+4. **A schema change could not open an existing database.** A new unique index
+   was created in the same script as its table, so on an upgrade it ran before
+   the `ALTER TABLE` that adds the column it covers.
+5. **The version was declared in three places and they disagreed** (`0.1.0` in
+   the package and in every manifest, `0.1.1` in the packaging metadata).
+6. **A missing browser produced Playwright's install banner mid-build.** The
+   pipeline now fails with the command to run, and `doctor` launches the browser
+   instead of checking that a path exists — the headless shell is a separate
+   download from the full Chromium build, so a path can exist while nothing runs.
+7. **A verification check asserted a fixture, not an invariant.** "The landing
+   page has three features" now reads "the landing page shows exactly the
+   approved features named in the brief".
 
-Reproduce the component checks after generating a sample:
+## Implemented versus validated against a live service
 
-```bash
-# A normal machine can omit --snapshot for a live browser test.
-python examples/verify_ui.py --data .launchloom --output checks --snapshot
-```
-
-The verification machine is Linux / Python 3.13.5 / system Chromium / FFmpeg 7.1.5.
-It runs as root, so this isolated trusted sample used explicit no-sandbox mode.
-Production defaults retain Chromium sandbox. The Playwright FFmpeg executable was
-provided from the installed system FFmpeg in the test runtime; no browser, FFmpeg
-or font binary is included in the delivered source archive.
-
-## External integrations: implementation versus validation
-
-| Integration | Implemented | Tested this time |
+| Integration | Implemented | Exercised here |
 |---|---|---|
-| Postiz | Integration list, upload, post/schedule request, receipt, analytics | HTTP contract mocks, validation, approval/hash/state tests; **no live account** |
-| fal | Queue submit, durable ticket, poll, bounded download, uncertain-submit guard | HTTP contract mocks; **no paid video request** |
-| ComfyUI | API workflow, prompt ID, history, video output download | HTTP contract mocks; **no model/custom-node execution** |
-| LLM | Configured Chat Completions-compatible planning, canonical claims retained | HTTP contract mock; **no external LLM invocation** |
-| Screen recording | Browser permission flow, upload, WebM duration normalization | Real synthetic stream-format file normalized; **no macOS/Windows screen-share test** |
-| Staging URL capture | Explicit origin allowlist, action DSL, new context, masking | Validation/unit tests; **live navigation not tested in restricted browser** |
+| Postiz — integrations, upload, create post | Yes | HTTP contract mocks, validation, approval/hash/state tests. **No live account.** |
+| Postiz — `GET /posts` state read, `/posts/{id}/missing` | Yes, against the documented contract | Mocked responses only. **No live account.** |
+| Reconciliation of an uncertain send | Yes | Tested through the API with mocked Postiz listings |
+| fal | Queue submit, durable ticket, poll, bounded download | Contract mocks. **No paid request was made.** |
+| ComfyUI | API workflow, prompt id, history, output download | Contract mocks. **No model was run.** |
+| LLM planning | Chat-Completions-compatible, product claims stay canonical | Contract mock. **No external model was called.** |
+| Screen recording in the browser | Permission flow, upload, WebM duration normalization | Normalized a real stream-format file. **No macOS/Windows screen-share dialog was driven.** |
+| Landing page deployment | Directory target with fingerprinted approval | **Verified on this machine.** Hosted-provider APIs are not implemented. |
+| Signed conversions | Per-campaign key, replay window, deduplication | Verified through the API |
 
-Other unvalidated/unimplemented work: hosted multi-user deployment, real SNS
-publication state reconciliation UI, native cursor-event capture, video narration
-or music generation, arbitrary AI-generated application/LP code, automatic hosting
-deployment, statistical A/B optimization and continuous autonomous social growth.
-Docker configuration is supplied but its image was not built in this network-
-restricted environment. macOS/Windows instructions are unverified on real devices.
+## Not verified, or not implemented
 
-## Issues caught and corrected
+- Windows, and Linux desktop, on real hardware. Only macOS and the Linux
+  container were run.
+- The native screen-share permission dialog on any OS.
+- Any real social account, any real post, any paid generation.
+- Team review and multi-user anything: the authentication here is one operator
+  with one token. Reviewing as a team needs accounts, which is P4 work.
+- Hosted deployment providers, automatic DNS, A/B optimization, narration or
+  music generation, motion blur, callout tracks, multiple audio tracks.
+- This is not a penetration test, a license clearance, an audit of whether the
+  operator's feature claims are true, or an aesthetic judgement.
 
-Retry options now compare decoded JSON, avoiding integer 0 versus float 0.0 failures.
-Invalid media receives a controlled 422 response rather than an unhandled exception.
-Durationless browser WebM recordings are normalized before validation.
-Mobile grid/video intrinsic widths no longer widen the studio beyond its viewport.
-Generated-media downloads are installed only after validation, not exposed as partial
-successful files. Public kits omit private feature-evidence notes and raw captures.
-
-These tests are not a penetration test, legal/license clearance, factual audit of
-operator claims, aesthetic evaluation, virality prediction or sales guarantee.
+A passing suite means the code does what these tests describe on this machine.
+It does not mean the film is good, the claims are true, or the launch will work.
