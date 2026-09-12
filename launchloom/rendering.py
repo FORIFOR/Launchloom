@@ -3,6 +3,7 @@ import functools
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -101,13 +102,31 @@ def smoother(x):
     x=max(0,min(1,x));return x*x*x*(x*(x*6-15)+10)
 
 
+# Japanese typesetting forbids these at the start of a line (禁則処理). When one
+# would be pushed to the next line it hangs off the current one instead.
+NO_LINE_START='、。，．,.!?:;・：；？！）］｝」』〉》〕】”’…ー―ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ)]}'
+
+# Latin words and identifiers stay whole; Japanese breaks between characters.
+WORD=re.compile(r'[A-Za-z0-9][A-Za-z0-9._/+-]*|.',re.S)
+
 def wrapped(draw,text,xy,width,size,fill,bold=False,max_lines=4):
     f=font(size,bold);lines=[];line=''
-    # Character-safe wrapping works for Japanese and Latin without clipping.
-    for ch in str(text):
-        if ch=='\n' or (line and draw.textlength(line+ch,font=f)>width):
-            lines.append(line);line='' if ch=='\n' else ch
-        else:line+=ch
+    def fits(candidate):return draw.textlength(candidate,font=f)<=width
+    def push():
+        nonlocal line
+        lines.append(line);line=''
+    for token in WORD.findall(str(text)):
+        if token=='\n':push();continue
+        if len(token)>1 and not fits(token):
+            # A word wider than the whole line has to break somewhere.
+            for ch in token:
+                if line and not fits(line+ch):push()
+                line+=ch
+            continue
+        if line and not fits(line+token):
+            if token in NO_LINE_START:line+=token;push()
+            else:push();line=token
+        else:line+=token
     if line:lines.append(line)
     if len(lines)>max_lines:
         lines=lines[:max_lines];lines[-1]=lines[-1][:-1]+'…'
@@ -251,7 +270,9 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
         if portrait:
             d.text((margin,n(137)),('REAL PRODUCT / SAMPLE APP' if brief.is_sample else 'REAL PRODUCT' if raw is not None else 'FEATURE OVERVIEW'),font=font(n(12)),fill=muted)
             wrapped(d,sc.title,(margin,n(178)),w-margin*2,n(48),dark,True,3)
-            cw=w-margin*2;ch=n(568);x=margin;y=n(398)
+            # A desktop recording cropped to a tall box loses the interface. Keep
+            # the frame's own proportions and let it run nearly full width.
+            x=n(26);cw=w-n(52);ch=round(cw*10/16);y=n(470)
         else:
             d.text((margin,n(154)),f'0{proofs.index(sc)+1} / IN PRACTICE',font=font(n(12)),fill=muted)
             yy=wrapped(d,sc.title,(margin,n(205)),n(233),n(31),dark,True,4)
@@ -266,8 +287,8 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
             wrapped(d,sc.title,(x+n(44),y+ch//3),cw-n(88),n(40),style['panel_ink'],True)
             d.text((x+n(44),y+ch-n(60)),'FEATURE OVERVIEW · NOT A SCREEN RECORDING',font=font(n(10)),fill=style['panel_muted'])
         if portrait:
-            wrapped(d,label,(margin,n(1015)),w-margin*2,n(25),dark,True,2)
-            wrapped(d,sc.detail,(margin,n(1100)),w-margin*2,n(17),muted,max_lines=2)
+            wrapped(d,label,(margin,n(1000)),w-margin*2,n(25),dark,True,2)
+            wrapped(d,sc.detail,(margin,n(1085)),w-margin*2,n(17),muted,max_lines=3)
     else:
         d.rectangle((0,0,w,h),fill=style['outro'])
         cx=w*.83;cy=h*.81;r=n(210+25*math.sin((t-outro_start)*.5))

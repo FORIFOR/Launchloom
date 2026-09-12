@@ -585,3 +585,58 @@ def test_store_upgrades_an_existing_database(tmp_path):
     assert store.metrics('old1')['page_views']==1
     assert store.record_metric('old1','signup','x',dedupe_key='old1:a') is True
     assert store.record_metric('old1','signup','x',dedupe_key='old1:a') is False
+
+
+def test_japanese_lines_never_start_with_closing_punctuation():
+    """禁則処理: a wrapped line beginning with 、。」 reads as a typographic error."""
+    from PIL import Image,ImageDraw
+    from launchloom.rendering import wrapped,NO_LINE_START
+    draw=ImageDraw.Draw(Image.new('RGB',(400,400)))
+    captured=[]
+    original=draw.text
+    draw.text=lambda xy,line,**kw:captured.append(line)
+    for text in ['一度の入力から、全部そろう。','終わったことが、見える。','思いつきを、その場で。',
+                 'これは、とても長い一文で、折り返しが何度も起きる、そういう見出しです。']:
+        captured.clear()
+        for width in range(60,240,7):
+            captured.clear()
+            wrapped(draw,text,(0,0),width,18,'#000',max_lines=9)
+            for line in captured[1:]:
+                assert line[0] not in NO_LINE_START, f'{text!r} at width {width}: line starts with {line[0]!r}'
+    draw.text=original
+
+def test_wrapping_keeps_every_character():
+    from PIL import Image,ImageDraw
+    from launchloom.rendering import wrapped
+    draw=ImageDraw.Draw(Image.new('RGB',(400,400)))
+    captured=[]
+    draw.text=lambda xy,line,**kw:captured.append(line)
+    text='一度の入力から、全部そろう。横長・縦長のMP4、動画入りLP、原稿まで。'
+    wrapped(draw,text,(0,0),150,18,'#000',max_lines=99)
+    assert ''.join(captured)==text
+
+def test_latin_words_are_not_split_mid_word():
+    from PIL import Image,ImageDraw
+    from launchloom.rendering import wrapped
+    draw=ImageDraw.Draw(Image.new('RGB',(400,400)))
+    captured=[]
+    draw.text=lambda xy,line,**kw:captured.append(line)
+    wrapped(draw,'横長・縦長のMP4、動画入りLP、原稿まで。',(0,0),150,18,'#000',max_lines=9)
+    joined='|'.join(captured)
+    assert 'MP4' in joined.replace('|','') and 'LP' in joined.replace('|','')
+    for word in ('MP4','LP'):
+        assert any(word in line for line in captured), f'{word} was split across lines: {captured}'
+
+def test_vertical_keeps_the_recording_readable(brief):
+    """A desktop capture cropped to a tall box loses the product it is proving."""
+    from PIL import Image
+    from launchloom.planning import make_plan
+    from launchloom.rendering import render_frame,crop_camera
+    source=Image.new('RGB',(1280,800),'#ffffff')
+    plan=make_plan(brief)
+    render_frame(brief,plan,720,1280,5.0,9,source,[],None,'editorial')
+    # The proof box must stay close to the recording's own proportions, so that
+    # most of the captured width survives into the vertical cut.
+    box=crop_camera(source,(668,418),5.0,[])
+    assert box.size==(668,418)
+    assert abs(668/418-1280/800)<0.05
