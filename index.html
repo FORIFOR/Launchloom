@@ -117,6 +117,17 @@ section{padding:clamp(64px,9vw,118px) 0}
 .refuse-item span{color:var(--accent);font-size:15px;line-height:1.5}
 .refuse-item p{color:var(--dark-muted);margin:8px 0 0;font-size:14.5px;max-width:62ch}
 
+/* kit */
+.kit-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.75fr);gap:clamp(26px,4vw,52px);align-items:start}
+.kit-list{border-top:1px solid var(--line)}
+.kit-row{display:flex;justify-content:space-between;gap:20px;padding:15px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kit-row span{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--ink)}
+.kit-row b{font-weight:400;color:var(--muted);text-align:right;font-size:13px}
+.kit-aside p{font-size:13px;color:var(--muted);margin-top:18px;line-height:1.7}
+.kit-aside a{text-decoration:underline;text-underline-offset:3px}
+.kit-aside .btn{text-decoration:none}
+@media(max-width:900px){.kit-grid{grid-template-columns:minmax(0,1fr)}}
+
 /* start */
 pre{background:var(--ink);color:#dfe6e0;border-radius:14px;padding:24px 26px;overflow-x:auto;
   font-size:13.5px;line-height:1.95;margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -164,6 +175,7 @@ footer a:hover{color:var(--dark-ink)}
       <a class="brand" href="/Launchloom/"><span class="mark"></span>Launchloom</a>
       <div class="nav-links">
         <a href="#what">What you get</a>
+        <a href="#kit">What it produces</a>
         <a href="#itself">Made by itself</a>
         <a href="#refuse">What it won't do</a>
         <a href="#start">Start</a>
@@ -222,6 +234,36 @@ footer a:hover{color:var(--dark-ink)}
       <article class="card reveal"><span class="num">06</span><h3>A kit you can hand over</h3>
         <p>One ZIP with everything, a manifest recording where each asset came
         from, and private evidence notes deliberately left out.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="kit">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow">No install required</p>
+      <h2>Download what it actually produced.</h2>
+      <p>This is the kit behind the film at the top of this page — not an example
+      of what a kit might look like. Open it and read the files.</p>
+    </div>
+    <div class="kit-grid reveal">
+      <div class="kit-list">
+        <div class="kit-row"><span>landscape.mp4</span><b>1280×720 · 27s · H.264</b></div>
+        <div class="kit-row"><span>portrait.mp4</span><b>720×1280 · 27s · composed separately</b></div>
+        <div class="kit-row"><span>site/</span><b>index.html, css, js, the film, a poster</b></div>
+        <div class="kit-row"><span>posts.json · social-copy.md</span><b>Per-channel drafts with UTM links</b></div>
+        <div class="kit-row"><span>captions.srt</span><b>The on-screen headings, not a transcript</b></div>
+        <div class="kit-row"><span>storyboard.json · campaign.json</span><b>The plan, and the public product facts</b></div>
+        <div class="kit-row"><span>qa.json</span><b>Automated checks, and their stated limits</b></div>
+        <div class="kit-row"><span>manifest.json</span><b>SHA-256 for all 15 files, and where each came from</b></div>
+      </div>
+      <div class="kit-aside">
+        <a class="btn btn-primary" href="launch-kit.zip" download>Download the kit · 2.2 MB</a>
+        <p>The private evidence notes behind each claim, and the raw recording,
+        are deliberately <em>not</em> in here. <code>manifest.json</code> says so,
+        and the export is checked against it.</p>
+        <p><a href="https://github.com/FORIFOR/Launchloom/blob/main/docs/VERIFICATION.md">How this was verified →</a></p>
+      </div>
     </div>
   </div>
 </section>
