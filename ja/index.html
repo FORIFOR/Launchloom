@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Launchloom — 作った、その先まで。</title>
+<title>Launchloom — 伝わるローンチ素材に。</title>
 <meta name="description" content="プロダクトの情報を一度書くだけで、紹介映像・縦長版・ランディングページ・SNSの投稿文が出てきます。素材は実際の画面収録。手元のマシンで動くオープンソース、Apache-2.0。">
 <meta name="theme-color" content="#141b1c">
 <link rel="canonical" href="https://forifor.github.io/Launchloom/ja/">
@@ -12,12 +12,12 @@
 <link rel="alternate" hreflang="x-default" href="https://forifor.github.io/Launchloom/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:title" content="Launchloom — 作った、その先まで。">
+<meta property="og:title" content="Launchloom — 伝わるローンチ素材に。">
 <meta property="og:description" content="一度書いた企画と実際の画面収録から、紹介映像・縦長版・LP・投稿文まで。全部、手元のマシンで。">
 <meta property="og:url" content="https://forifor.github.io/Launchloom/ja/">
 <meta property="og:image" content="https://forifor.github.io/Launchloom/ja/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Launchloom — 作った、その先まで。">
+<meta name="twitter:title" content="Launchloom — 伝わるローンチ素材に。">
 <meta name="twitter:description" content="一度書いた企画と実際の画面収録から、紹介映像・縦長版・LP・投稿文まで。全部、手元のマシンで。">
 <meta name="twitter:image" content="https://forifor.github.io/Launchloom/ja/og.png">
 <script type="application/ld+json">
@@ -262,8 +262,36 @@ footer a:hover{color:var(--dark-ink)}
 .lang{border:1px solid var(--dark-line);border-radius:6px;padding:3px 9px;font-size:11.5px;letter-spacing:.06em}
 .lang:hover{border-color:#465455}
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif}
+
+[hidden]{display:none!important}
+/* Product evidence is the principal surface, September 2026. */
+:root{--shell:min(1240px,100% - 3rem);--muted:#59665f}
+body{font-size:18px}
+.hero::after{display:none}
+.hero-grid{grid-template-columns:minmax(0,.68fr) minmax(0,1.32fr);gap:40px;margin-top:64px;align-items:start}
+.hero h1{font-size:clamp(32px,2.7vw,40px);line-height:1.28;letter-spacing:-.035em;text-wrap:balance}
+.hero .lede{font-size:18px;line-height:1.8}
+.hero .row{gap:12px;margin-top:24px}
+.hero .note{font-size:14px;line-height:1.75}
+.eyebrow,.tab,.caption,.showcase-caption,.card .num,.browser-bar,.drafts .ch{font-size:14px}
+.nav-links{font-size:14px;align-items:center}
+.nav-links a,.copy,.open-link{min-height:48px;display:inline-flex;align-items:center}
+.btn,.tab{min-height:48px;font-size:16px}
+.tab{padding:10px 16px}
+.showcase-tabs{gap:8px;margin-bottom:16px}
+.stage{min-height:380px}
+.frame-tall{max-height:520px;max-width:292px;margin-inline:auto}
+.frame-tall video{max-height:520px;width:100%;object-fit:contain}
+.card p,.kit-aside p,.bug{font-size:16px;line-height:1.8}
+.kit-row,.kit-row span,.kit-row b{font-size:15px}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #e7833d;outline-offset:5px}
+.hero .caption{font-size:14px;line-height:1.7}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:32px;margin-top:40px}.hero h1{max-width:20em;font-size:clamp(32px,6vw,48px)}.stage{min-height:0}}
+@media(max-width:540px){:root{--shell:calc(100% - 32px)}body{font-size:17px}.nav-links{gap:14px;flex-wrap:wrap}.nav{align-items:start}.hero{padding-top:16px}.hero .lede{font-size:17px}.hero h1{font-size:32px}.tab{font-size:14px;padding:10px 12px}.kit-row{flex-wrap:wrap}.kit-row b{text-align:left}.hero-grid{margin-top:30px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1!important;transform:none!important}}
+
 </style>
-</head>
+<link rel="stylesheet" href="../portfolio.css"></head>
 <body>
 <header class="hero">
   <div class="shell">
@@ -283,13 +311,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
     <div class="hero-grid">
       <div>
         <p class="eyebrow">オープンソースのローンチ制作ツール</p>
-        <h1>作った、<br>その先まで。</h1>
-        <p class="lede">プロダクトの情報を一度書くだけで、紹介映像、縦長版、ランディングページ、SNSの投稿文が出てきます。どれも同じ企画と同じ収録から作るので、言っていることがずれません。すべて手元のマシンで動きます。</p>
+        <h1>作ったプロダクトを、<br>伝わる<br>ローンチ素材に。</h1>
+        <p class="lede">ひとつの企画と実際の画面収録から、横動画、縦動画、LP、投稿案へ。同じプロダクトを、公開する場所に合う形で届けます。</p>
         <div class="row">
-          <a class="btn btn-primary" href="#kit">実際のキットを見る</a>
-          <a class="btn btn-ghost" href="#start">3分で動かす</a>
+          <a class="btn btn-primary" href="#kit">実際のローンチキットを見る</a>
+          <a class="btn btn-ghost" href="#start">手元で試す</a>
         </div>
-        <p class="note">Apache-2.0 ・ Python 3.11+ ・ アカウント不要、APIキー不要、データは外に出ません</p>
+        <p class="note">ローカル・1人用アルファ · Apache-2.0<br>標準のローカル経路はアカウント・APIキー不要。</p>
       </div>
       <div>
         <div class="showcase">
@@ -297,61 +325,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
   <div class="stage">
     <div class="view" id="view-landscape" role="tabpanel" aria-labelledby="tab-landscape">
       <div class="frame">
-        <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline
-               preload="metadata" controls></video>
+        <video src="film.mp4" poster="poster.jpg" playsinline
+               preload="none" controls><track kind="captions" src="captions.vtt" srclang="ja" label="画面の見出し"></video>
       </div>
     </div>
     <div class="view" id="view-vertical" role="tabpanel" aria-labelledby="tab-vertical" hidden>
       <div class="frame frame-tall">
-        <video src="film-vertical.mp4" poster="poster-vertical.jpg" muted loop playsinline
-               preload="none" controls></video>
+        <video src="film-vertical.mp4" poster="poster-vertical.jpg" playsinline
+               preload="none" controls><track kind="captions" src="captions.vtt" srclang="ja" label="画面の見出し"></video>
       </div>
     </div>
     <div class="view" id="view-page" role="tabpanel" aria-labelledby="tab-page" hidden>
       <div class="browser">
         <div class="browser-bar"><i></i><i></i><i></i><span>site/index.html — Launchloomが書き出したもの</span></div>
         <div class="browser-view">
-          <iframe src="../kit-site/index.html" title="site/index.html — Launchloomが書き出したもの"
+          <iframe data-src="kit-site/index.html" title="site/index.html — Launchloomが書き出したもの"
                   loading="lazy" tabindex="-1" scrolling="no"></iframe>
         </div>
       </div>
     </div>
     <div class="view" id="view-posts" role="tabpanel" aria-labelledby="tab-posts" hidden>
-      <ul class="drafts"><li><span class="ch">x</span><pre>You built it. Now show it.
+      <ul class="drafts"><li><span class="ch">x</span><pre>作った、その先まで。
 
-Meet Launchloom. One brief, every asset.
-See it in action.
+Launchloomで、一度の入力から、全部そろう。
+まずは操作動画をご覧ください。
 
-https://github.com/FORIFOR/Launchloom?utm_source=x&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">linkedin</span><pre>You built it. Now show it.
+https://github.com/FORIFOR/Launchloom?utm_source=x&amp;utm_medium=social&amp;utm_campaign=4ab4455e011644bc&amp;utm_content=a</pre></li><li><span class="ch">linkedin</span><pre>作った、その先まで。
 
-Meet Launchloom. One brief, every asset.
-See it in action.
+Launchloomで、一度の入力から、全部そろう。
+まずは操作動画をご覧ください。
 
-One brief, every asset — A landscape film, a vertical cut, a landing page, captions and post drafts, written in one pass.
-Records your real product — Playwright drives your own app and records the screen as the evidence.
-Nothing renders unread — The build stops after capture so every scene can be reworded before anything is encoded.
+一度の入力から、全部そろう。 — 横長・縦長のMP4、動画入りLP、SNS原稿、字幕、配布用ZIPまでを一度に書き出します。
+実際に動かして、収録する。 — Playwrightで自分のアプリを操作し、その画面を証拠として映像にします。
+書き出す前に、直せる。 — レンダリング前に構成が止まり、見出しと字幕を直してから承認できます。
 
-https://github.com/FORIFOR/Launchloom?utm_source=linkedin&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">threads</span><pre>You built it. Now show it.
+https://github.com/FORIFOR/Launchloom?utm_source=linkedin&amp;utm_medium=social&amp;utm_campaign=4ab4455e011644bc&amp;utm_content=a</pre></li><li><span class="ch">threads</span><pre>作った、その先まで。
 
-Meet Launchloom. One brief, every asset.
-See it in action.
+Launchloomで、一度の入力から、全部そろう。
+まずは操作動画をご覧ください。
 
-https://github.com/FORIFOR/Launchloom?utm_source=threads&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">bluesky</span><pre>You built it. Now show it.
+https://github.com/FORIFOR/Launchloom?utm_source=threads&amp;utm_medium=social&amp;utm_campaign=4ab4455e011644bc&amp;utm_content=a</pre></li><li><span class="ch">bluesky</span><pre>作った、その先まで。
 
-Meet Launchloom. One brief, every asset.
-See it in action.
+Launchloomで、一度の入力から、全部そろう。
+まずは操作動画をご覧ください。
 
-https://github.com/FORIFOR/Launchloom?utm_source=bluesky&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">youtube</span><pre>You built it. Now show it.
+https://github.com/FORIFOR/Launchloom?utm_source=bluesky&amp;utm_medium=social&amp;utm_campaign=4ab4455e011644bc&amp;utm_content=a</pre></li><li><span class="ch">youtube</span><pre>作った、その先まで。
 
-Meet Launchloom. One brief, every asset.
-See it in action.
+Launchloomで、一度の入力から、全部そろう。
+まずは操作動画をご覧ください。
 
-https://github.com/FORIFOR/Launchloom?utm_source=youtube&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li></ul>
+https://github.com/FORIFOR/Launchloom?utm_source=youtube&amp;utm_medium=social&amp;utm_campaign=4ab4455e011644bc&amp;utm_content=a</pre></li></ul>
     </div>
   </div>
   <div class="stage-foot">
     <p class="caption" id="showcase-caption">16:9・27秒。Launchloom自身を操作している画面を収録し、Launchloomが書き出したものです。クローンすれば同じ工程が走ります。</p>
-    <a class="open-link" id="showcase-open" href="../kit-site/index.html" target="_blank"
+    <a class="open-link" id="showcase-open" href="kit-site/index.html" target="_blank"
        rel="noopener" hidden>このページを開く ↗</a>
   </div>
   <template data-caption="landscape">16:9・27秒。Launchloom自身を操作している画面を収録し、Launchloomが書き出したものです。クローンすれば同じ工程が走ります。</template><template data-caption="vertical">9:16・27秒。上の横動画を切り抜いたものではなく、別に組み直しています。だから画面の文字がそのまま読めます。</template><template data-caption="page">同じ企画から書き出されたランディングページです。HTML一枚、CDNもビルドも使っていません。スクリーンショットではなく、キットに入っている実ファイルをそのまま表示しています。</template><template data-caption="posts">5チャンネル分の下書き。それぞれにUTM付きのリンクと、文字数の検査がついています。動画と同じ工程で書かれたものです。</template>
@@ -378,7 +406,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=youtube&amp;utm_medium=social&a
         </div>
       </div>
       <figure style="margin:0">
-        <video src="camera.mp4" poster="camera-poster.jpg" autoplay muted loop playsinline preload="none"></video>
+        <video src="camera.mp4" poster="camera-poster.jpg" playsinline preload="none" controls></video>
         <figcaption>上の映像から9秒ぶんを、枠の中だけ抜き出しています。寄ったあと、そのまま止まっているのが分かります。</figcaption>
       </figure>
     </div>
@@ -503,7 +531,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=x
     </div>
     <div class="vertical-grid reveal" style="margin-top:44px">
       <div class="vertical-frame">
-        <video src="film-vertical.mp4" poster="poster-vertical.jpg" muted loop playsinline preload="none" controls></video>
+        <video src="film-vertical.mp4" poster="poster-vertical.jpg" playsinline preload="none" controls><track kind="captions" src="captions.vtt" srclang="ja" label="画面の見出し"></video>
       </div>
       <div>
         <h3 style="color:var(--dark-ink)">縦長は、切り抜きではなく別の映像です。</h3>
@@ -615,7 +643,7 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
   </div>
 </section>
 
-<footer>
+<section class="portfolio-contact" id="business" aria-labelledby="business-heading"><p>事業・導入の相談 · Launchloom</p><h2 id="business-heading">ローンチ素材の制作・ブランド調整を相談する</h2><p class="contact-intro">紹介したい製品、必要な素材、公開予定日を教えてください。</p><p class="privacy">提供可否・範囲・納期・料金は個別に確認します。送信による契約や課金はありません。</p><details><summary>非公開で相談する</summary><form id="portfolio-form"><label>お名前<input name="name" required maxlength="80" autocomplete="name"></label><label>返信先メール<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="wide">会社・団体名（任意）<input name="organization" maxlength="120" autocomplete="organization"></label><label class="wide">相談したい内容<textarea name="message" required minlength="10" maxlength="2000"></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><p class="privacy wide">入力内容は運営者への非公開の問い合わせとしてGoogle Cloudに保存し、返信のために利用します。AIの入力やアクセス解析には利用しません。90日後から順次削除します。公開Issueには投稿されません。</p><label class="consent wide"><input type="checkbox" name="consent" required>上記の取り扱いに同意して送信します。</label><button type="submit">相談を送信</button><p class="wide" id="portfolio-status" role="status" aria-live="polite"></p></form></details></section><footer>
   <div class="shell foot">
     <div>
       <a class="brand" href="https://github.com/FORIFOR/Launchloom" style="color:var(--dark-ink)"><span class="mark"></span>Launchloom</a>
@@ -657,11 +685,11 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
       const on=view.id==='view-'+key;
       view.hidden=!on;
       const video=view.querySelector('video');
-      if(video){ if(on){ video.play().catch(()=>{}); } else { video.pause(); } }
+      if(video) video.pause();
     }
     caption.innerHTML=captions[key]||'';
     open.hidden=key!=='page';
-    if(key==='page') fit();
+    if(key==='page'){const f=document.querySelector('iframe[data-src]');if(f&&!f.src)f.src=f.dataset.src;fit();}
   }
 
   tabs.forEach(tab=>tab.addEventListener('click',()=>show(tab.dataset.view)));
@@ -694,13 +722,9 @@ document.querySelectorAll('.copy').forEach((button)=>{
   });
 });
 
-// Vertical film only plays once it is actually on screen.
-const vertical=document.querySelector('#itself video');
-if(vertical){
-  new IntersectionObserver((entries)=>{
-    for(const e of entries){ if(e.isIntersecting){ e.target.play().catch(()=>{}); } else { e.target.pause(); } }
-  },{threshold:.4}).observe(vertical);
-}
 </script>
-</body>
+<script>
+document.querySelectorAll('video').forEach(v=>v.addEventListener('play',()=>document.querySelectorAll('video').forEach(other=>{if(other!==v)other.pause()})));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)document.querySelectorAll('video').forEach(v=>v.pause())});
+</script><script src="../portfolio.js" data-product="launchloom"></script></body>
 </html>

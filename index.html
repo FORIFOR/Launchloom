@@ -257,14 +257,42 @@ footer a:hover{color:var(--dark-ink)}
   .reveal{opacity:1;transform:none}
   html{scroll-behavior:auto}
 }
+
+[hidden]{display:none!important}
+/* Product evidence is the principal surface, September 2026. */
+:root{--shell:min(1240px,100% - 3rem);--muted:#59665f}
+body{font-size:18px}
+.hero::after{display:none}
+.hero-grid{grid-template-columns:minmax(0,.68fr) minmax(0,1.32fr);gap:40px;margin-top:64px;align-items:start}
+.hero h1{font-size:clamp(32px,2.7vw,40px);line-height:1.28;letter-spacing:-.035em;text-wrap:balance}
+.hero .lede{font-size:18px;line-height:1.8}
+.hero .row{gap:12px;margin-top:24px}
+.hero .note{font-size:14px;line-height:1.75}
+.eyebrow,.tab,.caption,.showcase-caption,.card .num,.browser-bar,.drafts .ch{font-size:14px}
+.nav-links{font-size:14px;align-items:center}
+.nav-links a,.copy,.open-link{min-height:48px;display:inline-flex;align-items:center}
+.btn,.tab{min-height:48px;font-size:16px}
+.tab{padding:10px 16px}
+.showcase-tabs{gap:8px;margin-bottom:16px}
+.stage{min-height:380px}
+.frame-tall{max-height:520px;max-width:292px;margin-inline:auto}
+.frame-tall video{max-height:520px;width:100%;object-fit:contain}
+.card p,.kit-aside p,.bug{font-size:16px;line-height:1.8}
+.kit-row,.kit-row span,.kit-row b{font-size:15px}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #e7833d;outline-offset:5px}
+.hero .caption{font-size:14px;line-height:1.7}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:32px;margin-top:40px}.hero h1{max-width:20em;font-size:clamp(32px,6vw,48px)}.stage{min-height:0}}
+@media(max-width:540px){:root{--shell:calc(100% - 32px)}body{font-size:17px}.nav-links{gap:14px;flex-wrap:wrap}.nav{align-items:start}.hero{padding-top:16px}.hero .lede{font-size:17px}.hero h1{font-size:32px}.tab{font-size:14px;padding:10px 12px}.kit-row{flex-wrap:wrap}.kit-row b{text-align:left}.hero-grid{margin-top:30px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1!important;transform:none!important}}
+
 </style>
-</head>
+<link rel="stylesheet" href="portfolio.css"></head>
 <body>
 
 <header class="hero">
   <div class="shell">
     <nav class="nav">
-      <a class="brand" href="/Launchloom/"><span class="mark"></span>Launchloom</a>
+      <a class="brand" href="./"><span class="mark"></span>Launchloom</a>
       <div class="nav-links">
         <a href="#what">What you get</a>
         <a href="#camera">The camera</a>
@@ -281,7 +309,7 @@ footer a:hover{color:var(--dark-ink)}
     <div class="hero-grid">
       <div>
         <p class="eyebrow">Open source launch studio</p>
-        <h1>You built it.<br>Now show it.</h1>
+        <h1>Your product.<br>A launch worth seeing.</h1>
         <p class="lede">One brief and one real recording of your product become a
         film, a vertical cut, a landing page and reviewable social posts — from
         the same plan, on your own machine.</p>
@@ -297,21 +325,21 @@ footer a:hover{color:var(--dark-ink)}
   <div class="stage">
     <div class="view" id="view-landscape" role="tabpanel" aria-labelledby="tab-landscape">
       <div class="frame">
-        <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline
-               preload="metadata" controls></video>
+        <video src="film.mp4" poster="poster.jpg" playsinline
+               preload="none" controls><track kind="captions" src="captions.vtt" srclang="en" label="On-screen headings"></video>
       </div>
     </div>
     <div class="view" id="view-vertical" role="tabpanel" aria-labelledby="tab-vertical" hidden>
       <div class="frame frame-tall">
-        <video src="film-vertical.mp4" poster="poster-vertical.jpg" muted loop playsinline
-               preload="none" controls></video>
+        <video src="film-vertical.mp4" poster="poster-vertical.jpg" playsinline
+               preload="none" controls><track kind="captions" src="captions.vtt" srclang="en" label="On-screen headings"></video>
       </div>
     </div>
     <div class="view" id="view-page" role="tabpanel" aria-labelledby="tab-page" hidden>
       <div class="browser">
         <div class="browser-bar"><i></i><i></i><i></i><span>site/index.html — written by Launchloom</span></div>
         <div class="browser-view">
-          <iframe src="kit-site/index.html" title="site/index.html — written by Launchloom"
+          <iframe data-src="kit-site/index.html" title="site/index.html — written by Launchloom"
                   loading="lazy" tabindex="-1" scrolling="no"></iframe>
         </div>
       </div>
@@ -381,7 +409,7 @@ https://github.com/FORIFOR/Launchloom?utm_source=youtube&amp;utm_medium=social&a
         </div>
       </div>
       <figure style="margin:0">
-        <video src="camera.mp4" poster="camera-poster.jpg" autoplay muted loop playsinline preload="none"></video>
+        <video src="camera.mp4" poster="camera-poster.jpg" playsinline preload="none" controls></video>
         <figcaption>Nine seconds of the film above, cropped to the frame. Watch it settle and stay.</figcaption>
       </figure>
     </div>
@@ -528,7 +556,7 @@ One brief, every asset</pre></div>
     </div>
     <div class="vertical-grid reveal" style="margin-top:44px">
       <div class="vertical-frame">
-        <video src="film-vertical.mp4" poster="poster-vertical.jpg" muted loop playsinline preload="none" controls></video>
+        <video src="film-vertical.mp4" poster="poster-vertical.jpg" playsinline preload="none" controls><track kind="captions" src="captions.vtt" srclang="en" label="On-screen headings"></video>
       </div>
       <div>
         <h3 style="color:var(--dark-ink)">The vertical cut is a different film, not a crop.</h3>
@@ -672,7 +700,7 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
   </div>
 </section>
 
-<footer>
+<section class="portfolio-contact" id="business" aria-labelledby="business-heading"><p>BUSINESS INQUIRIES · Launchloom</p><h2 id="business-heading">Discuss launch production and brand adaptation</h2><p class="contact-intro">Tell us about your product, the assets you need and your intended launch date.</p><p class="privacy">Availability, scope, timing and fees are confirmed individually. Sending an inquiry creates no contract or payment.</p><details><summary>Start a private inquiry</summary><form id="portfolio-form"><label>Name<input name="name" required maxlength="80" autocomplete="name"></label><label>Reply email<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="wide">Organization (optional)<input name="organization" maxlength="120" autocomplete="organization"></label><label class="wide">What would you like to discuss?<textarea name="message" required minlength="10" maxlength="2000"></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><p class="privacy wide">Your inquiry is stored privately in Google Cloud for the operator to follow up. It is not used as AI input or analytics, and becomes eligible for deletion after 90 days. It is not posted to a public issue.</p><label class="consent wide"><input type="checkbox" name="consent" required>I agree to this handling of my inquiry.</label><button type="submit">Send inquiry</button><p class="wide" id="portfolio-status" role="status" aria-live="polite"></p></form></details></section><footer>
   <div class="shell foot">
     <div>
       <a class="brand" href="https://github.com/FORIFOR/Launchloom" style="color:var(--dark-ink)"><span class="mark"></span>Launchloom</a>
@@ -715,11 +743,11 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
       const on=view.id==='view-'+key;
       view.hidden=!on;
       const video=view.querySelector('video');
-      if(video){ if(on){ video.play().catch(()=>{}); } else { video.pause(); } }
+      if(video) video.pause();
     }
     caption.innerHTML=captions[key]||'';
     open.hidden=key!=='page';
-    if(key==='page') fit();
+    if(key==='page'){const f=document.querySelector('iframe[data-src]');if(f&&!f.src)f.src=f.dataset.src;fit();}
   }
 
   tabs.forEach(tab=>tab.addEventListener('click',()=>show(tab.dataset.view)));
@@ -752,13 +780,9 @@ document.querySelectorAll('.copy').forEach((button)=>{
   });
 });
 
-// Vertical film only plays once it is actually on screen.
-const vertical=document.querySelector('#itself video');
-if(vertical){
-  new IntersectionObserver((entries)=>{
-    for(const e of entries){ if(e.isIntersecting){ e.target.play().catch(()=>{}); } else { e.target.pause(); } }
-  },{threshold:.4}).observe(vertical);
-}
 </script>
-</body>
+<script>
+document.querySelectorAll('video').forEach(v=>v.addEventListener('play',()=>document.querySelectorAll('video').forEach(other=>{if(other!==v)other.pause()})));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)document.querySelectorAll('video').forEach(v=>v.pause())});
+</script><script src="portfolio.js" data-product="launchloom"></script></body>
 </html>
