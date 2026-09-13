@@ -74,12 +74,13 @@ def a_brief(seed: int) -> Brief:
     )
 
 
-CASES = [a_brief(seed) for seed in range(300)]
+CASES = [a_brief(seed) for seed in range(500)]
 
 
 @pytest.mark.parametrize("brief", CASES, ids=[f"brief{i}" for i in range(len(CASES))])
 def test_no_claim_escapes_the_brief(brief, tmp_path):
-    style = list(STYLES)[hash(brief.name) % len(STYLES)]
+    # Stable across processes; Python's randomized hash made this irreproducible.
+    style = list(STYLES)[sum(map(ord, brief.name)) % len(STYLES)]
     plan = make_plan(brief, style)
     posts = make_posts(brief, "0123456789abcdef")
     settings = Settings(data_dir=tmp_path / "data", token="test-local-token-with-32-characters")

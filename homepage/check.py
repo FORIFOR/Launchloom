@@ -15,6 +15,9 @@ import sys
 from pathlib import Path
 from playwright.async_api import async_playwright
 
+TELEMETRY_HOST = "ai-meeting-broker-pdygkns5gq-an.a.run.app"
+SITE_ORIGIN = "https://forifor.github.io"
+
 
 async def main(args):
     report = {"url": args.url, "errors": [], "checks": {}}
@@ -29,16 +32,33 @@ async def main(args):
             if "ERR_ABORTED" in reason and request.resource_type in {"media", "image"}:
                 report.setdefault("aborted", []).append(request.url.rsplit("/", 1)[-1])
                 return
+            # The site's endpoint only accepts the published origin, so running this
+            # from localhost is blocked by design. Recorded, not reported as a fault;
+            # the endpoint itself is probed separately below.
+            if TELEMETRY_HOST in request.url:
+                report.setdefault("origin_gated", []).append(request.url.rsplit("/", 1)[-1])
+                return
             report["errors"].append(f"failed request ({reason}): {request.url}")
         page.on("requestfailed", note_failure)
         await page.goto(args.url, wait_until="load")
 
-        await page.wait_for_function("() => document.querySelector('#view-landscape video')?.readyState>=2", timeout=30000)
-        report["checks"]["film_metadata"] = await page.locator("#view-landscape video").evaluate(
+        # The film no longer preloads or autoplays: the page shows a poster and loads
+        # the video when someone asks for it. So the check is that it is ready to be
+        # asked, and that it actually plays when it is — not that it is already running.
+        film = page.locator("#view-landscape video")
+        report["checks"]["film_poster_present"] = await film.evaluate(
+            "(v)=>!!v.getAttribute('poster')")
+        report["checks"]["film_has_captions"] = await film.evaluate(
+            "(v)=>!!v.querySelector('track[kind=\"captions\"]')")
+        await film.evaluate("(v)=>{v.muted=true;return v.play();}")
+        await page.wait_for_function(
+            "() => document.querySelector('#view-landscape video')?.readyState>=2", timeout=30000)
+        report["checks"]["film_metadata"] = await film.evaluate(
             "(v)=>({width:v.videoWidth,height:v.videoHeight,duration:v.duration})")
         await page.wait_for_timeout(1500)
-        report["checks"]["film_plays"] = await page.locator("#view-landscape video").evaluate(
+        report["checks"]["film_plays_when_asked"] = await film.evaluate(
             "(v)=>v.currentTime>0.3 && !v.paused")
+        await film.evaluate("(v)=>v.pause()")
 
         height = await page.evaluate("() => document.body.scrollHeight")
         for y in range(0, height, 600):
@@ -85,6 +105,18 @@ async def main(args):
         report["checks"]["generated_page_embedded"] = await page.evaluate(
             "() => { const f=document.querySelector('.browser-view iframe');"
             " return !!f && /scale\\(/.test(f.style.transform); }")
+        # The business route is the half of the site GitHub cannot carry, so it is
+        # checked like anything else: the form is there, and the endpoint behind it
+        # is awake and validating rather than quietly swallowing what people send.
+        report["checks"]["inquiry_form_present"] = await page.evaluate(
+            "() => { const f=document.getElementById('portfolio-form');"
+            " if(!f) return false;"
+            " return ['name','email','message','consent'].every(n=>f.elements[n]); }")
+        probe = await page.request.post(
+            f"https://{TELEMETRY_HOST}/api/site/leads",
+            headers={"origin": SITE_ORIGIN, "content-type": "application/json"},
+            data={}, fail_on_status_code=False)
+        report["checks"]["inquiry_endpoint_validates"] = probe.status == 400
         report["checks"]["language_switch_present"] = await page.locator("a.lang").count() == 1
         other = await page.locator("a.lang").get_attribute("href")
         landing = await page.request.get(args.url.rstrip("/") + "/" + other.strip("./"))

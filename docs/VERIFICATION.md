@@ -114,6 +114,7 @@ looked present and did nothing:
     captured, and it was showing nothing. It now samples inside the range the
     operator chose and keeps the first frame with real content.
 
+| **The business route** | The inquiry form carries name, reply email, message and an explicit consent box, and the endpoint behind it is awake: an empty body is refused with `400 INVALID_INPUT` rather than silently accepted. The site's own events endpoint answers `204` from `https://forifor.github.io` and refuses any other origin with `403`, which is why a local run records it as origin-gated instead of failing | `python homepage/check.py` |
 ## Defect found while writing the claims check
 
 `qa.json` reported `only_user_approved_features: true` as a constant. It was an

@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 from .models import Brief, Plan
 
-FPS=24
+FPS=30
 
 # Fonts that cover Japanese. A Latin-only fallback renders CJK as tofu boxes,
 # so the resolved file is reported by `launchloom doctor` before a build starts.
@@ -342,8 +342,8 @@ def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events
     tracks=[(narration,1.0)] if narration else []
     if audio:tracks.append((audio,0.28 if narration else 1.0))
     result={}
-    for i,(name,w,h) in enumerate([('landscape',1280,720),('portrait',720,1280)]):
-        if quality=='draft':w=int(w*.75);h=int(h*.75)
+    for i,(name,w,h) in enumerate([('landscape',1920,1080),('portrait',1080,1920)]):
+        if quality=='draft':w=w//2;h=h//2
         rawreader=FrameReader(capture_path,start=capture_start) if capture_path else None
         brollreader=FrameReader(broll) if broll else None
         target=output/(name+'.mp4');temp=output/(name+'.rendering.mp4')
@@ -368,7 +368,9 @@ def render(brief: Brief,plan: Plan,output: Path,capture_path: Path | None,events
                 temp.unlink(missing_ok=True)
             else:temp.replace(target)
             metadata=probe(target);video=next(s for s in metadata['streams'] if s['codec_type']=='video')
-            if video['width']!=w or video['height']!=h or video['codec_name']!='h264':raise ValueError('Video quality gate failed')
+            if (video['width']!=w or video['height']!=h or video['codec_name']!='h264'
+                or video.get('avg_frame_rate') != f'{FPS}/1'):
+                raise ValueError('Video quality gate failed')
             result[name]={'file':target.name,'width':w,'height':h,'duration':float(metadata['format']['duration']),'fps':FPS,'codec':'h264','bytes':target.stat().st_size,
                 'audio':{'music':bool(audio),'narration':bool(narration)}}
             success=True
