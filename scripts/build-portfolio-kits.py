@@ -65,7 +65,16 @@ async def main():
             features=[{'title':title,'detail':detail,'evidence':provenance,'approved':True} for title,detail in features])
         cid=store.create_campaign(brief.model_dump())['id']; root=settings.data_dir/'campaigns'/cid
         (root/'input').mkdir(parents=True); shutil.copyfile(source,root/'input/capture.bin')
-        options=BuildOptions(capture_mode='upload',quality='hd',capture_length=24,review_plan=True)
+        media=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-of','json',str(source)],text=True))
+        duration=float(next(s['duration'] for s in media['streams'] if s['codec_type']=='video'))
+        source_audio=any(s['codec_type']=='audio' for s in media['streams'])
+        if source_audio:
+            # Preserve the original sound at the original speed. The render adds
+            # three seconds before the source, so delay this track equally.
+            subprocess.run(['ffmpeg','-v','error','-y','-nostdin','-i',str(source),'-vn',
+                '-af',f'atrim=duration={duration},asetpts=PTS-STARTPTS,adelay=3000:all=1,apad=pad_dur=3',
+                '-ar','48000','-c:a','pcm_s16le','-f','wav',str(root/'input/narration.bin')],check=True)
+        options=BuildOptions(capture_mode='upload',quality='hd',capture_length=duration,review_plan=True)
         await build(settings,store,cid,options)
         record=store.campaign(cid)
         if record['state']!='awaiting_review': raise ValueError('Review gate did not stop the build')
@@ -80,10 +89,13 @@ async def main():
         for filename in ['landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','captions.srt','posts.json']:
             shutil.copyfile(root/filename,target/filename)
         row={'product':name,'sourceRecording':relative,'sourceSha256':hashlib.sha256(source.read_bytes()).hexdigest(),
-            'sourceMeaning':provenance,'renderSeconds':round(time.monotonic()-started,2),
+            'sourceMeaning':provenance,'sourceAudioPreserved':source_audio,'renderSeconds':round(time.monotonic()-started,2),
             'videos':manifest['videos'],'socialDrafts':4,'externalApiCostUsd':0,'published':False,
             'quality':json.loads((root/'qa.json').read_text())['status']}
-        rows.append(row); report_path.write_text(json.dumps({'sourceCommit':revision,'workingTreeChanges':'1080p30 render target',
+        rows.append(row); report_path.write_text(json.dumps({'sourceCommit':revision,
+            'workingTreeDirty':bool(subprocess.check_output(['git','status','--porcelain'],text=True)),
+            'harnessSha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            'workingTreeChanges':'preserve full source recording and original audio with 3-second intro alignment',
             'scope':'existing recordings through local pipeline; not new end-to-end executions of five products',
             'costExcludes':['hardware','electricity'],'products':rows},ensure_ascii=False,indent=2))
         print(json.dumps({'product':name,'done':len(rows),'renderSeconds':row['renderSeconds']},ensure_ascii=False),flush=True)

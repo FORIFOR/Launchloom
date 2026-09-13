@@ -1,0 +1,137 @@
+{
+  "scope": "full decode, dimensions/fps, local assets and draft metadata; audio correlation covers first ten source seconds only",
+  "videos": [
+    {
+      "product": "Genie",
+      "aspect": "landscape",
+      "sha256": "05eb86c4089fe0a97f16a46e6f713285ea774ed268141c933b043807111dcadc",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "durationSeconds": 36.0,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.9872555693018314
+    },
+    {
+      "product": "Genie",
+      "aspect": "portrait",
+      "sha256": "cf193cc03627f83d1d5f03e4b3dbba11513ea65c377f673015edcacdac1c9fc4",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "durationSeconds": 36.0,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.9872555693018314
+    },
+    {
+      "product": "AI Meeting",
+      "aspect": "landscape",
+      "sha256": "be36451e15996b4a97a1c7fba5a7492fd6a717229de9f056c4eef45c9be6d14f",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "durationSeconds": 51.033333,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.988461009479842
+    },
+    {
+      "product": "AI Meeting",
+      "aspect": "portrait",
+      "sha256": "7e7ba5926d989f604b5659aa54c289ffb72fc22ffe4e7fe662e41128af8255c6",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "durationSeconds": 51.033333,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.988461009479842
+    },
+    {
+      "product": "Oathra",
+      "aspect": "landscape",
+      "sha256": "e91f20633b4ee6fe0c268af6635c01a92209898effa52327dd757986129e986f",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "durationSeconds": 68.7,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.9676107534882016
+    },
+    {
+      "product": "Oathra",
+      "aspect": "portrait",
+      "sha256": "76b0d884b22eda88a7fb11bd6e3da0578e116a4d09e61b0007dc442621faae98",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "durationSeconds": 68.7,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.9676107534882016
+    },
+    {
+      "product": "AISecure",
+      "aspect": "landscape",
+      "sha256": "a6ffd9ea471c50a014211fb4916fa812627141b64fd1962a15eb3501235f5d20",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "durationSeconds": 29.6,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.9904188052074768
+    },
+    {
+      "product": "AISecure",
+      "aspect": "portrait",
+      "sha256": "0b07371a22e078e1ffdb609514ef9a60d31320f6a2345a3969c0ae17b5bf639d",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "durationSeconds": 29.6,
+      "fullDecode": true,
+      "audio": true,
+      "sourceAudioCorrelationAt3SecondOffset": 0.9904188052074768
+    },
+    {
+      "product": "Agent Team",
+      "aspect": "landscape",
+      "sha256": "923de735e999c3771d1588e0e1d1272e60bd8dbfb3130255ae677d4082349c47",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "durationSeconds": 34.8,
+      "fullDecode": true,
+      "audio": false,
+      "sourceAudioCorrelationAt3SecondOffset": null
+    },
+    {
+      "product": "Agent Team",
+      "aspect": "portrait",
+      "sha256": "036a24df994b37e02414ff94f2931d03a58886d6641bf3ad4636597105987ed0",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "durationSeconds": 34.8,
+      "fullDecode": true,
+      "audio": false,
+      "sourceAudioCorrelationAt3SecondOffset": null
+    }
+  ],
+  "videoCount": 10,
+  "landingPages": 5,
+  "socialDrafts": 20,
+  "passed": true,
+  "notMeasured": [
+    "artistic quality",
+    "virality",
+    "whole-track subjective audio sync",
+    "mobile device readability",
+    "Safari/Firefox",
+    "Lighthouse/LCP/CLS"
+  ]
+}
