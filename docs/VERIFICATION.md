@@ -33,7 +33,8 @@ Date of this record: 2026-09-12.
 | **The Codespaces recipe** | `.devcontainer/setup.sh` was run inside the same base image Codespaces uses (`mcr.microsoft.com/devcontainers/python:1-3.12-bookworm`). With Chromium's sandbox on, the browser would not launch at all — that runtime blocks the user-namespace syscalls it needs and offers no way to supply a different seccomp profile; with `CHROMIUM_NO_SANDBOX=1` all eight checks passed in 20.3s. The setup script says exactly this rather than setting the flag silently | `docker run … bash .devcontainer/setup.sh` |
 | **The published image, both architectures** | `ghcr.io/forifor/launchloom` carries linux/amd64 and linux/arm64. CI runs the selftest inside the joined image on x86_64 before publishing; the arm64 half was then pulled and run on an Apple Silicon Mac — all eight checks passed in 21s | `docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom python -m launchloom selftest` |
 | Unwritable directory | A run in a read-only directory prints the report and says nothing was saved, rather than failing | `tests/test_core.py::test_selftest_survives_a_directory_it_cannot_write` |
-| Test suite | **131 passed**, 0 failed | `python -m pytest -q` |
+| Test suite | **435 passed**, 0 failed | `python -m pytest -q` |
+| **Claims QA, 300 briefs** | Every claim in every surface traced back to an approved feature. 300 generated briefs — both languages, 1–8 features, every channel combination, 870 approved features, 475 deliberately withheld ones, 1,094 private evidence notes and 1,196 generated posts — with the storyboard, the posts, `social-copy.md`, the landing page and the captions all read back and searched. 0 leaks. The check was then proved capable of failing: three separate mutations to the production code (the page rendering unapproved features, an evidence note appended to a post, a proof scene rebound to an unapproved feature) failed 217, 299 and 118 of the 300 | `python -m pytest tests/test_claims.py -q` |
 | Import / compile | Passed | `python -m compileall -q launchloom` |
 | Studio JavaScript syntax | Passed | `node --check launchloom/web/app.js` |
 | Environment readiness | Browser launches, both fonts cover Japanese | `python -m launchloom doctor` |
@@ -112,6 +113,14 @@ looked present and did nothing:
     that has not painted yet. The whole point of the gate is to show what was
     captured, and it was showing nothing. It now samples inside the range the
     operator chose and keeps the first frame with real content.
+
+## Defect found while writing the claims check
+
+`qa.json` reported `only_user_approved_features: true` as a constant. It was an
+assertion, not a check — the one promise the tool exists to keep was the one
+thing it never verified. It is now computed by reading the export back, it
+appears in `qa.json` alongside any findings, and an unsupported claim blocks the
+export the way a blank poster does.
 
 ## Implemented versus validated against a live service
 

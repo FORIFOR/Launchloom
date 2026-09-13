@@ -155,9 +155,16 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     (root/'captions.srt').write_text('\n\n'.join(f'{i+1}\n{srt_time(a)} --> {srt_time(z)}\n{text}' for i,(a,z,text) in enumerate(captions)))
     stage('quality',92,'出力の解像度・動画形式・欠損・原稿の根拠を検査しています。')
     poster_ok=all(max(ImageStat.Stat(Image.open(root/(k+'.jpg'))).stddev)>8 for k in videos)
-    quality={'status':'passed' if poster_ok else 'failed',
+    # This used to be reported as a constant True, which asserted the central
+    # promise instead of checking it. Now the export is read back and inspected.
+    from .claims import inspect as inspect_claims
+    leaks=inspect_claims(b,plan,posts,(root/'site'/'index.html').read_text(),
+                         (root/'captions.srt').read_text(),(root/'social-copy.md').read_text())
+    claims_ok=not leaks
+    quality={'status':'passed' if poster_ok and claims_ok else 'failed',
         'checks':{'video_decodable':True,'two_aspect_ratios':True,'poster_nonblank':poster_ok,
-            'only_user_approved_features':True,'local_files_present':True,'live_publish_not_performed':True},
+            'only_user_approved_features':claims_ok,'local_files_present':True,'live_publish_not_performed':True},
+        'unsupported_claims':leaks,
         'limitations':['Automated checks do not establish artistic quality, virality, or independent factual truth.',
           'Capture timing is approximate; imported recordings have no cursor metadata in v0.1.',
           'No voice or music is generated automatically. Music and narration are files the operator supplies and has the right to use.',
@@ -168,6 +175,9 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
         (['ナレーションの下で、音楽の音量を下げています。'] if audio.exists() and narration.exists() else [])}
     write_json(root/'qa.json',quality)
     if not poster_ok:raise ValueError('A poster appears blank; export is blocked')
+    # A claim nobody approved is worse than a blank poster: it is the one thing
+    # this tool exists not to do. Nothing ships.
+    if leaks:raise ValueError('Unsupported claim in the export, so nothing was written: '+'; '.join(leaks[:3]))
     names=['campaign.json','storyboard.json','posts.json','social-copy.md','captions.srt','qa.json','landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg']
     manifest={'version':__version__,'campaign_id':cid,'revision':store.campaign(cid)['revision'],'videos':videos,
         'provenance':{'capture':'bundled-sample' if b.is_sample else options.capture_mode,'concept':options.film_provider,
