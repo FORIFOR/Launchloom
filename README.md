@@ -164,7 +164,7 @@ questions rather than a secret paid edition.
 
 If you want any of it — or you want to use Launchloom commercially and need
 something the licence does not obviously cover — say so in
-[Discussions](https://github.com/FORIFOR/Launchloom/discussions). Concrete
+[the private inquiry form](https://forifor.github.io/Launchloom/#business). Concrete
 requirements from someone with a real launch to run are worth more than a
 roadmap written in the dark.
 

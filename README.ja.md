@@ -291,7 +291,7 @@ python examples/verify_artifacts.py --data .launchloom --output checks
 まだ答えの出ていない設計課題です。
 
 必要なもの、あるいはライセンスだけでは判断しきれない商用利用については、
-[Discussions](https://github.com/FORIFOR/Launchloom/discussions)に書いてください。
+[非公開の相談フォーム](https://forifor.github.io/Launchloom/ja/#business)からお知らせください。
 実際に launch を控えている人からの具体的な要件は、想像で書いたロードマップより価値があります。
 
 ## 試して、教えてください
