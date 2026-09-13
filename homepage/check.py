@@ -33,11 +33,11 @@ async def main(args):
         page.on("requestfailed", note_failure)
         await page.goto(args.url, wait_until="load")
 
-        await page.wait_for_function("() => document.querySelector('.hero video')?.readyState>=2", timeout=30000)
-        report["checks"]["film_metadata"] = await page.locator(".hero video").evaluate(
+        await page.wait_for_function("() => document.querySelector('#view-landscape video')?.readyState>=2", timeout=30000)
+        report["checks"]["film_metadata"] = await page.locator("#view-landscape video").evaluate(
             "(v)=>({width:v.videoWidth,height:v.videoHeight,duration:v.duration})")
         await page.wait_for_timeout(1500)
-        report["checks"]["film_plays"] = await page.locator(".hero video").evaluate(
+        report["checks"]["film_plays"] = await page.locator("#view-landscape video").evaluate(
             "(v)=>v.currentTime>0.3 && !v.paused")
 
         height = await page.evaluate("() => document.body.scrollHeight")
@@ -71,6 +71,20 @@ async def main(args):
             " return b.length>0 && b.every(x=>document.getElementById(x.dataset.for)); }")
         report["checks"]["tester_ask_present"] = await page.evaluate(
             "() => !!document.querySelector('#help a[href*=\"/issues/2\"]')")
+        # The hero's claim is that one brief produces four things. The tabs are where
+        # that is checked, so every one of them must actually swap the frame.
+        shown = []
+        for view in ("vertical", "page", "posts", "landscape"):
+            await page.click(f'[data-view="{view}"]')
+            await page.wait_for_timeout(400)
+            shown.append(await page.evaluate(
+                "(v)=>{const el=document.getElementById('view-'+v);"
+                " const playing=[...document.querySelectorAll('.stage .view video')].filter(x=>!x.paused).length;"
+                " return !el.hidden && playing<=1;}", view))
+        report["checks"]["showcase_switches"] = len(shown) == 4 and all(shown)
+        report["checks"]["generated_page_embedded"] = await page.evaluate(
+            "() => { const f=document.querySelector('.browser-view iframe');"
+            " return !!f && /scale\\(/.test(f.style.transform); }")
         report["checks"]["language_switch_present"] = await page.locator("a.lang").count() == 1
         other = await page.locator("a.lang").get_attribute("href")
         landing = await page.request.get(args.url.rstrip("/") + "/" + other.strip("./"))

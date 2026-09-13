@@ -193,6 +193,44 @@ pre .c{color:#7f8f88}
 .help li code{background:#ecebe4;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .start-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
 
+/* The hero showcase: one frame, four artifacts, switched in place. */
+.showcase{display:flex;flex-direction:column;gap:14px}
+.showcase-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{appearance:none;font:inherit;font-size:12.5px;letter-spacing:.01em;cursor:pointer;
+  padding:8px 14px;border-radius:999px;border:1px solid var(--dark-line);
+  background:transparent;color:var(--dark-muted);transition:color .18s,border-color .18s,background .18s}
+.tab:hover{color:var(--dark-ink);border-color:#465455}
+.tab[aria-selected="true"]{background:var(--dark-ink);border-color:var(--dark-ink);color:#141b1c}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* The four views differ in height. Reserving the tallest keeps the page below
+   from jumping every time someone compares two of them. */
+.stage{position:relative;display:grid;align-content:center;min-height:470px}
+.view[hidden]{display:none}
+.frame-tall{max-width:264px;margin-inline:auto}
+/* A browser chrome around the generated page, so it reads as a page and not a picture. */
+.browser{border:1px solid var(--dark-line);border-radius:12px;overflow:hidden;background:#0f1516}
+.browser-bar{display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid var(--dark-line);
+  font-size:11px;color:var(--dark-muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.browser-bar i{width:8px;height:8px;border-radius:50%;background:#2b3637;display:inline-block}
+.browser-view{position:relative;aspect-ratio:16/10;overflow:hidden;background:#fff}
+.browser-view iframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;
+  transform-origin:top left;pointer-events:none}
+.drafts{margin:0;padding:0;list-style:none;display:grid;gap:10px;max-height:430px;overflow:auto;
+  border:1px solid var(--dark-line);border-radius:12px;padding:14px;background:#0f1516}
+.drafts li{display:grid;gap:6px}
+.drafts .ch{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.drafts li + li{border-top:1px solid var(--dark-line);padding-top:10px}
+/* The list is already a panel; the page's default <pre> would box each draft again. */
+.drafts pre{margin:0;padding:0;background:transparent;border:0;border-radius:0;
+  white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.7;
+  color:#cfd8d2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.stage-foot{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.stage-foot .caption{margin:0;flex:1 1 280px}
+.open-link{font-size:12.5px;color:var(--dark-ink);text-decoration:none;border-bottom:1px solid var(--dark-line);white-space:nowrap}
+.open-link:hover{border-color:var(--accent)}
+@media(max-width:900px){.frame-tall{max-width:220px}.drafts{max-height:330px}.stage{min-height:0}}
+
 /* vertical showcase */
 .vertical-grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:clamp(26px,4vw,52px);align-items:center}
 .vertical-frame{border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#0f1516}
@@ -248,16 +286,76 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP"
         <h1>作った、<br>その先まで。</h1>
         <p class="lede">プロダクトの情報を一度書くだけで、紹介映像、縦長版、ランディングページ、SNSの投稿文が出てきます。どれも同じ企画と同じ収録から作るので、言っていることがずれません。すべて手元のマシンで動きます。</p>
         <div class="row">
-          <a class="btn btn-primary" href="https://github.com/FORIFOR/Launchloom">GitHubでスターする <span aria-hidden="true">★</span></a>
+          <a class="btn btn-primary" href="#kit">実際のキットを見る</a>
           <a class="btn btn-ghost" href="#start">3分で動かす</a>
         </div>
         <p class="note">Apache-2.0 ・ Python 3.11+ ・ アカウント不要、APIキー不要、データは外に出ません</p>
       </div>
       <div>
-        <div class="frame">
-          <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline preload="metadata" controls></video>
+        <div class="showcase">
+  <div class="showcase-tabs" role="tablist" aria-label="ひとつの企画から出た成果物"><button class="tab" type="button" role="tab" id="tab-landscape" data-view="landscape" aria-controls="view-landscape" aria-selected="true">横動画</button><button class="tab" type="button" role="tab" id="tab-vertical" data-view="vertical" aria-controls="view-vertical" aria-selected="false" tabindex="-1">縦動画</button><button class="tab" type="button" role="tab" id="tab-page" data-view="page" aria-controls="view-page" aria-selected="false" tabindex="-1">ランディングページ</button><button class="tab" type="button" role="tab" id="tab-posts" data-view="posts" aria-controls="view-posts" aria-selected="false" tabindex="-1">投稿案</button></div>
+  <div class="stage">
+    <div class="view" id="view-landscape" role="tabpanel" aria-labelledby="tab-landscape">
+      <div class="frame">
+        <video src="film.mp4" poster="poster.jpg" autoplay muted loop playsinline
+               preload="metadata" controls></video>
+      </div>
+    </div>
+    <div class="view" id="view-vertical" role="tabpanel" aria-labelledby="tab-vertical" hidden>
+      <div class="frame frame-tall">
+        <video src="film-vertical.mp4" poster="poster-vertical.jpg" muted loop playsinline
+               preload="none" controls></video>
+      </div>
+    </div>
+    <div class="view" id="view-page" role="tabpanel" aria-labelledby="tab-page" hidden>
+      <div class="browser">
+        <div class="browser-bar"><i></i><i></i><i></i><span>site/index.html — Launchloomが書き出したもの</span></div>
+        <div class="browser-view">
+          <iframe src="../kit-site/index.html" title="site/index.html — Launchloomが書き出したもの"
+                  loading="lazy" tabindex="-1" scrolling="no"></iframe>
         </div>
-        <p class="caption">この映像自体、Launchloomが作ったものです。スタジオを操作している画面を収録し、それをLaunchloomに読み込ませて書き出しました。手元で動かせば、同じ工程が走ります。</p>
+      </div>
+    </div>
+    <div class="view" id="view-posts" role="tabpanel" aria-labelledby="tab-posts" hidden>
+      <ul class="drafts"><li><span class="ch">x</span><pre>You built it. Now show it.
+
+Meet Launchloom. One brief, every asset.
+See it in action.
+
+https://github.com/FORIFOR/Launchloom?utm_source=x&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">linkedin</span><pre>You built it. Now show it.
+
+Meet Launchloom. One brief, every asset.
+See it in action.
+
+One brief, every asset — A landscape film, a vertical cut, a landing page, captions and post drafts, written in one pass.
+Records your real product — Playwright drives your own app and records the screen as the evidence.
+Nothing renders unread — The build stops after capture so every scene can be reworded before anything is encoded.
+
+https://github.com/FORIFOR/Launchloom?utm_source=linkedin&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">threads</span><pre>You built it. Now show it.
+
+Meet Launchloom. One brief, every asset.
+See it in action.
+
+https://github.com/FORIFOR/Launchloom?utm_source=threads&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">bluesky</span><pre>You built it. Now show it.
+
+Meet Launchloom. One brief, every asset.
+See it in action.
+
+https://github.com/FORIFOR/Launchloom?utm_source=bluesky&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li><li><span class="ch">youtube</span><pre>You built it. Now show it.
+
+Meet Launchloom. One brief, every asset.
+See it in action.
+
+https://github.com/FORIFOR/Launchloom?utm_source=youtube&amp;utm_medium=social&amp;utm_campaign=71199bc916ef4283&amp;utm_content=a</pre></li></ul>
+    </div>
+  </div>
+  <div class="stage-foot">
+    <p class="caption" id="showcase-caption">16:9・27秒。Launchloom自身を操作している画面を収録し、Launchloomが書き出したものです。クローンすれば同じ工程が走ります。</p>
+    <a class="open-link" id="showcase-open" href="../kit-site/index.html" target="_blank"
+       rel="noopener" hidden>このページを開く ↗</a>
+  </div>
+  <template data-caption="landscape">16:9・27秒。Launchloom自身を操作している画面を収録し、Launchloomが書き出したものです。クローンすれば同じ工程が走ります。</template><template data-caption="vertical">9:16・27秒。上の横動画を切り抜いたものではなく、別に組み直しています。だから画面の文字がそのまま読めます。</template><template data-caption="page">同じ企画から書き出されたランディングページです。HTML一枚、CDNもビルドも使っていません。スクリーンショットではなく、キットに入っている実ファイルをそのまま表示しています。</template><template data-caption="posts">5チャンネル分の下書き。それぞれにUTM付きのリンクと、文字数の検査がついています。動画と同じ工程で書かれたものです。</template>
+</div>
       </div>
     </div>
   </div>
@@ -532,6 +630,52 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
   </div>
 </footer>
 <script>
+
+// The four artifacts share one frame. Only the visible video plays, and the
+// generated page is scaled to the column rather than screenshotted.
+(function(){
+  const tabs=[...document.querySelectorAll('.showcase-tabs .tab')];
+  if(!tabs.length) return;
+  const caption=document.getElementById('showcase-caption');
+  const open=document.getElementById('showcase-open');
+  const captions=Object.fromEntries([...document.querySelectorAll('[data-caption]')]
+    .map(t=>[t.dataset.caption,t.innerHTML]));
+
+  function fit(){
+    const frame=document.querySelector('.browser-view');
+    const iframe=frame&&frame.querySelector('iframe');
+    if(iframe) iframe.style.transform='scale('+(frame.clientWidth/1280)+')';
+  }
+
+  function show(key){
+    tabs.forEach(tab=>{
+      const on=tab.dataset.view===key;
+      tab.setAttribute('aria-selected',on?'true':'false');
+      tab.tabIndex=on?0:-1;
+    });
+    for(const view of document.querySelectorAll('.stage .view')){
+      const on=view.id==='view-'+key;
+      view.hidden=!on;
+      const video=view.querySelector('video');
+      if(video){ if(on){ video.play().catch(()=>{}); } else { video.pause(); } }
+    }
+    caption.innerHTML=captions[key]||'';
+    open.hidden=key!=='page';
+    if(key==='page') fit();
+  }
+
+  tabs.forEach(tab=>tab.addEventListener('click',()=>show(tab.dataset.view)));
+  document.querySelector('.showcase-tabs').addEventListener('keydown',(event)=>{
+    const i=tabs.indexOf(document.activeElement);
+    if(i<0) return;
+    const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;
+    if(!step) return;
+    event.preventDefault();
+    const next=tabs[(i+step+tabs.length)%tabs.length];
+    next.focus(); show(next.dataset.view);
+  });
+  addEventListener('resize',fit);
+})();
 const io=new IntersectionObserver((entries)=>{
   for(const e of entries){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }
 },{rootMargin:'0px 0px -8% 0px',threshold:.08});
