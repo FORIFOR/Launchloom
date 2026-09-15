@@ -19,3 +19,65 @@
 .portfolio-contact [role=status]{min-height:28px;font-size:16px;line-height:1.7;overflow-wrap:anywhere}
 [hidden]{display:none!important}
 @media(max-width:600px){.portfolio-contact{padding:64px 16px}.portfolio-contact form{grid-template-columns:1fr}.portfolio-contact .contact-intro{font-size:17px}}
+
+/* The real launch kit is the visual centre; all existing media and controls stay. */
+:root { --dark-muted: #acb9b1; }
+.hero { padding-bottom: clamp(48px, 6vw, 88px); }
+.hero .nav { gap: 24px; align-items: center; }
+.hero .nav-links { gap: 8px 20px; flex-wrap: wrap; justify-content: flex-end; }
+.hero .nav-links a { min-height: 44px; line-height: 1.5; }
+.hero .hero-grid { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(30px, 4vw, 56px); margin-top: 56px; align-items: center; }
+.hero h1 { font-size: clamp(36px, 3.3vw, 48px); line-height: 1.22; letter-spacing: -.035em; }
+:lang(ja) .hero h1 { line-height: 1.42; letter-spacing: -.025em; }
+.hero .lede { font-size: 18px; line-height: 1.85; max-width: 34em; }
+.hero .row { gap: 10px; align-items: stretch; }
+.hero .btn { min-height: 50px; padding: 12px 20px; font-size: 15px; line-height: 1.6; justify-content: center; text-align: center; }
+.hero .note { font-size: 14px; line-height: 1.85; }
+.hero .showcase { padding: 18px; border: 1px solid #344241; border-radius: 18px; background: #101718; gap: 14px; }
+.hero .showcase-tabs { gap: 6px; margin-bottom: 0; }
+.hero .tab { min-height: 46px; padding: 10px 13px; border-radius: 8px; font-size: 14px; line-height: 1.5; }
+.hero .stage { height: clamp(380px, 36vw, 540px); min-height: 0; align-content: stretch; }
+.hero .stage > .view { height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.hero .stage .frame { width: 100%; max-height: 100%; margin: 0 auto; border-radius: 12px; box-shadow: none; }
+.hero .stage .frame video { width: 100%; max-height: 100%; object-fit: contain; }
+.hero .stage .frame-tall { width: auto; height: 100%; max-width: 100%; aspect-ratio: 9 / 16; }
+.hero .stage .frame-tall video { height: 100%; max-height: 100%; }
+.hero .stage .drafts { min-height: 0; max-height: 100%; padding: 18px; }
+.hero .drafts pre { font-size: 14px; line-height: 1.85; }
+.hero .stage-foot { gap: 8px 16px; }
+.hero .caption { font-size: 13px; line-height: 1.8; }
+.hero .open-link { min-height: 44px; font-size: 14px; white-space: normal; }
+.code-wrap pre { padding-top: 70px; font-size: 14px; line-height: 1.9; }
+.code-wrap .copy { min-height: 44px; font-size: 13px; padding: 9px 14px; }
+.kit-aside, .kit-list, .code-wrap { min-width: 0; }
+.kit-row { gap: 12px; }
+.kit-row span, .kit-row b { overflow-wrap: anywhere; }
+section[id] { scroll-margin-top: 24px; }
+@media (max-width: 1000px) {
+  .hero .hero-grid { grid-template-columns: minmax(0, 1fr); max-width: 860px; margin-inline: auto; gap: 30px; }
+  .hero h1 { max-width: 24ch; }
+  .hero .lede { max-width: 44em; }
+  .hero .stage { height: min(560px, calc(62vw + 20px)); }
+}
+@media (max-width: 900px) {
+  .hero .nav-links { display: flex; gap: 12px; }
+  .hero .nav-links a:not(.lang):not([href^="https://github.com/"]) { display: none; }
+  .hero .nav-links .lang { font-size: 13px; padding: 8px 10px; }
+}
+@media (max-width: 540px) {
+  .hero .nav { flex-wrap: wrap; gap: 6px 20px; }
+  .hero .hero-grid { margin-top: 32px; }
+  .hero h1 { font-size: clamp(30px, 8vw, 38px); }
+  .hero .lede { font-size: 17px; }
+  .hero .row .btn { width: 100%; }
+  .hero .showcase { padding: 12px; border-radius: 12px; }
+  .hero .showcase-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero .tab { min-width: 0; padding: 10px 6px; font-size: 13px; overflow-wrap: anywhere; }
+  .hero .stage { height: clamp(260px, 80vw, 400px); }
+  .hero .browser-bar { overflow-wrap: anywhere; }
+  .code-wrap pre { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero .btn, .hero .tab { transition: none; transform: none; }
+}
