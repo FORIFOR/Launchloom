@@ -36,23 +36,18 @@ def x_weight(text: str) -> int:
 
 
 def make_posts(b: Brief,cid: str) -> list[dict]:
+    from .post_copy import compose_post_copy, fit_post
     approved=[f for f in b.features if f.approved]
+    if not approved:
+        raise ValueError("At least one approved feature is required for social drafts")
     result=[]
     for channel in b.channels:
         url=with_utm(b.product_url,channel,cid)
-        if b.language=='ja':
-            base=f"{b.tagline}\n\n{b.name}で、{approved[0].title.rstrip('。.!！')}。\nまずは操作動画をご覧ください。"
-        else:
-            base=f"{b.tagline}\n\nMeet {b.name}. {approved[0].title.rstrip('.!')}.\nSee it in action."
-        if channel=='linkedin':
-            base += '\n\n'+'\n'.join(f"{f.title} — {f.detail}" for f in approved[:3])
-        content=base+ ('\n\n'+url if url else '')
-        # For X / Bluesky, shorten supplied copy rather than assert an invalid post fits.
-        limit=280 if channel=='x' else 300
+        base=compose_post_copy(name=b.name,tagline=b.tagline,audience=b.audience,
+            features=[(f.title,f.detail) for f in approved],channel=channel,language=b.language)
+        content=base+('\n\n'+url if url else '')
         if channel in {'x','bluesky'}:
-            while (x_weight(content) if channel=='x' else len(content))>limit and len(base)>10:
-                base=base[:-2].rstrip()
-                content=base+'…'+ ('\n\n'+url if url else '')
+            content=fit_post(base,url,280 if channel=='x' else 300,x_weight if channel=='x' else len)
         result.append({"channel":channel,"variant":"a","content":content,
             "media":"portrait.mp4" if channel in {'instagram','tiktok','youtube'} else 'landscape.mp4',
             "utm_url":url,"state":"draft","warning":None if url else "公開先URLが未設定です。ローカルプレビューURLは投稿しません。",
