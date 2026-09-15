@@ -1,0 +1,50 @@
+name: Render and stage design studies
+on:
+  push:
+    branches: [main]
+    paths: ['design-studies/**', '.github/workflows/design-studies.yml']
+permissions:
+  contents: read
+concurrency:
+  group: design-studies-publication
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: public
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - name: Render labelled proposals and verify every frame state
+        run: python source/design-studies/render.py --out public/design
+      - name: Stage only the new design-study directory
+        working-directory: public
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- design
+          if git diff --cached --name-only | grep -v '^design/'; then
+            echo 'Unexpected publication path; stopped.' >&2
+            exit 1
+          fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Stage labelled UI design studies from $SOURCE_COMMIT"
+          git push origin HEAD:gh-pages
+          printf '## Design studies staged\n\nSource: `%s`\n\nOnly `design/` changed. Existing product pages are preserved. GitHub Pages publication is verified separately.\n' "$SOURCE_COMMIT" >> "$GITHUB_STEP_SUMMARY"
