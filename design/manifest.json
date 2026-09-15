@@ -1,0 +1,137 @@
+{
+  "scope": "Proposed UI, sample data, no AI or external service execution",
+  "items": [
+    {
+      "id": "genie",
+      "mode": "design-prototype",
+      "live_product_recording": false,
+      "file": "genie-design-preview.mp4",
+      "bytes": 860677,
+      "sha256": "da3aa5802c646a93436b667e98c9695fc0ecb2839ffffcd4dd6eeb192a59f3d8",
+      "media": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000"
+        }
+      }
+    },
+    {
+      "id": "ai-meeting",
+      "mode": "design-prototype",
+      "live_product_recording": false,
+      "file": "ai-meeting-design-preview.mp4",
+      "bytes": 805019,
+      "sha256": "8bdb0f0367d1c5ad0acd432931eedfa5667aeac00d67657de7b01af7b1fa0dbb",
+      "media": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000"
+        }
+      }
+    },
+    {
+      "id": "oathra",
+      "mode": "design-prototype",
+      "live_product_recording": false,
+      "file": "oathra-design-preview.mp4",
+      "bytes": 749815,
+      "sha256": "3cbafb5f625ca1358be088809d9221e1ece5e5f8774f645e0bbe0ddceafa1bba",
+      "media": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000"
+        }
+      }
+    },
+    {
+      "id": "aisecure",
+      "mode": "design-prototype",
+      "live_product_recording": false,
+      "file": "aisecure-design-preview.mp4",
+      "bytes": 849660,
+      "sha256": "8fb6bc1a96b6de742af22563eec288c7bc8512da7593f23e971369182fe1b3cb",
+      "media": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000"
+        }
+      }
+    },
+    {
+      "id": "agent-team",
+      "mode": "design-prototype",
+      "live_product_recording": false,
+      "file": "agent-team-design-preview.mp4",
+      "bytes": 773097,
+      "sha256": "ec9d0a99bc3d65d77fdc65e4ba1011c393dc9b99c306ea5713012ecaf32bf494",
+      "media": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000"
+        }
+      }
+    },
+    {
+      "id": "launchloom",
+      "mode": "design-prototype",
+      "live_product_recording": false,
+      "file": "launchloom-design-preview.mp4",
+      "bytes": 790723,
+      "sha256": "4aa9b9c2ff99590cf748f0cae87037cb471386d0a3c74aaea6a8a90f13929038",
+      "media": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000"
+        }
+      }
+    }
+  ]
+}
