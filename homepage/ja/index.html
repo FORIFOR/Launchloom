@@ -85,6 +85,8 @@ p{margin:0 0 1rem}
 .nav-links{display:flex;gap:22px;font-size:13px;color:var(--dark-muted)}
 .nav-links a{text-decoration:none}
 .nav-links a:hover{color:var(--dark-ink)}
+.lab-context{font-size:11px;letter-spacing:.04em;color:var(--dark-ink);white-space:nowrap}
+.lab-context:hover{text-decoration:underline;text-underline-offset:4px}
 .hero-grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:clamp(30px,5vw,70px);
   align-items:center;margin-top:clamp(46px,7vw,88px);position:relative;z-index:2}
 .hero h1{color:var(--dark-ink)}
@@ -239,6 +241,8 @@ footer{background:var(--ink);color:var(--dark-muted);padding:54px 0 60px;font-si
 .foot{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center}
 footer a{text-decoration:none;color:var(--dark-muted)}
 footer a:hover{color:var(--dark-ink)}
+.lab-signature{font-size:12px;margin:8px 0 0}
+.lab-signature a{text-decoration:underline;text-underline-offset:3px}
 
 /* Only hide for the animation when scripting is actually available. If anything
    about the observer fails, the page still reads. */
@@ -303,6 +307,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
         <a href="#narrated">音声つき</a>
         <a href="#kit">キットを見る</a>
         <a href="#refuse">やらないこと</a>
+        <a class="lab-context" href="https://github.com/FORIFOR" aria-label="FORIFOR Product Lab">FORIFOR Product Lab ↗</a>
         <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
         <a href="../" class="lang">English</a>
       </div>
@@ -648,6 +653,7 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 \
     <div>
       <a class="brand" href="https://github.com/FORIFOR/Launchloom" style="color:var(--dark-ink)"><span class="mark"></span>Launchloom</a>
       <p style="margin:12px 0 0">作ったものが、見過ごされないように。</p>
+      <p class="lab-signature"><a href="https://github.com/FORIFOR">FORIFOR Product Lab</a>のプロダクト。</p>
     </div>
     <div style="display:flex;gap:24px;flex-wrap:wrap">
       <a href="https://github.com/FORIFOR/Launchloom">GitHub</a>
