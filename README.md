@@ -58,8 +58,8 @@ Requires Python 3.11+, FFmpeg and Chromium. macOS and Docker are verified;
 
 | | |
 |---|---|
-| **Product film** | 1280×720 H.264, composed from a real recording of your product |
-| **Vertical cut** | 720×1280, laid out separately — not a centre crop of the wide one |
+| **Product film** | 1920×1080 H.264 at 30fps (HD), composed from a real recording of your product |
+| **Vertical cut** | 1080×1920 at 30fps (HD), laid out separately — not a centre crop of the wide one |
 | **Landing page** | Self-contained HTML/CSS/JS with the film embedded, no CDN |
 | **Social drafts** | Per-channel copy with UTM links, length-checked, nothing sent |
 | **Captions, poster, manifest** | SRT, JPG, and SHA-256 for every file, in one ZIP |

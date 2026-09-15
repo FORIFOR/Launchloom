@@ -1,5 +1,8 @@
 # Verification
 
+Latest: [2026-09-13 five-product / 1080p30 pipeline evaluation](PORTFOLIO_VERIFICATION.md).
+The older 720p24 measurements below describe the build measured on their dates.
+
 What was actually executed, on which machine, and what remains untested.
 Every row below can be reproduced from a clone; nothing here is a screenshot
 of a claim someone made earlier.
