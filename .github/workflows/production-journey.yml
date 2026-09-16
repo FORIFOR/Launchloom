@@ -84,17 +84,19 @@ jobs:
           latest=$(git ls-remote origin refs/heads/main | cut -f1)
           test -n "$latest"
           if [ "$latest" = "$GITHUB_SHA" ]; then echo 'current=true' >> "$GITHUB_OUTPUT"; else echo 'current=false' >> "$GITHUB_OUTPUT"; fi
-      - name: Sync only the reviewed bilingual HTML and package sample
+      - name: Sync reviewed homepage, premium assets, and package sample
         if: steps.revision.outputs.current == 'true'
         run: |
           cp homepage/index.html public-site/index.html
           cp homepage/ja/index.html public-site/ja/index.html
+          cp homepage/horio-premium.css public-site/horio-premium.css
+          cp homepage/horio-premium.js public-site/horio-premium.js
           cp homepage/production-sample.zip public-site/production-sample.zip
       - name: Commit site without modifying videos or other published files
         if: steps.revision.outputs.current == 'true'
         working-directory: public-site
         run: |
-          git add -- index.html ja/index.html production-sample.zip
+          git add -- index.html ja/index.html horio-premium.css horio-premium.js production-sample.zip
           git diff --cached --exit-code && exit 0
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Sync reviewed production journey from ${GITHUB_SHA}"
           git push origin HEAD:gh-pages
