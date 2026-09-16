@@ -1,0 +1,26 @@
+name: Apply browser journey ordering fix
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'feat/production-execution-20260917'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/production-execution-20260917
+          fetch-depth: 0
+      - name: Apply test ordering correction
+        run: |
+          git apply --check .browser-test-order.patch
+          git apply .browser-test-order.patch
+          rm .browser-test-order.patch .github/workflows/apply-browser-test-order-fix.yml
+      - name: Commit clean correction
+        run: |
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test: check production execution after plan save'
+          git push origin HEAD:feat/production-execution-20260917
