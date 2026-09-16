@@ -3,12 +3,13 @@ on:
   pull_request:
     paths: ['launchloom/**', 'tests/**', 'homepage/**', '.github/workflows/production-journey.yml']
   push:
-    branches: ['fix/complete-production-journey-20260916']
+    branches: ['main', 'fix/complete-production-journey-20260916']
+    paths: ['launchloom/**', 'tests/**', 'homepage/**', '.github/workflows/production-journey.yml']
 permissions:
   contents: read
 concurrency:
-  group: production-journey-${{ github.ref }}
-  cancel-in-progress: true
+  group: launchloom-post-examples
+  cancel-in-progress: false
 jobs:
   source:
     runs-on: ubuntu-latest
@@ -16,8 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Archive tracked source for reproducible local verification
-        run: git archive --format=tar HEAD > source.tar
+      - run: git archive --format=tar HEAD > source.tar
       - uses: actions/upload-artifact@v4
         with:
           name: production-source-${{ github.sha }}
@@ -36,5 +36,47 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: python -m compileall -q launchloom
       - name: Check every application JavaScript module
-        run: find launchloom/web -name '*.js' -print -exec node --check {} \;
+        run: |
+          for file in launchloom/web/*.js; do node --check "$file"; done
       - run: python -m pytest -q
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify the real browser-to-API production journey
+        env:
+          LAUNCHLOOM_BROWSER_ARTIFACTS: browser-artifacts
+        run: python tests/browser_journey.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-browser-${{ github.sha }}
+          path: browser-artifacts
+          if-no-files-found: ignore
+          retention-days: 7
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: public-site
+      - name: Sync only the reviewed bilingual HTML and package sample
+        run: |
+          cp homepage/index.html public-site/index.html
+          cp homepage/ja/index.html public-site/ja/index.html
+          cp homepage/production-sample.zip public-site/production-sample.zip
+      - name: Commit site without modifying videos or other published files
+        working-directory: public-site
+        run: |
+          git add -- index.html ja/index.html production-sample.zip
+          git diff --cached --exit-code && exit 0
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Sync reviewed production journey from ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages
+      - name: Request the existing Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status:.status}'
