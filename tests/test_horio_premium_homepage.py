@@ -34,9 +34,9 @@ def test_post_sample_update_contract_is_preserved():
 
 def test_capability_copy_does_not_overclaim():
     ja,en=pages()
-    assert 'Seedance専用API・エージェント自動実行</td><td>未実装' in ja
+    assert 'Seedance 2.5・コーディングエージェント実行' in ja and '明示実行を実装' in ja
     assert '実SNSアカウントでの公開は未検証' in ja
-    assert 'Dedicated Seedance API + automatic agent execution</td><td>Not implemented' in en
+    assert 'Seedance 2.5 + coding-agent execution' in en and 'Opt-in implementation' in en
     assert 'Real social-account publishing is unverified' in en
 
 def test_signature_is_the_only_authored_motion():

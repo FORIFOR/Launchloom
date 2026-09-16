@@ -22,7 +22,7 @@ def test_homepage_keeps_samples_and_accessible_navigation():
     assert all('autoplay' not in v for v in p.videos)
     assert len(re.findall(r'<ul\b[^>]*\bclass="drafts"[^>]*>', text)) == 1
     assert len(re.findall(r'<template\b[^>]*\bdata-caption="posts"[^>]*>', text)) == 1
-    assert 'Seedance専用API・エージェント自動実行</td><td>未実装' in text
+    assert 'Seedance 2.5・コーディングエージェント実行' in text and '明示実行を実装' in text
     assert '実SNSアカウントでの公開は未検証' in text
 
 
@@ -33,7 +33,7 @@ def test_final_film_workflow_and_samples_are_discoverable_in_both_languages():
     assert '完成動画の取り込み→投稿準備' in ja
     assert 'href="launch-kit.zip"' in ja
     assert 'production-sample.zip' in ja and 'production-sample.zip' in en
-    assert 'Execution boundary:' in en and 'remain manual' in en
+    assert 'Execution boundary:' in en and 'explicit opt-in actions' in en
     assert 'no account, no API key, nothing leaves your machine' not in en
     import zipfile
     with zipfile.ZipFile(root/'production-sample.zip') as z:
