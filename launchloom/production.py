@@ -125,9 +125,13 @@ def after_effects_script(plan: dict) -> str:
             fade.setValueAtTime(cursor + s.seconds - 0.25, 100); fade.setValueAtTime(cursor + s.seconds, 0);
             cursor += s.seconds;
         }
+        var renderFolder = new Folder(base.fsName + "/render");
+        if (!renderFolder.exists && !renderFolder.create()) throw new Error("Could not create render folder");
+        var queueItem = app.project.renderQueue.items.add(comp);
+        queueItem.outputModule(1).file = new File(renderFolder.fsName + "/ae-master.mov");
         app.project.save(projectFile);
         comp.openInViewer();
-        alert("Project saved. Review all frames, fonts and audio; configure output settings before rendering. Nothing was published.");
+        alert("Project saved with a render-queue output at render/ae-master.mov. Review all frames, fonts, audio and output settings before rendering. Nothing was published.");
     } catch (e) { alert("Build stopped; no completion claimed: " + e.toString()); }
     finally { app.endUndoGroup(); }
 }());

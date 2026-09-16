@@ -69,9 +69,15 @@ def main():
                     page.locator('#editor').wait_for(state='visible')
                     assert 'campaign='+first['id'] in page.url
                     assert page.locator('#campaign').input_value()==first['id']
+                    assert '構成を保存すると' in page.locator('#execution-root').inner_text()
                     page.locator('#title').fill('Launchloom — 制作から公開前確認まで')
                     page.locator('#save').click()
                     page.wait_for_function("() => document.querySelector('#save-state').textContent.includes('保存済み')")
+                    page.locator('#execution-root .execution-panel').wait_for()
+                    assert page.get_by_role('button',name='Seedanceで生成').is_disabled()
+                    assert page.get_by_role('button',name='JSXを改善').is_disabled()
+                    assert page.get_by_role('button',name='AEPを作成').is_disabled()
+                    assert page.get_by_role('button',name='aerender → 完成版').is_disabled()
                     with page.expect_download() as download:
                         page.locator('#export').click()
                     assert download.value.suggested_filename=='launchloom-production.zip'
@@ -86,6 +92,9 @@ def main():
                     page.locator('.final-review video').evaluate('(video)=>video.pause()')
                     assert page.evaluate('() => document.documentElement.scrollWidth <= innerWidth')
                     page.screenshot(path=str(artifacts/'production-desktop.png'),full_page=True)
+                    page.set_viewport_size({'width':1024,'height':900})
+                    assert page.evaluate('() => document.documentElement.scrollWidth <= innerWidth')
+                    page.screenshot(path=str(artifacts/'production-tablet.png'),full_page=True)
                     page.set_viewport_size({'width':390,'height':844})
                     assert page.evaluate('() => document.documentElement.scrollWidth <= innerWidth')
                     page.screenshot(path=str(artifacts/'production-mobile.png'),full_page=True)
@@ -121,7 +130,8 @@ def main():
         report={'browser_channel':channel or 'explicit executable','real_http_application':True,'campaign_preserved':True,'plan_saved':True,
                 'handoff_downloaded':True,'mp4_imported':True,'preview_playback':True,
                 'publication_media_preserved':True,'dry_run_network_requests':0,
-                'live_publish_disabled':True,'desktop_mobile_overflow':False,
+                'live_publish_disabled':True,'production_execution_disabled_without_configuration':True,
+                'desktop_tablet_mobile_overflow':False,
                 'page_errors':errors,'unexpected_requests':unexpected}
         (artifacts/'browser-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
         print(json.dumps(report,ensure_ascii=False))

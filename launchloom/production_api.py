@@ -45,6 +45,8 @@ def register_production_routes(app):
 
     @app.put('/api/campaigns/{cid}/production')
     async def save_production(cid: str, request: Request):
+        if cid in getattr(app.state, 'production_execution_busy', set()):
+            raise HTTPException(409, 'A production action is running. Wait for it to finish before changing the plan.')
         raw = bytearray()
         async for chunk in request.stream():
             if len(raw) + len(chunk) > 64 * 1024:
