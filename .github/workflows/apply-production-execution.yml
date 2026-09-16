@@ -1,17 +1,18 @@
 name: Apply production execution patch
 on:
-  push:
-    branches: [feat/production-execution-20260917]
-    paths:
-      - '.github/workflows/apply-production-execution.yml'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 permissions:
   contents: write
 jobs:
   apply:
+    if: github.event.pull_request.head.ref == 'feat/production-execution-20260917'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: feat/production-execution-20260917
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
