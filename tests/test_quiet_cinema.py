@@ -15,7 +15,7 @@ def test_studio_loads_quiet_cinema_last():
 def test_production_board_uses_editorial_roles():
     html = (ROOT / 'launchloom/web/production.html').read_text()
     js = (ROOT / 'launchloom/web/production.js').read_text()
-    assert 'QUIET CINEMA / PRODUCTION' in html
+    assert 'PRODUCTION / SHOT LIST' in html
     assert 'scene-role' in html
     assert 'PRODUCT / 実際の動作' in js
     assert 'ATMOSPHERE / 雰囲気' in js
