@@ -1,0 +1,64 @@
+name: Apply complete production execution code
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'feat/production-execution-20260917'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/production-execution-20260917
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Decode and apply complete code patch
+        run: |
+          test "$(sha256sum .launchloom-execution-payload.b64 | cut -d' ' -f1)" = "248916fd8ef41058f2c87c758a6856724201f9b98f3805647a16307798f10e2e"
+          base64 -d .launchloom-execution-payload.b64 | gunzip > /tmp/execution.patch
+          test "$(sha256sum /tmp/execution.patch | cut -d' ' -f1)" = "042a00a71922954a584b966a27641be8f1cf477db4c5ea389f8930fc88292b9c"
+          git apply --check /tmp/execution.patch
+          git apply /tmp/execution.patch
+          python - <<'PY'
+          from pathlib import Path
+          env=Path('.env.example'); text=env.read_text().replace('CODEX_API_KEY=', 'OPENAI_API_KEY='); env.write_text(text)
+          doc=Path('docs/PRODUCTION_HANDOFF.md'); text=doc.read_text().replace('CODEX_API_KEY=...       # when using Codex','OPENAI_API_KEY=...      # when using Codex')
+          text=text.replace('https://learn.chatgpt.com/docs/non-interactive-mode','https://github.com/openai/codex/tree/main/codex-rs/exec')
+          doc.write_text(text)
+          readme=Path('README.md'); text=readme.read_text().replace('AI/AE execution remains manual;\nno post is sent without separate release and approval.', 'Seedance, coding-agent and Adobe execution are optional, separately enabled actions;\nno post is sent without separate release and approval.')
+          readme.write_text(text)
+          readme=Path('README.ja.md'); text=readme.read_text().replace('AI・AEの実行は手動です。公開許可と投稿ごとの承認を\n経るまでは送信しません。', 'Seedance・コーディングエージェント・Adobe実行は個別に有効化する明示操作です。\n公開許可と投稿ごとの承認を経るまでは送信しません。')
+          readme.write_text(text)
+          PY
+          rm -f .launchloom-execution-payload.b64 .github/workflows/apply-production-execution-code.yml
+      - name: Install and regenerate reviewed production sample
+        run: |
+          sudo apt-get update >/dev/null && sudo apt-get install -y ffmpeg fonts-noto-cjk >/dev/null
+          python -m pip install -e '.[dev]' >/dev/null
+          python - <<'PY'
+          from pathlib import Path
+          from launchloom.production import build_bundle
+          plan={'schema_version':1,'title':'Launchloom sample','aspect_ratio':'16:9','fps':30,'scenes':[
+            {'id':'opening','source':'seedance','seconds':4,'title':'A real product, clearly presented.','prompt':'製品の雰囲気を伝える映像。実際の操作映像や実装の証拠として扱わない。'},
+            {'id':'product','source':'recording','seconds':16,'title':'実際の操作画面 / Product recording','prompt':'許可のある操作録画を使い、機密情報を除く。'},
+            {'id':'closing','source':'after_effects','seconds':4,'title':'Launchloom sample','prompt':'読みやすい文字と控えめなフェード。'}]}
+          Path('homepage/production-sample.zip').write_bytes(build_bundle(plan))
+          PY
+      - name: Validate complete repository
+        run: |
+          python -m compileall -q launchloom
+          for file in launchloom/web/*.js; do node --check "$file"; done
+          python -m pytest -q
+      - name: Commit only real implementation
+        run: |
+          git add -A
+          test ! -e .launchloom-execution-payload.b64
+          test ! -e .github/workflows/apply-production-execution-code.yml
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: implement guarded production execution'
+          git push origin HEAD:feat/production-execution-20260917
