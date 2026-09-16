@@ -16,8 +16,10 @@ function draw() {
   plan.scenes.forEach((scene, index) => {
     const card = $('#scene-template').content.firstElementChild.cloneNode(true);
     card.querySelector('.scene-number').textContent = `SCENE ${String(index + 1).padStart(2, '0')}`;
+    const role = card.querySelector('.scene-role');
     const asset = card.querySelector('.asset');
-    const labelAsset = () => { asset.textContent = scene.source === 'after_effects' ? '基本タイムライン + 人による調整' : `assets/${scene.id}.mp4`; };
+    const labels = {recording: ['PRODUCT / 実際の動作', `assets/${scene.id}.mp4`], seedance: ['ATMOSPHERE / 雰囲気', `assets/${scene.id}.mp4`], after_effects: ['MOTION / 文字と演出', '基本タイムライン + 人による調整']};
+    const labelAsset = () => { const label=labels[scene.source] || ['SCENE', `assets/${scene.id}.mp4`]; role.textContent=label[0]; asset.textContent=label[1]; card.dataset.source=scene.source; };
     labelAsset();
     card.querySelectorAll('[data-field]').forEach(input => {
       const key = input.dataset.field; input.value = scene[key];
