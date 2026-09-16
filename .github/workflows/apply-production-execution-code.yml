@@ -20,11 +20,16 @@ jobs:
           python-version: '3.13'
       - name: Decode and apply complete code patch
         run: |
-          test "$(sha256sum .launchloom-execution-payload.b64 | cut -d' ' -f1)" = "248916fd8ef41058f2c87c758a6856724201f9b98f3805647a16307798f10e2e"
-          base64 -d .launchloom-execution-payload.b64 | gunzip > /tmp/execution.patch
-          test "$(sha256sum /tmp/execution.patch | cut -d' ' -f1)" = "042a00a71922954a584b966a27641be8f1cf477db4c5ea389f8930fc88292b9c"
-          git apply --check /tmp/execution.patch
-          git apply /tmp/execution.patch
+          set -euxo pipefail
+          echo "payload-bytes=$(wc -c < .launchloom-execution-payload.b64)"
+          tr -d '\r\n\t ' < .launchloom-execution-payload.b64 > /tmp/payload.b64
+          echo "normalized-payload-sha=$(sha256sum /tmp/payload.b64 | cut -d' ' -f1)"
+          base64 -d /tmp/payload.b64 | gunzip > /tmp/execution.patch
+          patch_sha=$(sha256sum /tmp/execution.patch | cut -d' ' -f1)
+          echo "decoded-patch-sha=$patch_sha"
+          test "$patch_sha" = "042a00a71922954a584b966a27641be8f1cf477db4c5ea389f8930fc88292b9c"
+          git apply --check --verbose /tmp/execution.patch
+          git apply --verbose /tmp/execution.patch
           python - <<'PY'
           from pathlib import Path
           env=Path('.env.example'); text=env.read_text().replace('CODEX_API_KEY=', 'OPENAI_API_KEY='); env.write_text(text)
