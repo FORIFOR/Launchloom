@@ -2,7 +2,7 @@
 from pathlib import Path
 import json, secrets, tempfile, threading, time
 import uvicorn
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 from launchloom.config import Settings
 from launchloom.server import create_app
 
@@ -26,7 +26,17 @@ with tempfile.TemporaryDirectory() as directory:
                     page.goto('http://127.0.0.1:8787/',wait_until='networkidle')
                     page.locator('#access-token').fill(token);page.locator('#access-form button').click()
                     page.locator('#access-dialog').wait_for(state='hidden')
+                    for selector in ['#language-toggle','#settings-button']:
+                        control=page.locator(selector)
+                        expect(control).to_be_visible()
+                        box=control.bounding_box()
+                        assert box and box['width']>=44 and box['height']>=44, f'{selector} target too small'
                     if language=='en':page.locator('#language-toggle').click()
+                    expect(page.locator('html')).to_have_attribute('lang',language)
+                    page.locator('#settings-button').click()
+                    page.locator('#settings-dialog').wait_for(state='visible')
+                    page.keyboard.press('Escape');page.locator('#settings-dialog').wait_for(state='hidden')
+                    report.append({'width':width,'language':language,'view':'language-and-settings','visible_targets':True,'native_click':True,'settings_open_and_close':True})
                     for tab in ['film','site','distribution','results','activity']:
                         page.locator(f'#nav [data-tab="{tab}"]').click()
                         page.wait_for_timeout(150)
