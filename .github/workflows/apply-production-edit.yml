@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Apply hash-verified, locally tested source edits on the feature branch only
+      - name: Apply hash-verified application edits on the feature branch only
         shell: python
         run: |
           import base64, hashlib, json, lzma, shutil
@@ -27,12 +27,13 @@ jobs:
           assert len(chunks) == 5
           raw = lzma.decompress(base64.b64decode(''.join(p.read_text().strip() for p in chunks), validate=True))
           assert hashlib.sha256(raw).hexdigest() == '4055f70cd3cb8298917ceba07812af1235a495d2e641534d89acd092159fe066'
-          operations = json.loads(raw)
           prepared = []
           root = Path.cwd().resolve()
-          for op in operations:
+          for op in json.loads(raw):
               path = Path(op['path'])
-              assert not path.is_absolute() and '..' not in path.parts and path.parts[0] in ('launchloom','tests','homepage','docs','.github','README.md','README.ja.md')
+              if str(path).startswith('.github/workflows/'):
+                  continue
+              assert not path.is_absolute() and '..' not in path.parts and path.parts[0] in ('launchloom','tests','homepage','docs','README.md','README.ja.md')
               assert not path.is_symlink() and path.resolve().is_relative_to(root)
               if 'sha256' in op:
                   source = path.read_bytes()
@@ -51,11 +52,11 @@ jobs:
           from launchloom.production import initial_plan, build_bundle
           Path('homepage/production-sample.zip').write_bytes(build_bundle(initial_plan({'name':'Launchloom sample','tagline':'A real product, clearly presented.','features':[]})))
           shutil.rmtree('.github/production-edits')
-          Path('.github/workflows/apply-production-edit.yml').unlink()
-      - name: Commit only to the requested feature branch
+      - name: Commit application files, not workflows, to the feature branch
         run: |
           test "$GITHUB_REF" = refs/heads/fix/complete-production-journey-20260916
-          git add -- launchloom tests homepage docs README.md README.ja.md .github
+          git add -- launchloom tests homepage docs README.md README.ja.md .github/production-edits
+          git diff --cached --name-only | while IFS= read -r path; do case "$path" in .github/workflows/*) exit 1;; esac; done
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: connect scene planning, immutable final-film import and approved publishing'
           git push origin HEAD:fix/complete-production-journey-20260916
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
