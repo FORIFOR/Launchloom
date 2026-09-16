@@ -68,7 +68,7 @@ def main(output:Path,record:bool=False):
                     cid=page.url.split('campaign=')[1];report['onboarding_to_board']=True
                     page.locator('#title').fill('製品紹介 / シーンから配信まで')
                     page.locator('#scenes textarea').first.fill('紙の質感と、静かな光。製品の操作画面とは分けて使用する。')
-                    page.locator('#save').click();page.wait_for_function("document.querySelector('#save-state').textContent.includes('保存済み')")
+                    page.locator('#save').click();page.locator('#save-state').filter(has_text='保存済み').wait_for()
                     page.locator('#add').click();assert page.locator('.scene').count()==4
                     page.locator('.scene').last.locator('[data-action="up"]').click()
                     page.locator('.scene').nth(2).locator('[data-action="remove"]').click();assert page.locator('.scene').count()==3
