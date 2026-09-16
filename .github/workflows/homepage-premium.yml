@@ -1,0 +1,50 @@
+name: Homepage premium review
+on:
+  pull_request:
+    paths:
+      - 'homepage/**'
+      - 'tests/test_horio_premium_homepage.py'
+      - 'tests/test_production_homepage.py'
+      - 'docs/HORIO_PREMIUM_WEB.md'
+      - '.github/workflows/homepage-premium.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'homepage/**'
+      - 'tests/test_horio_premium_homepage.py'
+      - 'tests/test_production_homepage.py'
+      - 'docs/HORIO_PREMIUM_WEB.md'
+      - '.github/workflows/homepage-premium.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: python -m pip install -e '.[dev]' playwright==1.57.0
+      - name: Verify static Horio Premium Web contracts
+        run: python -m pytest -q tests/test_horio_premium_homepage.py tests/test_production_homepage.py
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Serve homepage
+        run: |
+          python -m http.server 4477 --directory homepage > /tmp/homepage-http.log 2>&1 &
+          echo $! > /tmp/homepage-http.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4477/ja/ >/dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          cat /tmp/homepage-http.log
+          exit 1
+      - name: Verify 1440 / 1024 / 390 and premium acceptance gates
+        run: python homepage/check.py --url http://127.0.0.1:4477/ja/ --output homepage-review
+      - uses: actions/upload-artifact@v4
+        with:
+          name: homepage-premium-review
+          path: homepage-review
+          retention-days: 7
