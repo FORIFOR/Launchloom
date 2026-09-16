@@ -33,16 +33,30 @@ def create_app(settings: Settings|None=None,run_worker=True):
     stop=asyncio.Event();attempts=defaultdict(deque)
     @asynccontextmanager
     async def lifespan(app):
-        task=None
+        task=None;scene_task=None
         if run_worker:
             db.recover();task=asyncio.create_task(worker_loop(s,db,stop))
+            app.state.scene_jobs.recover()
+            scene_task=asyncio.create_task(app.state.scene_jobs.worker(stop))
         yield
         stop.set()
+        if scene_task:
+            scene_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):await scene_task
         if task:
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):await task
     app=FastAPI(title='Launchloom',version=__version__,lifespan=lifespan,docs_url=None,redoc_url=None,openapi_url=None)
     app.state.store=db;app.state.settings=s
+    from .final_media import FinalMedia, register_final_routes
+    from .production_api import register_production_routes
+    finals = FinalMedia(db, s)
+    app.state.final_media = finals
+    register_final_routes(app)
+    register_production_routes(app)
+    from .scene_jobs import SceneJobs, register_scene_job_routes
+    app.state.scene_jobs=SceneJobs(db,s)
+    register_scene_job_routes(app)
     hosts=['localhost','127.0.0.1','[::1]','testserver']+[x.strip() for x in os.getenv('LAUNCHLOOM_PUBLIC_HOSTS','').split(',') if x.strip()]
     app.add_middleware(TrustedHostMiddleware,allowed_hosts=hosts)
     def campaign(cid):
@@ -126,12 +140,20 @@ def create_app(settings: Settings|None=None,run_worker=True):
         c=campaign(cid);r=root(cid)
         c['events']=db.events(cid);c['publications']=db.publications(cid)
         c['metrics']=db.metrics(cid)
+        c['finals']=finals.list(cid);c['final_epoch']=finals.epoch(cid)
+        c['publication_ready']=c['state']=='ready' or bool(finals.selected(cid))
         c['outputs']={}
         if c['state']=='awaiting_review' and (r/'review-frame.jpg').is_file():
             c['outputs']={'review-frame.jpg':f'/artifacts/{cid}/review-frame.jpg'}
         if c['state']=='ready':
             c['outputs']={name:f'/artifacts/{cid}/{name}' for name in ['landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','launch-kit.zip','site/index.html','storyboard.json','manifest.json','qa.json','posts.json']}
             c['posts']=json.loads((r/'posts.json').read_text());c['qa']=json.loads((r/'qa.json').read_text());c['manifest']=json.loads((r/'manifest.json').read_text())
+        if c['finals']:
+            for item in c['finals']: c['outputs'][item['media']]=item['url']
+            if 'posts' not in c:
+                from .planning import make_posts
+                try: c['posts']=make_posts(Brief.model_validate(c['brief']),cid)
+                except ValueError: c['posts']=[]
         return c
     @app.post('/api/campaigns/{cid}/build',status_code=202)
     async def enqueue(cid:str,options:BuildOptions):
@@ -166,7 +188,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/campaigns/{cid}/release')
     async def release(cid:str,request:Request):
         c=campaign(cid)
-        if c['state']!='ready':raise HTTPException(409,'Finish the campaign before releasing it')
+        if c['state']!='ready' and not finals.selected(cid):raise HTTPException(409,'Review a finished film before releasing the campaign')
         data=await request.json()
         if not data.get('confirmed'):raise HTTPException(422,'Releasing a campaign is an explicit confirmation')
         db.log(cid,'release','キャンペーンを公開可能にしました。個々の投稿は、引き続き投稿ごとの承認が必要です。')
@@ -221,10 +243,17 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/campaigns/{cid}/publications',status_code=201)
     async def prepare_publication(cid:str,draft:PublicationDraft):
         c=campaign(cid)
-        if c['state']!='ready':raise HTTPException(409,'Complete rendering and quality checks first')
-        payload=draft.model_dump();file=root(cid)/draft.media
+        payload=draft.model_dump()
+        if draft.media.startswith('finals/'):
+            asset=finals.require_selected(cid,draft.media)
+            file=finals.path(cid,draft.media)
+            payload['ai_generated']=bool(asset['ai_generated'])
+        else:
+            if c['state']!='ready':raise HTTPException(409,'Complete rendering and quality checks first')
+            file=root(cid)/draft.media
+            payload['ai_generated']=c['options']['film_provider']!='local'
         payload['media_sha256']=file_sha(file)
-        payload['ai_generated']=c['options']['film_provider']!='local'
+        if finals.epoch(cid): payload['final_epoch']=finals.epoch(cid)
         payload['publisher_base']=s.postiz_base
         validate_publication(payload)
         return db.create_publication(cid,payload)
@@ -237,12 +266,14 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/publications/{pid}/approve')
     async def approve(pid:str,approval:Approval):
         p=publication(pid)
+        finals.check_publication(p)
         if file_sha(root(p['campaign_id'])/p['payload']['media'])!=p['payload']['media_sha256']:raise HTTPException(409,'Media changed; create a new approval')
         check_pacing(p['campaign_id'],p['payload'],pid)
         return db.approve(pid,approval.fingerprint)
     @app.post('/api/publications/{pid}/submit')
     async def submit(pid:str):
         p=publication(pid)
+        finals.check_publication(p)
         if not s.enable_live_publish:raise HTTPException(409,'Live publishing is disabled. Set ENABLE_LIVE_PUBLISH=1 explicitly.')
         if not campaign(p['campaign_id'])['released']:raise HTTPException(409,'Release the campaign before anything is sent. Finishing a film is not a decision to publish it.')
         if p['payload']['publisher_base']!=s.postiz_base:raise HTTPException(409,'Publisher destination changed; create a new approval')
@@ -255,6 +286,8 @@ def create_app(settings: Settings|None=None,run_worker=True):
             if not isinstance(accounts,list):raise ValueError('Unexpected integrations response')
             if not any(a.get('id')==p['payload']['integration_id'] for a in accounts):raise ValueError('Destination account is not connected to this Postiz instance')
         except Exception as e:raise HTTPException(502,scrub_error(e,[s.postiz_key]))
+        finals.check_publication(publication(pid))
+        if not campaign(p['campaign_id'])['released']:raise HTTPException(409,'Campaign is on hold')
         db.claim_publication(pid)
         try:
             receipt=await publisher.submit(p['payload'],target)
@@ -401,6 +434,8 @@ def create_app(settings: Settings|None=None,run_worker=True):
         r=root(cid)
         # Raw recordings, input audio, render logs and partial files are never served.
         allowed={'landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','launch-kit.zip','storyboard.json','manifest.json','qa.json','posts.json','social-copy.md','captions.srt','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg','review-frame.jpg'}
+        if filename.startswith('finals/'):
+            return FileResponse(finals.path(cid,filename))
         if filename not in allowed:raise HTTPException(404,'Asset not exposed')
         path=safe_path(r,filename)
         if not path.is_file():raise HTTPException(404,'Asset is not ready')

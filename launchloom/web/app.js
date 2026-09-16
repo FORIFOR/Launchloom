@@ -3,7 +3,7 @@ import {watch, preferredLanguage, setLanguage, t} from './i18n.js';
 const $ = (id) => document.getElementById(id);
 const escape = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const state = {config:{}, campaigns:[], current:null, tab:'film', ratio:'landscape', timer:null, integrations:[], recorded:null, recorder:null, lastSignature:''};
-const labels={draft:'下書き',queued:'制作待ち',building:'制作中',awaiting_review:'構成の確認待ち',ready:'制作完了',failed:'要確認',interrupted:'中断',approved:'承認済み',submitting:'送信中',submitted:'Postiz受付済み',needs_reconciliation:'送信結果を要確認'};
+const labels={draft:'下書き',queued:'制作待ち',building:'制作中',awaiting_review:'構成の確認待ち',ready:'制作完了',failed:'要確認',interrupted:'中断',approved:'承認済み',submitting:'送信中',submitted:'Postiz受付済み',needs_reconciliation:'送信結果を要確認',superseded:'動画変更により承認無効'};
 const stageLabels={direction:'企画・方向性',awaiting_review:'構成の確認待ち',brief:'企画',planning:'企画',site:'LP制作',capture:'操作収録',generation:'映像生成',render:'映像編集',rendering:'映像編集',package:'梱包・検証',quality:'品質確認',ready:'制作完了'};
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').hidden=true,5500);}
 function modal(id){if(!$(id).open)$(id).showModal();}
@@ -19,6 +19,7 @@ function output(name){return state.current?.outputs?.[name]||'';}
 function updateCampaignBar(){
   $('campaign-select').innerHTML=state.campaigns.length?state.campaigns.map(c=>`<option value="${c.id}">${escape(c.brief.name)} · ${new Date(c.created*1000).toLocaleDateString()}</option>`).join(''):'<option>最初のキャンペーン</option>';
   if(state.current)$('campaign-select').value=state.current.id;
+  $('production-link').href=state.current?'/production?campaign='+encodeURIComponent(state.current.id):'/production';
   $('campaign-state').textContent=labels[state.current?.state]||'未作成';
   $('campaign-state').className='pill '+(state.current?.state||'');
 }
@@ -90,14 +91,23 @@ function reconcileRow(p){
   const fix=p.state==='needs_reconciliation'?`<button class="button small dark" data-reconcile="${escape(p.id)}">突合する ↗</button>`:'';
   return `<div class="publication-row"><span>${escape(p.payload.channel)} · ${escape(p.payload.integration_id)}</span><span class="row-end"><span class="pill">${escape(labels[p.state]||p.state)}</span>${remote}${link}${fix}</span></div>`;
 }
+function publicationMediaOptions(preferred){
+  const c=state.current, finals=(c.finals||[]).filter(a=>a.selected);
+  const ratio=preferred==='portrait.mp4'?'portrait':'landscape';
+  const chosen=finals.find(a=>(a.height>a.width?'portrait':'landscape')===ratio)||finals[0];
+  const items=finals.map(a=>({value:a.media,label:`${a.height>a.width?'縦':'横'} · ${a.title} · 確認済みの完成版`}));
+  if(c.state==='ready') for(const key of ['landscape.mp4','portrait.mp4']) if(c.outputs?.[key])items.push({value:key,label:key==='landscape.mp4'?'ローカル生成 · 横長':'ローカル生成 · 縦長'});
+  const selected=chosen?.media||preferred;
+  return items.map(a=>`<option value="${escape(a.value)}" ${a.value===selected?'selected':''}>${escape(a.label)}</option>`).join('');
+}
 function renderDistribution(){
-  if(state.current?.state!=='ready')return empty('できあがったら、届け方を選ぶ。');
+  if(!state.current?.publication_ready && state.current?.state!=='ready')return empty('制作ボードで完成動画を取り込み、内容を確認して採用してください。');
   const posts=state.current.posts?.posts||state.current.posts||[];
   const items=Array.isArray(posts)?posts:Object.values(posts);
   const pacing=t('同じSNSへは{gap}分以上あけ、1日{max}件までにしています。')
     .replace('{gap}',state.config.min_post_gap_minutes||30)
     .replace('{max}',state.config.max_posts_per_channel_per_day||3);
-  return releaseBar()+`<section class="panel distribution-heading"><div class="card-heading"><h2>↗ &nbsp; 配信は、最後の承認から。</h2><div class="links-row"><button class="button small" id="load-integrations">投稿先を読み込む ↻</button><button class="button small" id="check-remote">実状態を確認 ↻</button></div></div><div class="notice" style="margin:18px">${state.config.postiz?'Postiz連携あり。投稿原稿・動画・アカウントを確認してから、送信してください。':'Postizは未接続です。原稿のコピーと送信データのプレビューは使用できます。実投稿には接続設定が必要です。'}<br>予約はPostizに委任します。「受付済み」は各SNSでの公開成功を意味しません。<br>${pacing}</div></section><div class="post-grid">${items.map((p,i)=>`<section class="post-card" data-post="${i}"><div class="post-heading"><strong>${escape(p.channel.toUpperCase())}</strong><span class="pill">承認待ち</span></div><textarea class="post-content" rows="9">${escape(p.content)}</textarea><label>投稿先 integration ID<input class="integration-id" list="accounts-list" placeholder="PostizのアカウントID"></label><label>予約日時（空欄は今すぐ）<input class="schedule-at" type="datetime-local"></label><details class="advanced"><summary>メディア・SNS固有設定</summary><label>動画<select class="media"><option value="landscape.mp4" ${p.media==='landscape.mp4'?'selected':''}>横長 16:9</option><option value="portrait.mp4" ${p.media==='portrait.mp4'?'selected':''}>縦長 9:16</option></select></label><label>プラットフォーム設定（JSON）<textarea class="platform-settings" rows="3">{}</textarea></label></details><div class="post-actions"><button class="button small" data-copy="${i}">原稿をコピー</button>${(p.hook_variants||[]).length>1?`<button class="button small" data-variant="${i}">別の切り口にする ↺</button>`:''}<button class="button small dark" data-review="${i}">内容を確認 ↗</button></div></section>`).join('')}</div><datalist id="accounts-list">${state.integrations.map(a=>`<option value="${escape(a.id)}">${escape(a.name||a.identifier||a.id)}</option>`).join('')}</datalist><section class="panel" style="padding:22px;margin-top:20px"><span class="eyebrow">PUBLICATION HISTORY</span>${state.current.publications?.length?state.current.publications.map(reconcileRow).join(''):'<p class="notice">送信履歴はありません。外部への投稿はまだ行っていません。</p>'}</section>`;
+  return releaseBar()+`<section class="panel distribution-heading"><div class="card-heading"><h2>↗ &nbsp; 配信は、最後の承認から。</h2><div class="links-row"><button class="button small" id="load-integrations">投稿先を読み込む ↻</button><button class="button small" id="check-remote">実状態を確認 ↻</button></div></div><div class="notice" style="margin:18px">${state.config.postiz?'Postiz連携あり。投稿原稿・動画・アカウントを確認してから、送信してください。':'Postizは未接続です。原稿のコピーと送信データのプレビューは使用できます。実投稿には接続設定が必要です。'}<br>予約はPostizに委任します。「受付済み」は各SNSでの公開成功を意味しません。<br>${pacing}</div></section><div class="post-grid">${items.map((p,i)=>`<section class="post-card" data-post="${i}"><div class="post-heading"><strong>${escape(p.channel.toUpperCase())}</strong><span class="pill">承認待ち</span></div><textarea class="post-content" rows="9">${escape(p.content)}</textarea><label>投稿先 integration ID<input class="integration-id" list="accounts-list" placeholder="PostizのアカウントID"></label><label>予約日時（空欄は今すぐ）<input class="schedule-at" type="datetime-local"></label><label>配信する動画<select class="media">${publicationMediaOptions(p.media)}</select></label><details class="advanced"><summary>SNS固有設定</summary><label>プラットフォーム設定（JSON）<textarea class="platform-settings" rows="3">{}</textarea></label></details><div class="post-actions"><button class="button small" data-copy="${i}">原稿をコピー</button>${(p.hook_variants||[]).length>1?`<button class="button small" data-variant="${i}">別の切り口にする ↺</button>`:''}<button class="button small dark" data-review="${i}">内容を確認 ↗</button></div></section>`).join('')}</div><datalist id="accounts-list">${state.integrations.map(a=>`<option value="${escape(a.id)}">${escape(a.name||a.identifier||a.id)}</option>`).join('')}</datalist><section class="panel" style="padding:22px;margin-top:20px"><span class="eyebrow">PUBLICATION HISTORY</span>${state.current.publications?.length?state.current.publications.map(reconcileRow).join(''):'<p class="notice">送信履歴はありません。外部への投稿はまだ行っていません。</p>'}</section>`;
 }
 function renderResults(){
   if(!state.current)return empty('数字がないときは、ないと伝えます。');
@@ -204,11 +214,19 @@ async function refresh(force=false){
   clearTimeout(state.timer);
   if(!state.current)return;
   const c=await api('/api/campaigns/'+state.current.id);state.current=c;
-  const signature=JSON.stringify([c.id,c.state,c.progress,c.stage,c.revision,c.publications?.map(p=>p.state),c.metrics]);
+  const signature=JSON.stringify([c.id,c.state,c.progress,c.stage,c.revision,c.publications?.map(p=>p.state),c.metrics,c.final_epoch]);
   if(force||signature!==state.lastSignature){state.lastSignature=signature;render();}
   if(['queued','building'].includes(c.state))state.timer=setTimeout(()=>refresh().catch(e=>toast(e.message)),1500);
 }
-async function initialize(){state.config=await api('/api/config');state.campaigns=await api('/api/campaigns');if(state.campaigns.length){state.current=state.campaigns[0];await refresh(true);}else render();}
+async function initialize(){
+  state.config=await api('/api/config');state.campaigns=await api('/api/campaigns');
+  const params=new URLSearchParams(location.search), requested=params.get('campaign');
+  if(state.campaigns.length){
+    state.current=state.campaigns.find(c=>c.id===requested)||state.campaigns[0];
+    const tab=params.get('tab');if(['film','site','distribution','results','activity'].includes(tab))state.tab=tab;
+    await refresh(true);
+  }else render();
+}
 function connectionStep(done,title,detail,extra=''){
   return `<div class="wizard-step ${done?'done':''}"><span class="step-mark">${done?'✓':'·'}</span><div><b>${title}</b><p>${detail}</p>${extra}</div></div>`;
 }
@@ -303,6 +321,7 @@ $('create-form').onsubmit=async(e)=>{
     const brief={channels,goal:str('goal'),name:str('name'),audience:str('audience'),tagline:str('tagline'),description:str('description'),product_url:str('product_url'),features,accent:str('accent'),language:str('language')};
     const c=await api('/api/campaigns',{method:'POST',body:brief});
     for(const [kind,file] of [['capture',mode==='upload'?capture:null],['audio',audio],['narration',narration]])if(file)await api(`/api/campaigns/${c.id}/media?kind=${kind}&rights_confirmed=true`,{method:'POST',body:file,headers:{'Content-Type':'application/octet-stream'}});
+    if(str('workflow')==='production'){location.assign('/production?campaign='+encodeURIComponent(c.id));return;}
     await api(`/api/campaigns/${c.id}/build`,{method:'POST',body:options});state.campaigns.unshift(c);state.current=c;state.tab='film';$('create-dialog').close();state.recorded=null;form.reset();$('capture-mode').onchange();await refresh(true);
   }catch(err){$('create-error').textContent=err.message;}finally{$('create-submit').disabled=false;}
 };

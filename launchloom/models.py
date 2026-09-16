@@ -161,7 +161,7 @@ class PublicationDraft(StrictModel):
     channel: Literal["x", "linkedin", "threads", "bluesky", "youtube", "instagram", "tiktok"]
     content: str = Field(min_length=1, max_length=5000)
     integration_id: str = Field(min_length=1, max_length=200)
-    media: Literal["landscape.mp4", "portrait.mp4"] = "landscape.mp4"
+    media: str = Field(default="landscape.mp4", pattern=r"^(?:landscape\.mp4|portrait\.mp4|finals/[a-f0-9]{16}\.mp4)$")
     schedule_at: str = ""
     settings: dict[str, Any] = Field(default_factory=dict)
 

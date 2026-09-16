@@ -10,6 +10,12 @@
 // non-breaking space — never HTML entities, which would show up literally.
 
 const EN = {
+  'シーン・完成動画': 'Scenes & finished films',
+  '録画から紹介動画を作る': 'Make a film from a recording',
+  'シーン制作・完成動画の取り込みへ進む': 'Plan scenes or import a finished film',
+  '配信する動画': 'Film to publish',
+  'SNS固有設定': 'Platform settings',
+
   // — shell, navigation, campaign bar —
   'Launchloom — 作った、その先まで。': 'Launchloom — from a product to a launch',
   '作った、その先まで': 'You built it. Now show it',
@@ -153,7 +159,6 @@ const EN = {
   '確認しています…': 'Checking…',
 
   // — distribution —
-  'できあがったら、届け方を選ぶ。': 'Once it exists, choose how it travels.',
   '↗ &nbsp; 配信は、最後の承認から。': '↗ \u00a0 Nothing leaves without approval.',
   '投稿先を読み込む ↻': 'Load destinations ↻',
   '実状態を確認 ↻': 'Check what actually happened ↻',
@@ -173,9 +178,6 @@ const EN = {
   '投稿先 integration ID': 'Destination integration ID',
   'PostizのアカウントID': 'Postiz account ID',
   '予約日時（空欄は今すぐ）': 'Schedule (empty means now)',
-  'メディア・SNS固有設定': 'Media and platform settings',
-  '横長 16:9': 'Landscape 16:9',
-  '縦長 9:16': 'Vertical 9:16',
   'プラットフォーム設定（JSON）': 'Platform settings (JSON)',
   '原稿をコピー': 'Copy the text',
   '別の切り口にする ↺': 'Try the other hook ↺',
