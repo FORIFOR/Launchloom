@@ -1,6 +1,7 @@
 /* Complete existing state styles, followed by the production workspace. */
 @import url('./app-base.css');
 @import url('./workspace.css');
+@import url('./quiet-cinema.css');
 
 /* The legacy compact layout hides the footer. These are functional controls,
    not decoration: restore them so language and settings remain reachable. */
