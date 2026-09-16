@@ -72,7 +72,7 @@ Local agents are disabled by default:
 
 ```env
 ENABLE_LOCAL_AGENTS=1
-CODEX_API_KEY=...       # when using Codex
+OPENAI_API_KEY=...      # when using Codex
 ANTHROPIC_API_KEY=...   # when using Claude Code
 ```
 
@@ -104,7 +104,7 @@ implemented but live-provider / visual-quality verification remains environment-
 
 Official references checked 2026-09-17:
 - https://fal.ai/models/bytedance/seedance-2.5/text-to-video/api
-- https://learn.chatgpt.com/docs/non-interactive-mode
+- https://github.com/openai/codex/tree/main/codex-rs/exec
 - https://code.claude.com/docs/en/headless
 - https://helpx.adobe.com/after-effects/desktop/automate-in-after-effects/automate-animation/scripts.html
 - https://helpx.adobe.com/after-effects/desktop/render-and-export/automate-rendering/automated-rendering-network-rendering.html

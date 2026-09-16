@@ -105,6 +105,53 @@ def prepare_file(source: Path, target: Path) -> dict:
             'height': video['height'], 'bytes': target.stat().st_size, 'sha256': file_sha(target)}
 
 
+
+def register_prepared_final(db, data_dir: Path, cid: str, source: Path, title: str, ai_generated: bool) -> dict:
+    """Register a locally prepared render through the same immutable final-film contract.
+
+    This never publishes. The source is re-inspected/remuxed, a new UUID media path is
+    created, uncertain publications block the operation, and local release is reset.
+    """
+    valid_id(cid)
+    initialize(db)
+    title = str(title).strip()
+    if not title or len(title) > 80 or any(ord(x) < 32 for x in title):
+        raise ValueError('Use a title of 1–80 characters without control characters')
+    row = db.campaign(cid)
+    if not row:
+        raise ValueError('Campaign not found')
+    if row['state'] in {'queued', 'building'}:
+        raise ValueError('Finish the active render before registering a final film')
+    if not any(f.approved for f in Brief.model_validate(row['brief']).features):
+        raise ValueError('Approve at least one documented product feature before registering a final film')
+    if len(list_films(db, cid)) >= MAX_FINALS:
+        raise ValueError('This campaign has 20 final versions. Create a new campaign.')
+    identity = secrets.token_hex(16)
+    media = f'finals/{identity}.mp4'
+    target = final_path(data_dir, cid, media)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    committed = False
+    try:
+        facts = prepare_file(source, target)
+        with db.connect() as c:
+            c.execute('BEGIN IMMEDIATE')
+            current = c.execute('SELECT state FROM campaigns WHERE id=?', (cid,)).fetchone()
+            if current is None or current['state'] in {'queued', 'building'}:
+                raise ValueError('Campaign changed while registering the final film')
+            uncertain = c.execute("SELECT id FROM publications WHERE campaign_id=? AND state IN ('submitting','needs_reconciliation')", (cid,)).fetchone()
+            if uncertain:
+                raise ValueError('Reconcile the pending publication before registering another final film')
+            c.execute('INSERT INTO finished_films VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+                      (identity, cid, media, title, facts['sha256'], facts['bytes'],
+                       facts['duration'], facts['width'], facts['height'], int(bool(ai_generated)), time.time()))
+            c.execute('UPDATE campaigns SET released=0 WHERE id=?', (cid,))
+        committed = True
+        db.log(cid, 'final-film', f'Final film registered from local production: {identity}; publishing held.')
+        return next(x for x in list_films(db, cid) if x['id'] == identity)
+    finally:
+        if not committed:
+            target.unlink(missing_ok=True)
+
 def register_finished_routes(app):
     db, settings = app.state.store, app.state.settings
     initialize(db)
@@ -128,6 +175,8 @@ def register_finished_routes(app):
     async def import_film(cid: str, request: Request, ai_generated: bool,
                           rights_confirmed: bool = False, title: str = '完成動画'):
         nonlocal importing
+        if cid in getattr(app.state, 'production_execution_busy', set()):
+            raise HTTPException(409, 'A production action is running. Wait before importing another final film.')
         row = campaign(cid)
         title = title.strip()
         if not rights_confirmed:

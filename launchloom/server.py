@@ -27,6 +27,7 @@ from .rendering import validate_media, normalize_upload
 from .deploy import plan as deployment_plan, publish as deploy_site
 from .finished_films import list_films, checked_film, FINAL_MEDIA, register_finished_routes
 from .production_api import register_production_routes
+from .production_execution import register_production_execution_routes
 from .planning import make_posts
 
 WEB=Path(__file__).parent/'web'
@@ -114,7 +115,12 @@ def create_app(settings: Settings|None=None,run_worker=True):
           'channel_settings':CHANNEL_SETTINGS,'channel_limits':CHANNEL_LIMITS,
           'max_posts_per_channel_per_day':s.max_posts_per_channel_per_day,
           'min_post_gap_minutes':s.min_post_gap_minutes,
-          'deploy_target_configured':bool(s.deploy_dir)}
+          'deploy_target_configured':bool(s.deploy_dir),
+          'production_execution':{
+              'seedance':bool(s.enable_paid_generation and s.fal_key and s.budget_usd > 0),
+              'codex':bool(s.enable_local_agents and s.codex_executable),
+              'claude':bool(s.enable_local_agents and s.claude_executable),
+              'after_effects':bool(s.enable_after_effects and (s.afterfx_executable or s.aerender_executable))}}
     @app.get('/api/campaigns')
     async def list_campaigns():return db.campaigns()
     @app.post('/api/campaigns',status_code=201)
@@ -430,5 +436,6 @@ def create_app(settings: Settings|None=None,run_worker=True):
     async def index():return FileResponse(WEB/'index.html')
     app.mount('/static',StaticFiles(directory=WEB),name='static')
     register_production_routes(app)
+    register_production_execution_routes(app)
     register_finished_routes(app)
     return app

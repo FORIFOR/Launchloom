@@ -220,6 +220,6 @@ See [LICENSE](LICENSE), [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md).
 
 Open **シーン構成・完成動画** from the selected campaign. Plan scenes, export the
 production package, and import the finished H.264/AAC MP4 from your editing tools.
-Preview the exact version and continue to post review. AI/AE execution remains manual;
+Preview the exact version and continue to post review. Seedance, coding-agent and Adobe execution are optional, separately enabled actions;
 no post is sent without separate release and approval. See [the workflow guide](docs/PRODUCTION_HANDOFF.md).
 
