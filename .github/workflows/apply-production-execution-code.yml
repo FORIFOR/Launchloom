@@ -23,19 +23,22 @@ jobs:
           set -euxo pipefail
           : > /tmp/payload.b64
           expected=(
-            24dca69399ed5090288ec52bc6a998d7e7fd15aa34c10499f3724ee0a88a17d5
-            9f5d71d5c4a10b759b364fd5064d89a0e29c90c4fb59340cd99dd38341648e50
-            bcd5c33d5d23cbe7b2efa76d65780ead345acded0c310675956d0d3c8a9be720
-            1de7bcfe429378ccdc116c2111ee852ae9f10184f062f2a33a7534ed0a84ec7c
+            0891f8f6fb3fdbb0c2e427f0a3c1edf0cc140bc00dca25bf6740d2e1f44503d5
+            ae06d2936ea947ccffc13529f7f1c80d6dbf4373073a326aa469282d2cc2da84
+            e79203c6c9c278038e11f3b5bc92a7e6db614c0d2405ad3cf2de59c6de3a2670
+            5dc4a4bb206d72513d9286ed822ebc953759145c0829494786eacbc7cd0fa1e0
+            a3d3abedaf903a693e85bbb7a3f003f4a4bfee0ec11ee37d035d4a05d9117c73
+            cfadd296c1dc00de5a1aeac4c3ac68d852dc3b21bd0ccbb595052d5c03daa201
+            865ef943b887e4f7013201a14b763551d8b96c00e3a81834f3bc91e0196b6f02
             4fa377f777f62d2375c317581cde9ed9630e3ea56e1a0431c194b1ac2a5f4916
           )
-          for i in 00 01 02 03 04; do
-            src=".launchloom-execution-chunk-$i"
-            normalized="/tmp/chunk-$i"
+          for i in 00 01 02 03 04 05 06 07; do
+            src=".launchloom-execution-small-$i"
+            normalized="/tmp/small-$i"
             tr -d '\r\n\t ' < "$src" > "$normalized"
             index=$((10#$i))
             actual=$(sha256sum "$normalized" | cut -d' ' -f1)
-            echo "chunk-$i bytes=$(wc -c < "$normalized") sha=$actual"
+            echo "small-$i bytes=$(wc -c < "$normalized") sha=$actual"
             test "$actual" = "${expected[$index]}"
             cat "$normalized" >> /tmp/payload.b64
           done
@@ -59,7 +62,7 @@ jobs:
           readme=Path('README.ja.md'); text=readme.read_text().replace('AI・AEの実行は手動です。公開許可と投稿ごとの承認を\n経るまでは送信しません。', 'Seedance・コーディングエージェント・Adobe実行は個別に有効化する明示操作です。\n公開許可と投稿ごとの承認を経るまでは送信しません。')
           readme.write_text(text)
           PY
-          rm -f .launchloom-execution-payload.b64 .launchloom-execution-chunk-* .github/workflows/apply-production-execution-code.yml
+          rm -f .launchloom-execution-payload.b64 .launchloom-execution-chunk-* .launchloom-execution-small-* .github/workflows/apply-production-execution-code.yml
       - name: Install and regenerate reviewed production sample
         run: |
           sudo apt-get update >/dev/null && sudo apt-get install -y ffmpeg fonts-noto-cjk >/dev/null
@@ -83,6 +86,7 @@ jobs:
           git add -A
           test ! -e .launchloom-execution-payload.b64
           test -z "$(find . -maxdepth 1 -name '.launchloom-execution-chunk-*' -print -quit)"
+          test -z "$(find . -maxdepth 1 -name '.launchloom-execution-small-*' -print -quit)"
           test ! -e .github/workflows/apply-production-execution-code.yml
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: implement guarded production execution'
           git push origin HEAD:feat/production-execution-20260917
