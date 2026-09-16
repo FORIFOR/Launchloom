@@ -1,0 +1,30 @@
+name: Production workspace UI
+on:
+  pull_request:
+    paths: ['launchloom/web/**','tests/test_workspace_styles.py','scripts/verify-production-workspace.py','.github/workflows/production-workspace.yml']
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -e '.[dev]' playwright==1.57.0
+      - run: python -m pytest -q tests/test_workspace_styles.py tests/test_studio_accessibility.py
+      - run: python -m playwright install --with-deps chromium
+      - run: python scripts/verify-production-workspace.py
+      - name: Record tested scope
+        if: always()
+        run: |
+          if [ -f ui-review/report.json ]; then
+            printf '## Local empty-workspace and creation-dialog checks\n```json\n' >> "$GITHUB_STEP_SUMMARY"
+            cat ui-review/report.json >> "$GITHUB_STEP_SUMMARY"
+            printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with: {name: production-workspace-review, path: ui-review/, retention-days: 1}
