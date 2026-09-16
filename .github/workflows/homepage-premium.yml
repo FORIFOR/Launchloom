@@ -8,7 +8,7 @@ on:
       - 'docs/HORIO_PREMIUM_WEB.md'
       - '.github/workflows/homepage-premium.yml'
   push:
-    branches: [main]
+    branches: [main, fix/complete-production-journey-20260916]
     paths:
       - 'homepage/**'
       - 'tests/test_horio_premium_homepage.py'
