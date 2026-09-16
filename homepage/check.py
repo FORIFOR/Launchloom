@@ -18,7 +18,8 @@ SIZES=[(1440,960),(1024,900),(390,844)]
 async def main(args):
     report={"url":args.url,"checks":{},"views":{},"errors":[]}
     async with async_playwright() as p:
-        browser=await p.chromium.launch(headless=True, executable_path=shutil.which("chromium") or None)
+        browser_path=shutil.which("google-chrome") or shutil.which("google-chrome-stable") or shutil.which("chromium")
+        browser=await p.chromium.launch(headless=True, executable_path=browser_path)
         for width,height in SIZES:
             page=await browser.new_page(viewport={"width":width,"height":height},locale="ja-JP")
             page.on("pageerror",lambda e: report["errors"].append(str(e)))
