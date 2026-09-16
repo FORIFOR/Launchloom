@@ -1,3 +1,4 @@
+import {mountFinalFilms} from './final-films.js';
 const $ = (q) => document.querySelector(q);
 let plan, rev, cid = '', dirty = false, busy = false;
 const message = (text, error = false) => { $('#message').textContent = text; $('#message').classList.toggle('error', error); };
@@ -41,6 +42,11 @@ async function load(id) {
   try {
     const data = await (await api(`/api/campaigns/${encodeURIComponent(id)}/production`)).json();
     cid = id; plan = data.plan; rev = data.revision; dirty = false;
+    $('#campaign').value=cid;
+    $('#back-studio').href='/?campaign='+encodeURIComponent(cid);
+    $('#back-distribution').href='/?campaign='+encodeURIComponent(cid)+'&tab=distribution';
+    history.replaceState(null,'','/production?campaign='+encodeURIComponent(cid));
+    await mountFinalFilms($('#final-films-root'), cid);
     $('#editor').hidden = false; draw();
     $('#save-state').textContent = data.saved ? '保存済み · 動画は未生成' : '初期構成 · 未保存';
     message('シーンを編集できます。外部サービスは呼び出しません。');
@@ -89,7 +95,8 @@ async function init() {
     $('#campaign').replaceChildren();
     for (const c of campaigns) { const option = document.createElement('option'); option.value = c.id; option.textContent = c.brief?.name || c.name || c.id; $('#campaign').append(option); }
     if (!campaigns.length) { message('録画・書き出し画面でキャンペーンを作成してから、ここへ戻ってください。'); return; }
-    await load(campaigns[0].id);
+    const wanted=new URLSearchParams(location.search).get('campaign');
+    await load((campaigns.find(c=>c.id===wanted)||campaigns[0]).id);
   } catch (e) { message(e.message, true); }
 }
 init();

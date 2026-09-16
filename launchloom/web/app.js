@@ -19,6 +19,7 @@ function output(name){return state.current?.outputs?.[name]||'';}
 function updateCampaignBar(){
   $('campaign-select').innerHTML=state.campaigns.length?state.campaigns.map(c=>`<option value="${c.id}">${escape(c.brief.name)} · ${new Date(c.created*1000).toLocaleDateString()}</option>`).join(''):'<option>最初のキャンペーン</option>';
   if(state.current)$('campaign-select').value=state.current.id;
+  $('production-link').href='/production'+(state.current?'?campaign='+encodeURIComponent(state.current.id):'');
   $('campaign-state').textContent=labels[state.current?.state]||'未作成';
   $('campaign-state').className='pill '+(state.current?.state||'');
 }
@@ -90,14 +91,22 @@ function reconcileRow(p){
   const fix=p.state==='needs_reconciliation'?`<button class="button small dark" data-reconcile="${escape(p.id)}">突合する ↗</button>`:'';
   return `<div class="publication-row"><span>${escape(p.payload.channel)} · ${escape(p.payload.integration_id)}</span><span class="row-end"><span class="pill">${escape(labels[p.state]||p.state)}</span>${remote}${link}${fix}</span></div>`;
 }
+function publicationMediaOptions(post){
+  const c=state.current,finals=c.final_films||[];
+  const requested=new URLSearchParams(location.search).get('media');
+  const selected=finals.find(f=>f.media===requested)||finals.find(f=>(f.height>f.width)===(post.media==='portrait.mp4'))||finals[0];
+  const options=finals.map(f=>`<option value="${escape(f.media)}" ${f===selected?'selected':''}>完成動画: ${escape(f.title)} · ${f.width}×${f.height}</option>`);
+  if(c.state==='ready')for(const [media,label] of [['landscape.mp4','横長 16:9'],['portrait.mp4','縦長 9:16']])options.push(`<option value="${media}" ${!selected&&post.media===media?'selected':''}>${label}</option>`);
+  return options.join('');
+}
 function renderDistribution(){
-  if(state.current?.state!=='ready')return empty('できあがったら、届け方を選ぶ。');
+  if(state.current?.state!=='ready'&&!state.current?.final_films?.length)return empty('できあがったら、届け方を選ぶ。');
   const posts=state.current.posts?.posts||state.current.posts||[];
   const items=Array.isArray(posts)?posts:Object.values(posts);
   const pacing=t('同じSNSへは{gap}分以上あけ、1日{max}件までにしています。')
     .replace('{gap}',state.config.min_post_gap_minutes||30)
     .replace('{max}',state.config.max_posts_per_channel_per_day||3);
-  return releaseBar()+`<section class="panel distribution-heading"><div class="card-heading"><h2>↗ &nbsp; 配信は、最後の承認から。</h2><div class="links-row"><button class="button small" id="load-integrations">投稿先を読み込む ↻</button><button class="button small" id="check-remote">実状態を確認 ↻</button></div></div><div class="notice" style="margin:18px">${state.config.postiz?'Postiz連携あり。投稿原稿・動画・アカウントを確認してから、送信してください。':'Postizは未接続です。原稿のコピーと送信データのプレビューは使用できます。実投稿には接続設定が必要です。'}<br>予約はPostizに委任します。「受付済み」は各SNSでの公開成功を意味しません。<br>${pacing}</div></section><div class="post-grid">${items.map((p,i)=>`<section class="post-card" data-post="${i}"><div class="post-heading"><strong>${escape(p.channel.toUpperCase())}</strong><span class="pill">承認待ち</span></div><textarea class="post-content" rows="9">${escape(p.content)}</textarea><label>投稿先 integration ID<input class="integration-id" list="accounts-list" placeholder="PostizのアカウントID"></label><label>予約日時（空欄は今すぐ）<input class="schedule-at" type="datetime-local"></label><details class="advanced"><summary>メディア・SNS固有設定</summary><label>動画<select class="media"><option value="landscape.mp4" ${p.media==='landscape.mp4'?'selected':''}>横長 16:9</option><option value="portrait.mp4" ${p.media==='portrait.mp4'?'selected':''}>縦長 9:16</option></select></label><label>プラットフォーム設定（JSON）<textarea class="platform-settings" rows="3">{}</textarea></label></details><div class="post-actions"><button class="button small" data-copy="${i}">原稿をコピー</button>${(p.hook_variants||[]).length>1?`<button class="button small" data-variant="${i}">別の切り口にする ↺</button>`:''}<button class="button small dark" data-review="${i}">内容を確認 ↗</button></div></section>`).join('')}</div><datalist id="accounts-list">${state.integrations.map(a=>`<option value="${escape(a.id)}">${escape(a.name||a.identifier||a.id)}</option>`).join('')}</datalist><section class="panel" style="padding:22px;margin-top:20px"><span class="eyebrow">PUBLICATION HISTORY</span>${state.current.publications?.length?state.current.publications.map(reconcileRow).join(''):'<p class="notice">送信履歴はありません。外部への投稿はまだ行っていません。</p>'}</section>`;
+  return releaseBar()+`<section class="panel distribution-heading"><div class="card-heading"><h2>↗ &nbsp; 配信は、最後の承認から。</h2><div class="links-row"><button class="button small" id="load-integrations">投稿先を読み込む ↻</button><button class="button small" id="check-remote">実状態を確認 ↻</button></div></div><div class="notice" style="margin:18px">${state.config.postiz?'Postiz連携あり。投稿原稿・動画・アカウントを確認してから、送信してください。':'Postizは未接続です。原稿のコピーと送信データのプレビューは使用できます。実投稿には接続設定が必要です。'}<br>予約はPostizに委任します。「受付済み」は各SNSでの公開成功を意味しません。<br>${pacing}</div></section><div class="post-grid">${items.map((p,i)=>`<section class="post-card" data-post="${i}"><div class="post-heading"><strong>${escape(p.channel.toUpperCase())}</strong><span class="pill">承認待ち</span></div><textarea class="post-content" rows="9">${escape(p.content)}</textarea><label>投稿先 integration ID<input class="integration-id" list="accounts-list" placeholder="PostizのアカウントID"></label><label>予約日時（空欄は今すぐ）<input class="schedule-at" type="datetime-local"></label><details class="advanced"><summary>メディア・SNS固有設定</summary><label>動画<select class="media">${publicationMediaOptions(p)}</select></label><label>プラットフォーム設定（JSON）<textarea class="platform-settings" rows="3">{}</textarea></label></details><div class="post-actions"><button class="button small" data-copy="${i}">原稿をコピー</button>${(p.hook_variants||[]).length>1?`<button class="button small" data-variant="${i}">別の切り口にする ↺</button>`:''}<button class="button small dark" data-review="${i}">内容を確認 ↗</button></div></section>`).join('')}</div><datalist id="accounts-list">${state.integrations.map(a=>`<option value="${escape(a.id)}">${escape(a.name||a.identifier||a.id)}</option>`).join('')}</datalist><section class="panel" style="padding:22px;margin-top:20px"><span class="eyebrow">PUBLICATION HISTORY</span>${state.current.publications?.length?state.current.publications.map(reconcileRow).join(''):'<p class="notice">送信履歴はありません。外部への投稿はまだ行っていません。</p>'}</section>`;
 }
 function renderResults(){
   if(!state.current)return empty('数字がないときは、ないと伝えます。');
@@ -204,11 +213,11 @@ async function refresh(force=false){
   clearTimeout(state.timer);
   if(!state.current)return;
   const c=await api('/api/campaigns/'+state.current.id);state.current=c;
-  const signature=JSON.stringify([c.id,c.state,c.progress,c.stage,c.revision,c.publications?.map(p=>p.state),c.metrics]);
+  const signature=JSON.stringify([c.id,c.state,c.progress,c.stage,c.revision,c.publications?.map(p=>p.state),c.final_films?.map(f=>f.id),c.released,c.metrics]);
   if(force||signature!==state.lastSignature){state.lastSignature=signature;render();}
   if(['queued','building'].includes(c.state))state.timer=setTimeout(()=>refresh().catch(e=>toast(e.message)),1500);
 }
-async function initialize(){state.config=await api('/api/config');state.campaigns=await api('/api/campaigns');if(state.campaigns.length){state.current=state.campaigns[0];await refresh(true);}else render();}
+async function initialize(){state.config=await api('/api/config');state.campaigns=await api('/api/campaigns');if(state.campaigns.length){const query=new URLSearchParams(location.search);state.current=state.campaigns.find(c=>c.id===query.get('campaign'))||state.campaigns[0];if(['film','site','distribution','results','activity'].includes(query.get('tab')))state.tab=query.get('tab');await refresh(true);}else render();}
 function connectionStep(done,title,detail,extra=''){
   return `<div class="wizard-step ${done?'done':''}"><span class="step-mark">${done?'✓':'·'}</span><div><b>${title}</b><p>${detail}</p>${extra}</div></div>`;
 }

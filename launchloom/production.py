@@ -154,11 +154,12 @@ No provider, Codex, Claude Code, After Effects or social account has been called
 6. Inspect typography, framing, footage, audio and rights in AE; configure the
    render queue and export there. AE execution/render quality has NOT been verified
    on a real installation for this beta. Adobe software/license is required.
-7. Review the finished video. Returning it to Launchloom and attaching it to a post
-   is manual; this handoff does not replace campaign outputs or approve any post.
+7. Review the finished video. Use the final-film importer on /production, then continue to the existing
+   distribution screen. Import holds local publishing; release and approve the new
+   media explicitly. Existing remotely scheduled posts are not cancelled.
 
 日本語: 構成と制作指示の引き渡し機能です。Seedanceの自動生成、エージェントの
-自動実行、AEの遠隔操作、完成動画の自動取り込み、SNS投稿を実行しません。
+自動実行、AEの遠隔操作、完成動画の自動回収、SNS投稿を実行しません。完成動画は制作ボードから手動で取り込めます。
 既存の録画・書き出し・配信機能と並行して使えます。制作ボードの保存は既存の
 動画や承認を変更しません。新しい完成動画を公開する前に改めて内容を確認してください。
 '''

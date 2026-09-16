@@ -65,10 +65,8 @@ def main():
     if args.host:s.host=args.host
     if args.port:s.port=args.port
     from .server import create_app
-    from .production_api import register_production_routes
     import uvicorn
     print(f'\nLaunchloom → http://{s.host}:{s.port}\nProduction board → http://{s.host}:{s.port}/production\nLocal access key: {s.token}\nData: {s.data_dir}\n',flush=True)
     if s.host not in {'127.0.0.1','localhost'}:print('Network binding enabled: use TLS, host allowlisting and isolation. This is a single-operator alpha.',flush=True)
     app = create_app(s)
-    register_production_routes(app)
     uvicorn.run(app,host=s.host,port=s.port,workers=1,access_log=False)
