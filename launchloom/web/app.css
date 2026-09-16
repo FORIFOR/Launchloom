@@ -1,3 +1,22 @@
 /* Complete existing state styles, followed by the production workspace. */
 @import url('./app-base.css');
 @import url('./workspace.css');
+
+/* The legacy compact layout hides the footer. These are functional controls,
+   not decoration: restore them so language and settings remain reachable. */
+@media (max-width: 800px) {
+  .sidebar .sidebar-footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sidebar .sidebar-footer #language-toggle,
+  .sidebar .sidebar-footer #settings-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
