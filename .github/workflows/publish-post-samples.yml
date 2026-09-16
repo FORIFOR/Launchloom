@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: launchloom-post-examples
+  group: launchloom-public-site
   cancel-in-progress: false
 jobs:
   validate:

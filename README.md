@@ -2,6 +2,18 @@
 
 # Launchloom
 
+## Scenes → finished films → reviewed publication
+
+Open **Scenes & finished films** from the studio, with the current campaign preserved.
+Request Seedance 2.5 footage after per-scene data/cost confirmation. Import finished
+MP4/MOV/WebM media from AE or another editor, review the actual film, select its version,
+and continue to distribution. A new selection invalidates old unsent approvals.
+
+Local commands can request candidate JSX from Codex/Claude Code and render a reviewed
+AE project. These external runtimes and real social accounts still require live testing.
+**[Setup, commands and verification boundaries](docs/PRODUCTION_WORKFLOW.md)**.
+
+
 **You built it. Now it needs a film, a page, and something to post.**
 
 Launchloom turns one product brief and a real recording of your product into a
