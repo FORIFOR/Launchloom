@@ -31,8 +31,14 @@ def test_quiet_cinema_documented():
 def test_public_homepages_use_quiet_cinema_without_claiming_new_capabilities():
     ja = (ROOT / 'homepage/ja/index.html').read_text()
     en = (ROOT / 'homepage/index.html').read_text()
-    for page in (ja, en):
-        assert '#A83B2F' in page and '#171A17' in page and '#F6F5F0' in page
+    # Public pages now share a dedicated stylesheet instead of duplicating the
+    # palette inside each HTML document. Keep the theme contract, but do not
+    # force presentation tokens to be inline.
+    theme = (ROOT / 'homepage/horio-premium.css').read_text()
+    for token in ('#A83B2F', '#171A17', '#F6F5F0'):
+        assert token in theme
+    assert 'href="../horio-premium.css"' in ja
+    assert 'href="./horio-premium.css"' in en
     assert '作ったものを、<br>届けられる形へ。' in ja
     assert 'Built to be seen.' in en
     # Capability labels remain explicit after the visual redesign.
