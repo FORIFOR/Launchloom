@@ -40,7 +40,7 @@ def test_public_homepages_use_quiet_cinema_without_claiming_new_capabilities():
     assert 'href="../horio-premium.css"' in ja
     assert 'href="./horio-premium.css"' in en
     assert '作ったものを、<br>届けられる形へ。' in ja
-    assert 'Built to be seen.' in en
+    assert 'Built to be<br>seen.' in en
     # Capability labels remain explicit after the visual redesign.
     assert 'Seedance専用API・エージェント自動実行' in ja
     assert '未実装' in ja
