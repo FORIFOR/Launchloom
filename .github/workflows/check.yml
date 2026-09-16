@@ -10,11 +10,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Archive tracked public source only
-        run: git archive --format=zip --output=../launchloom-review-source.zip HEAD
+        run: git archive --format=zip --output=launchloom-review-source.zip HEAD
       - uses: actions/upload-artifact@v4
         with:
           name: review-source
-          path: ../launchloom-review-source.zip
+          path: launchloom-review-source.zip
           retention-days: 1
   test:
     runs-on: ubuntu-latest
