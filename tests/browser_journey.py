@@ -7,7 +7,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-import shutil
 import socket
 import sys
 import tempfile
@@ -46,8 +45,11 @@ def main():
         errors=[];unexpected=[]
         try:
             with sync_playwright() as p:
-                executable=os.getenv('BROWSER_EXECUTABLE') or shutil.which('chromium')
-                browser=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
+                # H.264 is required by the app's import contract. Test a branded
+                # browser with licensed codecs, rather than the OSS headless shell.
+                executable=os.getenv('BROWSER_EXECUTABLE')
+                channel=None if executable else os.getenv('LAUNCHLOOM_BROWSER_CHANNEL','chrome')
+                browser=p.chromium.launch(headless=True,channel=channel,executable_path=executable)
                 context=browser.new_context(viewport={'width':1440,'height':1000},locale='ja-JP')
                 def route(r):
                     if r.request.url.startswith(base+'/'):r.continue_()
@@ -56,6 +58,8 @@ def main():
                 page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
                 try:
                     page.goto(base+'/?campaign='+first['id'])
+                    codec=page.evaluate('() => document.createElement("video").canPlayType(\'video/mp4; codecs="avc1.64001f"\')')
+                    assert codec, 'Browser lacks H.264 support; run with Google Chrome or a licensed-codec browser'
                     page.locator('#access-token').fill(settings.token)
                     page.locator('#access-form button').click()
                     page.wait_for_function("() => !document.querySelector('#access-dialog').open")
@@ -106,14 +110,15 @@ def main():
                     page.screenshot(path=str(artifacts/'failure.png'),full_page=True)
                     (artifacts/'failure.json').write_text(json.dumps({
                         'error':str(error),'url':page.url,'page_errors':errors,
-                        'unexpected_requests':unexpected,'body':page.locator('body').inner_text()
+                        'unexpected_requests':unexpected,'body':page.locator('body').inner_text(),
+                        'media':page.locator('video').evaluate_all('(videos) => videos.map(v=>({src:v.currentSrc,readyState:v.readyState,networkState:v.networkState,error:v.error?.message}))')
                     },ensure_ascii=False,indent=2))
                     raise
                 finally:
                     browser.close()
         finally:
             server.should_exit=True;worker.join(timeout=5);sock.close()
-        report={'real_http_application':True,'campaign_preserved':True,'plan_saved':True,
+        report={'browser_channel':channel or 'explicit executable','real_http_application':True,'campaign_preserved':True,'plan_saved':True,
                 'handoff_downloaded':True,'mp4_imported':True,'preview_playback':True,
                 'publication_media_preserved':True,'dry_run_network_requests':0,
                 'live_publish_disabled':True,'desktop_mobile_overflow':False,
