@@ -1,0 +1,58 @@
+name: Publish current post examples
+on:
+  pull_request:
+    paths: ['homepage/publish_post_samples.py', 'homepage/refresh_post_samples.py', 'launchloom/post_copy.py', 'launchloom/planning.py', 'tests/test_publish_post_samples.py', '.github/workflows/publish-post-samples.yml']
+  push:
+    branches: [main]
+    paths: ['homepage/publish_post_samples.py', 'homepage/refresh_post_samples.py', 'launchloom/post_copy.py', 'launchloom/planning.py', 'tests/test_publish_post_samples.py', '.github/workflows/publish-post-samples.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: launchloom-post-examples
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pytest -q tests/test_publish_post_samples.py
+      - name: Generate against the real bilingual homepage source
+        run: python -m homepage.publish_post_samples --site homepage
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: public-site
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e .
+      - name: Regenerate only public post examples
+        run: python -m homepage.publish_post_samples --site public-site
+      - name: Commit the three allowed publication paths
+        working-directory: public-site
+        run: |
+          git add -- index.html ja/index.html post-drafts.json
+          git diff --cached --exit-code && exit 0
+          git diff --cached --name-only | while IFS= read -r path; do
+            case "$path" in index.html|ja/index.html|post-drafts.json) ;; *) echo 'Unexpected publication path'; exit 1 ;; esac
+          done
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Refresh public draft examples from ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages
+      - name: Request the existing Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status:.status,url:.url}'
