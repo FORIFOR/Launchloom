@@ -21,12 +21,24 @@ jobs:
       - name: Decode and apply complete code patch
         run: |
           set -euxo pipefail
-          echo '24dca69399ed5090288ec52bc6a998d7e7fd15aa34c10499f3724ee0a88a17d5  .launchloom-execution-chunk-00' | sha256sum -c -
-          echo '9f5d71d5c4a10b759b364fd5064d89a0e29c90c4fb59340cd99dd38341648e50  .launchloom-execution-chunk-01' | sha256sum -c -
-          echo 'bcd5c33d5d23cbe7b2efa76d65780ead345acded0c310675956d0d3c8a9be720  .launchloom-execution-chunk-02' | sha256sum -c -
-          echo '1de7bcfe429378ccdc116c2111ee852ae9f10184f062f2a33a7534ed0a84ec7c  .launchloom-execution-chunk-03' | sha256sum -c -
-          echo '4fa377f777f62d2375c317581cde9ed9630e3ea56e1a0431c194b1ac2a5f4916  .launchloom-execution-chunk-04' | sha256sum -c -
-          cat .launchloom-execution-chunk-* > /tmp/payload.b64
+          : > /tmp/payload.b64
+          expected=(
+            24dca69399ed5090288ec52bc6a998d7e7fd15aa34c10499f3724ee0a88a17d5
+            9f5d71d5c4a10b759b364fd5064d89a0e29c90c4fb59340cd99dd38341648e50
+            bcd5c33d5d23cbe7b2efa76d65780ead345acded0c310675956d0d3c8a9be720
+            1de7bcfe429378ccdc116c2111ee852ae9f10184f062f2a33a7534ed0a84ec7c
+            4fa377f777f62d2375c317581cde9ed9630e3ea56e1a0431c194b1ac2a5f4916
+          )
+          for i in 00 01 02 03 04; do
+            src=".launchloom-execution-chunk-$i"
+            normalized="/tmp/chunk-$i"
+            tr -d '\r\n\t ' < "$src" > "$normalized"
+            index=$((10#$i))
+            actual=$(sha256sum "$normalized" | cut -d' ' -f1)
+            echo "chunk-$i bytes=$(wc -c < "$normalized") sha=$actual"
+            test "$actual" = "${expected[$index]}"
+            cat "$normalized" >> /tmp/payload.b64
+          done
           payload_sha=$(sha256sum /tmp/payload.b64 | cut -d' ' -f1)
           echo "payload-sha=$payload_sha"
           test "$payload_sha" = "248916fd8ef41058f2c87c758a6856724201f9b98f3805647a16307798f10e2e"
