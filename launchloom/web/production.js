@@ -1,3 +1,4 @@
+import {mountFinalFilms} from './final-films.js';
 const $ = (q) => document.querySelector(q);
 let plan, rev, cid = '', dirty = false, busy = false;
 const message = (text, error = false) => { $('#message').textContent = text; $('#message').classList.toggle('error', error); };
@@ -15,8 +16,10 @@ function draw() {
   plan.scenes.forEach((scene, index) => {
     const card = $('#scene-template').content.firstElementChild.cloneNode(true);
     card.querySelector('.scene-number').textContent = `SCENE ${String(index + 1).padStart(2, '0')}`;
+    const role = card.querySelector('.scene-role');
     const asset = card.querySelector('.asset');
-    const labelAsset = () => { asset.textContent = scene.source === 'after_effects' ? '基本タイムライン + 人による調整' : `assets/${scene.id}.mp4`; };
+    const labels = {recording: ['PRODUCT / 実際の動作', `assets/${scene.id}.mp4`], seedance: ['ATMOSPHERE / 雰囲気', `assets/${scene.id}.mp4`], after_effects: ['MOTION / 文字と演出', '基本タイムライン + 人による調整']};
+    const labelAsset = () => { const label=labels[scene.source] || ['SCENE', `assets/${scene.id}.mp4`]; role.textContent=label[0]; asset.textContent=label[1]; card.dataset.source=scene.source; };
     labelAsset();
     card.querySelectorAll('[data-field]').forEach(input => {
       const key = input.dataset.field; input.value = scene[key];
@@ -41,6 +44,11 @@ async function load(id) {
   try {
     const data = await (await api(`/api/campaigns/${encodeURIComponent(id)}/production`)).json();
     cid = id; plan = data.plan; rev = data.revision; dirty = false;
+    $('#campaign').value=cid;
+    $('#back-studio').href='/?campaign='+encodeURIComponent(cid);
+    $('#back-distribution').href='/?campaign='+encodeURIComponent(cid)+'&tab=distribution';
+    history.replaceState(null,'','/production?campaign='+encodeURIComponent(cid));
+    await mountFinalFilms($('#final-films-root'), cid);
     $('#editor').hidden = false; draw();
     $('#save-state').textContent = data.saved ? '保存済み · 動画は未生成' : '初期構成 · 未保存';
     message('シーンを編集できます。外部サービスは呼び出しません。');
@@ -89,7 +97,8 @@ async function init() {
     $('#campaign').replaceChildren();
     for (const c of campaigns) { const option = document.createElement('option'); option.value = c.id; option.textContent = c.brief?.name || c.name || c.id; $('#campaign').append(option); }
     if (!campaigns.length) { message('録画・書き出し画面でキャンペーンを作成してから、ここへ戻ってください。'); return; }
-    await load(campaigns[0].id);
+    const wanted=new URLSearchParams(location.search).get('campaign');
+    await load((campaigns.find(c=>c.id===wanted)||campaigns[0]).id);
   } catch (e) { message(e.message, true); }
 }
 init();

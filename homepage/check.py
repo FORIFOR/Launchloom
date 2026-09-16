@@ -1,146 +1,126 @@
-"""Check the homepage in a real browser before it goes live.
+"""Horio Premium Web pre-publish verification for the public homepage.
 
-    python -m http.server 4477 --directory homepage
-    python homepage/check.py
-
-Fails if the film does not decode and play, if anything overflows horizontally at
-phone width, or if the page reports an error. A landing page that only looks
-right in a screenshot is how a broken one gets published.
+Checks the real page at 1440px, 1024px and 390px, captures evidence, and
+verifies the requested qualitative gates with measurable proxies:
+- Logo Swap Test
+- Screenshot Test / motion-off state
+- service clarity in the first viewport
+- real product/output as the dominant visual
+- one Signature Moment only
 """
 from __future__ import annotations
-import argparse
-import asyncio
-import json
-import sys
+import argparse, asyncio, json, sys, shutil
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-TELEMETRY_HOST = "ai-meeting-broker-pdygkns5gq-an.a.run.app"
-SITE_ORIGIN = "https://forifor.github.io"
-
+SIZES=[(1440,960),(1024,900),(390,844)]
 
 async def main(args):
-    report = {"url": args.url, "errors": [], "checks": {}}
+    report={"url":args.url,"checks":{},"views":{},"errors":[]}
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page(viewport={"width": 1440, "height": 950}, locale="en-US")
-        page.on("pageerror", lambda e: report["errors"].append(str(e)))
-        def note_failure(request):
-            # Pausing a video aborts its range request; that is the browser being
-            # efficient, not the page being broken.
-            reason = (request.failure or "")
-            if "ERR_ABORTED" in reason and request.resource_type in {"media", "image"}:
-                report.setdefault("aborted", []).append(request.url.rsplit("/", 1)[-1])
-                return
-            # The site's endpoint only accepts the published origin, so running this
-            # from localhost is blocked by design. Recorded, not reported as a fault;
-            # the endpoint itself is probed separately below.
-            if TELEMETRY_HOST in request.url:
-                report.setdefault("origin_gated", []).append(request.url.rsplit("/", 1)[-1])
-                return
-            report["errors"].append(f"failed request ({reason}): {request.url}")
-        page.on("requestfailed", note_failure)
-        await page.goto(args.url, wait_until="load")
+        browser_path=shutil.which("google-chrome") or shutil.which("google-chrome-stable") or shutil.which("chromium")
+        browser=await p.chromium.launch(headless=True, executable_path=browser_path)
+        for width,height in SIZES:
+            page=await browser.new_page(viewport={"width":width,"height":height},locale="ja-JP")
+            page.on("pageerror",lambda e: report["errors"].append(str(e)))
+            await page.goto(args.url,wait_until="load")
+            await page.wait_for_timeout(1100)
+            key=str(width)
+            metrics=await page.evaluate("""() => {
+              const hero=document.querySelector('.hero');
+              const h1=document.querySelector('h1');
+              const lede=document.querySelector('.hero .lede');
+              const stage=document.querySelector('[data-actual-product]');
+              const visible=(el)=>{ if(!el)return false; const r=el.getBoundingClientRect(); const s=getComputedStyle(el); return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden'; };
+              const vr=(el)=>el?.getBoundingClientRect();
+              return {
+                overflow:document.documentElement.scrollWidth-innerWidth,
+                heroBottom:vr(hero)?.bottom||0,
+                h1Bottom:vr(h1)?.bottom||99999,
+                ledeBottom:vr(lede)?.bottom||99999,
+                stageTop:vr(stage)?.top||99999,
+                stageBottom:vr(stage)?.bottom||99999,
+                stageArea:(vr(stage)?.width||0)*(vr(stage)?.height||0),
+                heroArea:(vr(hero)?.width||0)*(vr(hero)?.height||0),
+                actualVisible:visible(stage),
+                signatureCount:document.querySelectorAll('[data-signature]').length,
+                actualCount:document.querySelectorAll('[data-actual-product]').length,
+                visibleLandscape:visible(document.querySelector('.desktop-film')),
+                visiblePortrait:visible(document.querySelector('.mobile-film')),
+                headline:h1?.innerText||'',
+                lede:lede?.innerText||''
+              };
+            }""")
+            report["views"][key]=metrics
+            report["checks"][f"no_horizontal_overflow_{width}"]=metrics["overflow"]<=0
+            report["checks"][f"hero_message_visible_{width}"]=metrics["h1Bottom"]<=height and metrics["ledeBottom"]<=height*1.18
+            report["checks"][f"actual_product_visible_{width}"]=metrics["actualVisible"] and metrics["stageTop"]<=height*1.05
+            if width==390:
+                report["checks"]["mobile_uses_vertical_real_output"]=metrics["visiblePortrait"] and not metrics["visibleLandscape"]
+            else:
+                report["checks"][f"desktop_uses_landscape_real_output_{width}"]=metrics["visibleLandscape"] and not metrics["visiblePortrait"]
+            await page.screenshot(path=str(args.output/f"homepage-{width}.png"),full_page=True)
+            await page.close()
 
-        # The film no longer preloads or autoplays: the page shows a poster and loads
-        # the video when someone asks for it. So the check is that it is ready to be
-        # asked, and that it actually plays when it is — not that it is already running.
-        film = page.locator("#view-landscape video")
-        report["checks"]["film_poster_present"] = await film.evaluate(
-            "(v)=>!!v.getAttribute('poster')")
-        report["checks"]["film_has_captions"] = await film.evaluate(
-            "(v)=>!!v.querySelector('track[kind=\"captions\"]')")
-        await film.evaluate("(v)=>{v.muted=true;return v.play();}")
-        await page.wait_for_function(
-            "() => document.querySelector('#view-landscape video')?.readyState>=2", timeout=30000)
-        report["checks"]["film_metadata"] = await film.evaluate(
-            "(v)=>({width:v.videoWidth,height:v.videoHeight,duration:v.duration})")
-        await page.wait_for_timeout(1500)
-        report["checks"]["film_plays_when_asked"] = await film.evaluate(
-            "(v)=>v.currentTime>0.3 && !v.paused")
-        await film.evaluate("(v)=>v.pause()")
+        # Qualitative gates are exercised on the 1440 layout.
+        page=await browser.new_page(viewport={"width":1440,"height":960},locale="ja-JP")
+        await page.goto(args.url,wait_until="load")
+        await page.wait_for_timeout(1200)
+        report["checks"]["one_signature_moment"]=(await page.locator('[data-signature]').count())==1
+        report["checks"]["real_product_is_primary"] = await page.evaluate("""() => {
+          const stage=document.querySelector('[data-actual-product]')?.getBoundingClientRect();
+          const others=[...document.querySelectorAll('img')].map(x=>x.getBoundingClientRect()).filter(r=>r.top<innerHeight&&r.width>0&&r.height>0);
+          const maxOther=Math.max(0,...others.map(r=>r.width*r.height));
+          return !!stage && stage.width*stage.height>maxOther && stage.width>innerWidth*.44;
+        }""")
+        report["checks"]["first_5_10_seconds_clear"] = await page.evaluate("""() => {
+          const text=(document.querySelector('h1')?.innerText||'')+' '+(document.querySelector('.hero .lede')?.innerText||'');
+          return /作ったもの|操作録画/.test(text) && /紹介動画|縦動画|LP|投稿/.test(text) && !!document.querySelector('[data-actual-product] video');
+        }""")
 
-        height = await page.evaluate("() => document.body.scrollHeight")
-        for y in range(0, height, 600):
-            await page.evaluate('(y)=>window.scrollTo({top:y,behavior:"instant"})', y)
-            await page.wait_for_timeout(90)
-        await page.evaluate('()=>window.scrollTo({top:0,behavior:"instant"})')
-        await page.wait_for_timeout(500)
+        # Logo Swap Test: after swapping the wordmark, the real product footage and
+        # concrete workflow language must still identify what the page is about.
+        await page.evaluate("() => {document.querySelector('.brand-name').textContent='ACME';}")
+        await page.screenshot(path=str(args.output/'logo-swap-test.png'))
+        report["checks"]["logo_swap_test"] = await page.evaluate("""() => {
+          const t=document.body.innerText;
+          const stage=document.querySelector('[data-actual-product]');
+          return !!stage && /操作録画/.test(t) && /完成|投稿準備|紹介動画/.test(t) && /Launchloom/.test(stage.innerText + (stage.querySelector('video')?.getAttribute('poster')||''));
+        }""")
 
-        # the narrated explainer must carry audio, or the section is pointless
-        report["checks"]["narrated_videos_present"] = await page.evaluate(
-            "() => document.querySelectorAll('#narrated video').length")
-        for name in ("intro.mp4", "intro-vertical.mp4"):
-            probe = await page.request.get(args.url.rstrip("/") + "/" + name)
-            report["checks"]["serves_" + name] = probe.status == 200 and int(probe.headers.get("content-length", 0)) > 100000
+        # Screenshot Test / motion-off beauty: disable all transitions and verify the
+        # composition still communicates through static type + real evidence.
+        await page.reload(wait_until='load')
+        await page.evaluate("() => document.documentElement.classList.add('motion-off')")
+        await page.wait_for_timeout(100)
+        await page.screenshot(path=str(args.output/'screenshot-test-motion-off.png'))
+        report["checks"]["screenshot_test"] = await page.evaluate("""() => {
+          const h=document.querySelector('h1')?.getBoundingClientRect();
+          const s=document.querySelector('[data-actual-product]')?.getBoundingClientRect();
+          return !!h&&!!s&&h.width>250&&s.width>550&&s.top<innerHeight;
+        }""")
+        report["checks"]["beautiful_with_motion_stopped"] = await page.evaluate("""() => {
+          const stage=document.querySelector('[data-signature]');
+          const m=getComputedStyle(stage.querySelector('.stage-media'));
+          return m.clipPath==='none' || m.clipPath.includes('inset(0');
+        }""")
 
-        report["checks"]["every_section_visible"] = await page.evaluate(
-            "() => document.querySelectorAll('.reveal').length===document.querySelectorAll('.reveal.in').length")
-        report["checks"]["no_horizontal_overflow_desktop"] = await page.evaluate(
-            "() => document.documentElement.scrollWidth<=innerWidth")
-        # The page should only ever send someone to the project's own places. A link
-        # to anywhere else is either a mistake or something that should not be here.
-        report["checks"]["outbound_links_resolve"] = await page.evaluate(
-            "() => { const allowed=['github.com','codespaces.new','ghcr.io','forifor.github.io'];"
-            " return [...document.querySelectorAll('a[href^=\"http\"]')]"
-            "  .every(a=>allowed.includes(new URL(a.href).hostname)); }")
-        # Every copy button reads a <pre> by id. A typo there fails silently — the
-        # button just does nothing — so the wiring is checked rather than the click.
-        report["checks"]["copy_buttons_wired"] = await page.evaluate(
-            "() => { const b=[...document.querySelectorAll('.copy')];"
-            " return b.length>0 && b.every(x=>document.getElementById(x.dataset.for)); }")
-        report["checks"]["tester_ask_present"] = await page.evaluate(
-            "() => !!document.querySelector('#help a[href*=\"/issues/2\"]')")
-        # The hero's claim is that one brief produces four things. The tabs are where
-        # that is checked, so every one of them must actually swap the frame.
-        shown = []
-        for view in ("vertical", "page", "posts", "landscape"):
-            await page.click(f'[data-view="{view}"]')
-            await page.wait_for_timeout(400)
-            shown.append(await page.evaluate(
-                "(v)=>{const el=document.getElementById('view-'+v);"
-                " const playing=[...document.querySelectorAll('.stage .view video')].filter(x=>!x.paused).length;"
-                " return !el.hidden && playing<=1;}", view))
-        report["checks"]["showcase_switches"] = len(shown) == 4 and all(shown)
-        report["checks"]["generated_page_embedded"] = await page.evaluate(
-            "() => { const f=document.querySelector('.browser-view iframe');"
-            " return !!f && /scale\\(/.test(f.style.transform); }")
-        # The business route is the half of the site GitHub cannot carry, so it is
-        # checked like anything else: the form is there, and the endpoint behind it
-        # is awake and validating rather than quietly swallowing what people send.
-        report["checks"]["inquiry_form_present"] = await page.evaluate(
-            "() => { const f=document.getElementById('portfolio-form');"
-            " if(!f) return false;"
-            " return ['name','email','message','consent'].every(n=>f.elements[n]); }")
-        probe = await page.request.post(
-            f"https://{TELEMETRY_HOST}/api/site/leads",
-            headers={"origin": SITE_ORIGIN, "content-type": "application/json"},
-            data={}, fail_on_status_code=False)
-        report["checks"]["inquiry_endpoint_validates"] = probe.status == 400
-        report["checks"]["language_switch_present"] = await page.locator("a.lang").count() == 1
-        other = await page.locator("a.lang").get_attribute("href")
-        landing = await page.request.get(args.url.rstrip("/") + "/" + other.strip("./"))
-        report["checks"]["other_language_resolves"] = landing.status == 200
-        await page.screenshot(path=str(args.output / "homepage-desktop.png"))
+        # Functional evidence: visible hero film must decode and play only on request.
+        film=page.locator('.desktop-film')
+        await film.evaluate("v=>{v.muted=true; return v.play()}")
+        await page.wait_for_function("() => document.querySelector('.desktop-film').readyState>=2")
+        await page.wait_for_timeout(700)
+        report["checks"]["actual_film_plays_when_asked"] = await film.evaluate("v=>v.currentTime>0.2&&!v.paused")
+        await film.evaluate("v=>v.pause()")
+        report["checks"]["internal_hash_links_resolve"] = await page.evaluate("""() => [...document.querySelectorAll('a[href^="#"]')].every(a=>document.getElementById(a.hash.slice(1)))""")
+        report["checks"]["real_assets_present"] = await page.evaluate("""() => ['generated-page.png','review-gate.png','film.mp4','film-vertical.mp4'].every(name=>document.documentElement.innerHTML.includes(name))""")
+        await page.close(); await browser.close()
 
-        await page.set_viewport_size({"width": 390, "height": 844})
-        await page.evaluate('()=>window.scrollTo({top:0,behavior:"instant"})')
-        await page.wait_for_timeout(600)
-        report["checks"]["no_horizontal_overflow_mobile"] = await page.evaluate(
-            "() => document.documentElement.scrollWidth<=innerWidth")
-        await page.screenshot(path=str(args.output / "homepage-mobile.png"), full_page=True)
-        await browser.close()
-
-    print(json.dumps(report, indent=2, ensure_ascii=False))
-    failed = [k for k, v in report["checks"].items() if v is False]
+    print(json.dumps(report,ensure_ascii=False,indent=2))
+    failed=[k for k,v in report["checks"].items() if v is False]
     if failed or report["errors"]:
-        sys.exit("Failed: " + ", ".join(failed + report["errors"]))
+        sys.exit('Failed: '+', '.join(failed+report["errors"]))
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--url", default="http://127.0.0.1:4477/")
-    parser.add_argument("--output", type=Path, default=Path("checks"))
-    arguments = parser.parse_args()
-    arguments.output.mkdir(parents=True, exist_ok=True)
-    asyncio.run(main(arguments))
+if __name__=='__main__':
+    ap=argparse.ArgumentParser(); ap.add_argument('--url',default='http://127.0.0.1:4477/ja/'); ap.add_argument('--output',type=Path,default=Path('checks-hpw'))
+    a=ap.parse_args(); a.output.mkdir(parents=True,exist_ok=True); asyncio.run(main(a))

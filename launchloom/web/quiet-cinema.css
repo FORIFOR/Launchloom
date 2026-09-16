@@ -1,32 +1,62 @@
-/* Quiet Cinema: a calm editorial studio around one dark product stage. */
-:root{--qc-paper:#f6f5f0;--qc-ink:#20251f;--qc-muted:#62675f;--qc-stage:#171a17;--qc-stage-line:#303530;--qc-accent:#a83b2f;--paper:var(--qc-paper);--ink:var(--qc-ink)}
-body{background:var(--qc-paper);color:var(--qc-ink)}
-.sidebar{background:#efeee8;border-right-color:#d8dad2}
-.topbar{background:color-mix(in srgb,var(--qc-paper) 94%,white 6%);border-bottom-color:#d8dad2}
-main{padding-top:42px}
-.page-heading h1{max-width:18ch;font-weight:550;letter-spacing:-.04em}
-.page-heading p{max-width:46em}
-.studio-card,.detail-card,.panel,.post-card{box-shadow:none;border-color:#d8dad2;border-radius:12px;background:#fffefa}
-.player{background:var(--qc-stage);border-top:1px solid var(--qc-stage-line);border-bottom:1px solid var(--qc-stage-line);padding:20px}
-.player video{background:var(--qc-stage);border-radius:12px}
-.empty-preview{background:var(--qc-stage);border:1px solid var(--qc-stage-line);border-radius:12px;color:#f1efe9}
-.empty-preview .preview-label,.empty-preview p,.empty-preview .empty-play{color:#c7cdc6}
-.empty-preview .preview-ring{border-color:#4a514b}
-.empty-preview .preview-ring:before{border-color:#59635a}
-.empty-preview .preview-ring:after{border-color:#7f594d}
-.empty-preview .preview-dot{background:var(--qc-accent);box-shadow:none}
-.timeline{background:#fffefa}
-.timeline-track{gap:7px}
-.clip{border-radius:7px;background:#e2e4de;color:#5f695e}
-.clip:nth-child(2n){background:#eee6dc;color:#7b604c}
-.rendering-status{background:#f6f5f0f2;border-color:#d8dad2;backdrop-filter:none}
-.post-grid{gap:24px}
-.post-card textarea{background:#f1f0eb;color:#344039;border-radius:8px}
-.button,.button.small,.ratio-switch,.ratio-switch button{border-radius:8px}
-.button.dark{background:#2b302c;border-color:#2b302c}
-.button.dark:hover:not(:disabled){background:var(--qc-accent);border-color:var(--qc-accent)}
-.next-strip{background:#efeee8;border-color:#d8dad2}
-dialog{background:#f6f5f0;box-shadow:0 28px 80px #1114}
-dialog::backdrop{background:#101310b8;backdrop-filter:none}
-@media(max-width:800px){main{padding-top:28px}.player{padding:14px}.studio-card,.detail-card,.panel,.post-card{border-radius:10px}}
-@media(prefers-reduced-motion:reduce){.pipeline-step.current .line{animation:none!important}.button{transition:none!important}}
+/* Quiet Cinema — product UI theme.
+   Calm paper surfaces, one dark product stage, one restrained accent. */
+:root{
+  --paper:#F6F5F0;
+  --card:#FBFAF6;
+  --line:#D8D7CF;
+  --ink:#20251F;
+  --muted:#62685F;
+  --accent:#A83B2F;
+  --green:#566454;
+  --qc-stage:#171A17;
+  --qc-stage-ink:#F5F3EC;
+  --qc-stage-muted:#B8BDB2;
+}
+body{background:var(--paper);color:var(--ink)}
+.sidebar{background:var(--paper);border-right-color:var(--line)}
+.workspace-switch{background:transparent;border-color:var(--line)}
+.workspace-avatar{background:#ECE9E1;color:#5E625A}
+.sidebar nav button{color:#72766E;border-left:2px solid transparent;border-radius:0}
+.sidebar nav button.active{background:transparent;color:var(--ink);border-left-color:var(--accent)}
+.sidebar nav button.active>span{color:var(--accent)}
+.sidebar-note{background:transparent;border-color:var(--line);border-radius:12px}
+.mini-orbit{display:none}
+.topbar{background:rgba(246,245,240,.96)}
+.local-badge{color:#6E746B}
+.button{border-radius:8px;background:transparent;border-color:var(--line);color:var(--ink)}
+.button:hover:not(:disabled){background:#EEECE5}
+.button.dark{background:var(--accent);border-color:var(--accent);color:#FFF9F4}
+.button.dark:hover:not(:disabled){background:#8F3027;border-color:#8F3027}
+.campaign-bar{background:transparent;border-inline:0;border-radius:0;padding-inline:0}
+.tiny-square{background:var(--accent);border-radius:3px}
+.pipeline-step.current .line{background:var(--accent);animation:none}
+.pipeline-step.done .line{background:#8A9684}
+.pipeline-step.current .step-label{color:var(--accent)}
+.studio-card,.detail-card,.panel{background:transparent;border-color:var(--line);box-shadow:none}
+.workbench-grid{grid-template-columns:minmax(0,1.75fr) minmax(280px,.72fr);gap:28px}
+.player{background:var(--qc-stage);border-radius:16px;margin:14px;min-height:360px;padding:24px;overflow:hidden}
+.player video{background:#0E100E;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.24)}
+.player.portrait video{background:#0E100E}
+.empty-preview{background:var(--qc-stage);border-radius:16px;color:var(--qc-stage-ink)}
+.empty-preview .preview-label,.empty-preview p,.empty-preview .empty-play{color:var(--qc-stage-muted)}
+.preview-ring,.preview-ring:before,.preview-ring:after,.empty-preview .preview-dot{display:none}
+.rendering-status{background:rgba(246,245,240,.96);backdrop-filter:none;border-color:#D9D6CD;color:#5E655A}
+.timeline-track{gap:2px}
+.clip{border-radius:3px;background:#E5E2DA;color:#525850}
+.clip:nth-child(2n),.clip:nth-child(3n){background:#ECE9E2;color:#5E625C}
+.detail-card{border-inline:0;border-bottom:0;border-radius:0;padding-inline:0}
+.detail-card+.detail-card{border-top:1px solid var(--line);margin-top:18px;padding-top:24px}
+.detail-row{border-top-color:var(--line)}
+.next-strip{background:transparent;border-inline:0;border-radius:0;padding-inline:0}
+.post-grid{grid-template-columns:minmax(0,1fr);max-width:900px}
+.post-card{background:transparent;border-inline:0;border-bottom:0;border-radius:0;padding:24px 0}
+.post-card+.post-card{border-top:1px solid var(--line)}
+.post-card textarea{background:#EEECE5;color:var(--ink);border-radius:8px}
+.metric{border-inline:0;border-bottom:0;border-radius:0;padding-inline:0}
+dialog{background:var(--paper);border-color:var(--line);box-shadow:0 32px 100px rgba(23,26,23,.22)}
+dialog::backdrop{background:rgba(23,26,23,.62);backdrop-filter:none}
+.production-entry{border-top:1px solid var(--line);padding-top:18px}.production-entry span{color:var(--muted)}
+:where(button,a,input,textarea,select,summary):focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media(max-width:1150px){.workbench-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:800px){.sidebar{background:var(--paper)}.player{margin:8px 0;padding:14px;border-radius:14px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}

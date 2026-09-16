@@ -11,6 +11,9 @@ from .production import initial_plan, validate_plan, revision, build_bundle
 
 
 def register_production_routes(app):
+    if getattr(app.state, "production_routes_registered", False):
+        return
+    app.state.production_routes_registered = True
     db, settings = app.state.store, app.state.settings
     lock = threading.Lock()
 
