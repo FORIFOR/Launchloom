@@ -69,14 +69,15 @@ def main():
                     page.locator('#editor').wait_for(state='visible')
                     assert 'campaign='+first['id'] in page.url
                     assert page.locator('#campaign').input_value()==first['id']
+                    assert '構成を保存すると' in page.locator('#execution-root').inner_text()
+                    page.locator('#title').fill('Launchloom — 制作から公開前確認まで')
+                    page.locator('#save').click()
+                    page.wait_for_function("() => document.querySelector('#save-state').textContent.includes('保存済み')")
                     page.locator('#execution-root .execution-panel').wait_for()
                     assert page.get_by_role('button',name='Seedanceで生成').is_disabled()
                     assert page.get_by_role('button',name='JSXを改善').is_disabled()
                     assert page.get_by_role('button',name='AEPを作成').is_disabled()
                     assert page.get_by_role('button',name='aerender → 完成版').is_disabled()
-                    page.locator('#title').fill('Launchloom — 制作から公開前確認まで')
-                    page.locator('#save').click()
-                    page.wait_for_function("() => document.querySelector('#save-state').textContent.includes('保存済み')")
                     with page.expect_download() as download:
                         page.locator('#export').click()
                     assert download.value.suggested_filename=='launchloom-production.zip'
