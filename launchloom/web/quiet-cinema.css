@@ -1,0 +1,32 @@
+/* Quiet Cinema: a calm editorial studio around one dark product stage. */
+:root{--qc-paper:#f6f5f0;--qc-ink:#20251f;--qc-muted:#62675f;--qc-stage:#171a17;--qc-stage-line:#303530;--qc-accent:#a83b2f;--paper:var(--qc-paper);--ink:var(--qc-ink)}
+body{background:var(--qc-paper);color:var(--qc-ink)}
+.sidebar{background:#efeee8;border-right-color:#d8dad2}
+.topbar{background:color-mix(in srgb,var(--qc-paper) 94%,white 6%);border-bottom-color:#d8dad2}
+main{padding-top:42px}
+.page-heading h1{max-width:18ch;font-weight:550;letter-spacing:-.04em}
+.page-heading p{max-width:46em}
+.studio-card,.detail-card,.panel,.post-card{box-shadow:none;border-color:#d8dad2;border-radius:12px;background:#fffefa}
+.player{background:var(--qc-stage);border-top:1px solid var(--qc-stage-line);border-bottom:1px solid var(--qc-stage-line);padding:20px}
+.player video{background:var(--qc-stage);border-radius:12px}
+.empty-preview{background:var(--qc-stage);border:1px solid var(--qc-stage-line);border-radius:12px;color:#f1efe9}
+.empty-preview .preview-label,.empty-preview p,.empty-preview .empty-play{color:#c7cdc6}
+.empty-preview .preview-ring{border-color:#4a514b}
+.empty-preview .preview-ring:before{border-color:#59635a}
+.empty-preview .preview-ring:after{border-color:#7f594d}
+.empty-preview .preview-dot{background:var(--qc-accent);box-shadow:none}
+.timeline{background:#fffefa}
+.timeline-track{gap:7px}
+.clip{border-radius:7px;background:#e2e4de;color:#5f695e}
+.clip:nth-child(2n){background:#eee6dc;color:#7b604c}
+.rendering-status{background:#f6f5f0f2;border-color:#d8dad2;backdrop-filter:none}
+.post-grid{gap:24px}
+.post-card textarea{background:#f1f0eb;color:#344039;border-radius:8px}
+.button,.button.small,.ratio-switch,.ratio-switch button{border-radius:8px}
+.button.dark{background:#2b302c;border-color:#2b302c}
+.button.dark:hover:not(:disabled){background:var(--qc-accent);border-color:var(--qc-accent)}
+.next-strip{background:#efeee8;border-color:#d8dad2}
+dialog{background:#f6f5f0;box-shadow:0 28px 80px #1114}
+dialog::backdrop{background:#101310b8;backdrop-filter:none}
+@media(max-width:800px){main{padding-top:28px}.player{padding:14px}.studio-card,.detail-card,.panel,.post-card{border-radius:10px}}
+@media(prefers-reduced-motion:reduce){.pipeline-step.current .line{animation:none!important}.button{transition:none!important}}
