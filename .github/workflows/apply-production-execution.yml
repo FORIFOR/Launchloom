@@ -1,0 +1,36 @@
+name: Apply production execution patch
+on:
+  push:
+    branches: [feat/production-execution-20260917]
+    paths:
+      - '.github/workflows/apply-production-execution.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Apply transferred patch
+        run: |
+          cat .launchloom-patch/part-* > /tmp/production-execution.patch
+          git apply --check --binary /tmp/production-execution.patch
+          git apply --binary /tmp/production-execution.patch
+          rm -rf .launchloom-patch .github/workflows/apply-production-execution.yml
+      - name: Validate implementation
+        run: |
+          sudo apt-get update >/dev/null && sudo apt-get install -y ffmpeg fonts-noto-cjk >/dev/null
+          python -m pip install -e '.[dev]' >/dev/null
+          python -m compileall -q launchloom
+          for file in launchloom/web/*.js; do node --check "$file"; done
+          python -m pytest -q
+      - name: Commit clean implementation
+        run: |
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: add guarded production execution'
+          git push origin HEAD:feat/production-execution-20260917
