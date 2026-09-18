@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from .production import initial_plan, validate_plan, revision, build_bundle
-from .creative import creative_revision, from_production_plan
+from .creative_api import register_creative_routes
 
 
 def register_production_routes(app):
@@ -36,6 +36,8 @@ def register_production_routes(app):
         plan = validate_plan(json.loads(path.read_text(encoding='utf-8'))) if path.exists() else initial_plan(campaign['brief'])
         return path, {'plan': plan, 'revision': revision(plan), 'saved': path.exists()}
 
+    register_creative_routes(app, current)
+
     @app.get('/production')
     async def production_page():
         return FileResponse(Path(__file__).parent / 'web' / 'production.html')
@@ -43,18 +45,6 @@ def register_production_routes(app):
     @app.get('/api/campaigns/{cid}/production')
     async def get_production(cid: str):
         return current(cid)[1]
-
-    @app.get('/api/campaigns/{cid}/creative-spec')
-    async def get_creative_spec(cid: str):
-        _, data = current(cid)
-        campaign = db.campaign(cid)
-        spec = from_production_plan(data['plan'], campaign['brief'])
-        return {
-            'spec': spec.model_dump(),
-            'revision': creative_revision(spec),
-            'production_revision': data['revision'],
-            'derived': True,
-        }
 
     @app.put('/api/campaigns/{cid}/production')
     async def save_production(cid: str, request: Request):
@@ -73,6 +63,9 @@ def register_production_routes(app):
         except (ValueError, TypeError) as e:
             raise HTTPException(422, str(e)) from e
         with lock:
+            # A render may have started while this request body was streaming.
+            if cid in getattr(app.state, 'production_execution_busy', set()):
+                raise HTTPException(409, 'A production action is running; keep the current plan until it completes.')
             path, previous = current(cid)
             if data['expected_revision'] != previous['revision']:
                 raise HTTPException(409, 'Plan changed in another window. Reload before overwriting.')
