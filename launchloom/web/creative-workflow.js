@@ -87,6 +87,11 @@ export function mountCreativeWorkflow({state, api, notice, applySaved, render, t
     try {
       const result=await api(`${endpoint(s.cid)}/creative-proposals/${p.id}/apply`,'POST',{fingerprint:p.fingerprint,content_reviewed:true,...refs(s)});
       if(state().cid!==s.cid)return;
+      if(state().dirty || state().data.revision!==s.data.revision) {
+        proposal=null;
+        notice(t('確認した案は保存されましたが、その間の手元の編集は残しています。再読み込みで保存版を確認してください。','The reviewed proposal was saved, but your newer local edits are preserved. Reload to reconcile.'),true);
+        return;
+      }
       proposal=null;await applySaved(result);
       message(t('確認した変更を保存しました。採用済み動画や既存投稿は変わりません。','Reviewed changes saved. Adopted films and existing posts are unchanged.'));
       if(andRender){working=false;await render(false);}
@@ -99,9 +104,9 @@ export function mountCreativeWorkflow({state, api, notice, applySaved, render, t
     if(!$('kit-reviewed').checked||!$('rights').checked)return;
     message(t('同じ制作版から動画・LP・字幕・SNS下書きをまとめています。','Packaging video, page, captions and social drafts from the same revision.'));
     const result=await api(`${endpoint(s.cid)}/creative-renders/${s.job.id}/kit`,'POST',{...refs(s),content_reviewed:true,rights_confirmed:true});
-    if(state().cid!==s.cid)return;
+    if(state().cid!==s.cid || state().dirty || state().data.revision!==s.data.revision || state().job?.id!==s.job.id)return;
     $('kit-download').href=result.download_url;$('kit-preview').href=result.preview_url;$('kit-links').hidden=false;
-    message(t('公開パッケージを作成しました。サイト公開やSNS送信はしていません。','Launch package created. No deployment or social publication was performed。'));
+    message(t('公開パッケージを作成しました。サイト公開やSNS送信はしていません。','Launch package created. No deployment or social publication was performed.'));
   });
   for(const id of ['ai-consent','vision-consent','kit-reviewed','proposal-reviewed'])$(id).onchange=refresh;
   return {refresh};

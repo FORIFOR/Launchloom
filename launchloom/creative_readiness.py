@@ -28,4 +28,6 @@ def readiness(settings: Settings) -> dict:
 
 
 if __name__=='__main__':
+    from .cli import load_env
+    load_env()
     print(json.dumps(readiness(Settings()),ensure_ascii=False,indent=2))
