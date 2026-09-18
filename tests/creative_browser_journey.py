@@ -72,7 +72,8 @@ def main():
                     browser = playwright.chromium.launch(headless=True, executable_path=executable,
                         channel=None if executable else os.getenv("CREATIVE_BROWSER_CHANNEL", "chrome"),
                         args=["--no-sandbox"])
-                    page = browser.new_page(viewport={"width": 1440, "height": 1100}, locale="ja-JP")
+                    context = browser.new_context(viewport={"width": 1440, "height": 1100}, locale="ja-JP")
+                    page = context.new_page()
                     errors = []; page.on("pageerror", lambda error: errors.append(str(error)))
                     page.goto(f"{address}/creative?campaign={cid}")
                     expect(page.locator("#access-form")).to_be_visible()
@@ -128,6 +129,7 @@ def main():
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                     page.screenshot(path=str(output / "creative-mobile.png"), full_page=True)
                     assert not errors, errors
+                    context.close()
                     browser.close()
                     (output / "result.json").write_text(json.dumps({
                         "passed": True, "real_ffmpeg": True, "real_api": True,
