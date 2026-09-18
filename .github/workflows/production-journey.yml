@@ -1,0 +1,107 @@
+name: Production journey
+on:
+  pull_request:
+    paths: ['launchloom/**', 'tests/**', 'homepage/**', '.github/workflows/production-journey.yml']
+  push:
+    branches: [main]
+    paths: ['launchloom/**', 'tests/**', 'homepage/**', '.github/workflows/production-journey.yml']
+permissions:
+  contents: read
+concurrency:
+  group: production-journey-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: git archive --format=tar HEAD > source.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-source-${{ github.sha }}
+          path: source.tar
+          retention-days: 1
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m compileall -q launchloom
+      - name: Check every application JavaScript module
+        run: |
+          for file in launchloom/web/*.js; do node --check "$file"; done
+      - run: python -m pytest -q
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - run: python -m pip install -e .
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify the real browser-to-API production journey
+        env:
+          LAUNCHLOOM_BROWSER_ARTIFACTS: browser-artifacts
+        run: python tests/browser_journey.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-browser-${{ github.sha }}
+          path: browser-artifacts
+          if-no-files-found: ignore
+          retention-days: 7
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test, browser]
+    concurrency:
+      group: launchloom-post-examples
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: public-site
+      - name: Check that this is still the latest main revision
+        id: revision
+        run: |
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          test -n "$latest"
+          if [ "$latest" = "$GITHUB_SHA" ]; then echo 'current=true' >> "$GITHUB_OUTPUT"; else echo 'current=false' >> "$GITHUB_OUTPUT"; fi
+      - name: Sync reviewed homepage, premium assets, and package sample
+        if: steps.revision.outputs.current == 'true'
+        run: |
+          cp homepage/index.html public-site/index.html
+          cp homepage/ja/index.html public-site/ja/index.html
+          cp homepage/horio-premium.css public-site/horio-premium.css
+          cp homepage/horio-premium.js public-site/horio-premium.js
+          cp homepage/production-sample.zip public-site/production-sample.zip
+      - name: Commit site without modifying videos or other published files
+        if: steps.revision.outputs.current == 'true'
+        working-directory: public-site
+        run: |
+          git add -- index.html ja/index.html horio-premium.css horio-premium.js production-sample.zip
+          git diff --cached --exit-code && exit 0
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Sync reviewed production journey from ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages
+      - name: Request the existing Pages build
+        if: steps.revision.outputs.current == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status:.status}'

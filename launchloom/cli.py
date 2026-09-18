@@ -27,6 +27,8 @@ def main():
     sub.add_parser('doctor');sub.add_parser('demo')
     check=sub.add_parser('selftest',help='build the bundled sample and write a report you can paste into an issue')
     check.add_argument('--keep',type=Path,metavar='DIR',help='also copy the films and the kit here')
+    proof=sub.add_parser('first-proof',help='build the bundled synthetic sample using the real pipeline and emit verification evidence')
+    proof.add_argument('--keep',type=Path,metavar='DIR',help='also copy the films and the kit here')
     args=parser.parse_args();s=Settings()
     if args.command=='doctor':
         import importlib.metadata
@@ -45,7 +47,7 @@ def main():
         print('Chromium sandbox:', 'DISABLED — trusted staging only' if s.no_sandbox else 'enabled')
         print('Live publishing:',s.enable_live_publish,'| Paid video generation:',s.enable_paid_generation)
         return
-    if args.command=='selftest':
+    if args.command in {'selftest','first-proof'}:
         from .selftest import main as selftest
         sys.exit(selftest(s,args.keep))
     s.prepare()
@@ -66,6 +68,7 @@ def main():
     if args.port:s.port=args.port
     from .server import create_app
     import uvicorn
-    print(f'\nLaunchloom → http://{s.host}:{s.port}\nLocal access key: {s.token}\nData: {s.data_dir}\n',flush=True)
+    print(f'\nLaunchloom → http://{s.host}:{s.port}\nProduction board → http://{s.host}:{s.port}/production\nLocal access key: {s.token}\nData: {s.data_dir}\n',flush=True)
     if s.host not in {'127.0.0.1','localhost'}:print('Network binding enabled: use TLS, host allowlisting and isolation. This is a single-operator alpha.',flush=True)
-    uvicorn.run(create_app(s),host=s.host,port=s.port,workers=1,access_log=False)
+    app = create_app(s)
+    uvicorn.run(app,host=s.host,port=s.port,workers=1,access_log=False)

@@ -25,6 +25,10 @@ from .providers import PostizPublisher, validate_publication, receipt_ids, match
 from .security import valid_id,safe_path,file_sha,tracking_token,conversion_secret,signed_body,scrub_error
 from .rendering import validate_media, normalize_upload
 from .deploy import plan as deployment_plan, publish as deploy_site
+from .finished_films import list_films, checked_film, FINAL_MEDIA, register_finished_routes
+from .production_api import register_production_routes
+from .production_execution import register_production_execution_routes
+from .planning import make_posts
 
 WEB=Path(__file__).parent/'web'
 
@@ -111,7 +115,12 @@ def create_app(settings: Settings|None=None,run_worker=True):
           'channel_settings':CHANNEL_SETTINGS,'channel_limits':CHANNEL_LIMITS,
           'max_posts_per_channel_per_day':s.max_posts_per_channel_per_day,
           'min_post_gap_minutes':s.min_post_gap_minutes,
-          'deploy_target_configured':bool(s.deploy_dir)}
+          'deploy_target_configured':bool(s.deploy_dir),
+          'production_execution':{
+              'seedance':bool(s.enable_paid_generation and s.fal_key and s.budget_usd > 0),
+              'codex':bool(s.enable_local_agents and s.codex_executable),
+              'claude':bool(s.enable_local_agents and s.claude_executable),
+              'after_effects':bool(s.enable_after_effects and (s.afterfx_executable or s.aerender_executable))}}
     @app.get('/api/campaigns')
     async def list_campaigns():return db.campaigns()
     @app.post('/api/campaigns',status_code=201)
@@ -132,6 +141,10 @@ def create_app(settings: Settings|None=None,run_worker=True):
         if c['state']=='ready':
             c['outputs']={name:f'/artifacts/{cid}/{name}' for name in ['landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','launch-kit.zip','site/index.html','storyboard.json','manifest.json','qa.json','posts.json']}
             c['posts']=json.loads((r/'posts.json').read_text());c['qa']=json.loads((r/'qa.json').read_text());c['manifest']=json.loads((r/'manifest.json').read_text())
+        c['final_films']=list_films(db,cid)
+        for film in c['final_films']: c['outputs'][film['media']]=film['url']
+        if c['final_films'] and c['state']!='ready':
+            c['posts']=make_posts(Brief.model_validate(c['brief']),cid)
         return c
     @app.post('/api/campaigns/{cid}/build',status_code=202)
     async def enqueue(cid:str,options:BuildOptions):
@@ -166,7 +179,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/campaigns/{cid}/release')
     async def release(cid:str,request:Request):
         c=campaign(cid)
-        if c['state']!='ready':raise HTTPException(409,'Finish the campaign before releasing it')
+        if c['state']!='ready' and not list_films(db,cid):raise HTTPException(409,'Finish or import a film before releasing it')
         data=await request.json()
         if not data.get('confirmed'):raise HTTPException(422,'Releasing a campaign is an explicit confirmation')
         db.log(cid,'release','キャンペーンを公開可能にしました。個々の投稿は、引き続き投稿ごとの承認が必要です。')
@@ -221,10 +234,15 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/campaigns/{cid}/publications',status_code=201)
     async def prepare_publication(cid:str,draft:PublicationDraft):
         c=campaign(cid)
-        if c['state']!='ready':raise HTTPException(409,'Complete rendering and quality checks first')
-        payload=draft.model_dump();file=root(cid)/draft.media
+        payload=draft.model_dump()
+        if FINAL_MEDIA.fullmatch(draft.media):
+            film,file=checked_film(db,s.data_dir,cid,draft.media)
+            payload['ai_generated']=bool(film['ai_generated'])
+        else:
+            if c['state']!='ready':raise HTTPException(409,'Complete rendering or choose an imported final film first')
+            file=root(cid)/draft.media
+            payload['ai_generated']=c['options']['film_provider']!='local'
         payload['media_sha256']=file_sha(file)
-        payload['ai_generated']=c['options']['film_provider']!='local'
         payload['publisher_base']=s.postiz_base
         validate_publication(payload)
         return db.create_publication(cid,payload)
@@ -237,6 +255,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.post('/api/publications/{pid}/approve')
     async def approve(pid:str,approval:Approval):
         p=publication(pid)
+        if FINAL_MEDIA.fullmatch(p['payload']['media']):checked_film(db,s.data_dir,p['campaign_id'],p['payload']['media'])
         if file_sha(root(p['campaign_id'])/p['payload']['media'])!=p['payload']['media_sha256']:raise HTTPException(409,'Media changed; create a new approval')
         check_pacing(p['campaign_id'],p['payload'],pid)
         return db.approve(pid,approval.fingerprint)
@@ -247,6 +266,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
         if not campaign(p['campaign_id'])['released']:raise HTTPException(409,'Release the campaign before anything is sent. Finishing a film is not a decision to publish it.')
         if p['payload']['publisher_base']!=s.postiz_base:raise HTTPException(409,'Publisher destination changed; create a new approval')
         target=root(p['campaign_id'])/p['payload']['media']
+        if FINAL_MEDIA.fullmatch(p['payload']['media']):_,target=checked_film(db,s.data_dir,p['campaign_id'],p['payload']['media'])
         if file_sha(target)!=p['payload']['media_sha256']:raise HTTPException(409,'Approved media was changed')
         validate_publication(p['payload'])
         publisher=PostizPublisher(s)
@@ -401,8 +421,12 @@ def create_app(settings: Settings|None=None,run_worker=True):
         r=root(cid)
         # Raw recordings, input audio, render logs and partial files are never served.
         allowed={'landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','launch-kit.zip','storyboard.json','manifest.json','qa.json','posts.json','social-copy.md','captions.srt','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg','review-frame.jpg'}
-        if filename not in allowed:raise HTTPException(404,'Asset not exposed')
-        path=safe_path(r,filename)
+        if FINAL_MEDIA.fullmatch(filename):
+            try: _,path=checked_film(db,s.data_dir,cid,filename)
+            except ValueError as e:raise HTTPException(404,'Final film unavailable') from e
+        else:
+            if filename not in allowed:raise HTTPException(404,'Asset not exposed')
+            path=safe_path(r,filename)
         if not path.is_file():raise HTTPException(404,'Asset is not ready')
         return FileResponse(path,filename=path.name if filename.endswith('.zip') else None)
     @app.get('/demo-app')
@@ -411,4 +435,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
     @app.get('/')
     async def index():return FileResponse(WEB/'index.html')
     app.mount('/static',StaticFiles(directory=WEB),name='static')
+    register_production_routes(app)
+    register_production_execution_routes(app)
+    register_finished_routes(app)
     return app
