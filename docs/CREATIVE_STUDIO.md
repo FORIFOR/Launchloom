@@ -89,7 +89,11 @@ API keys, cloud dependencies, model charges or external-data consent are introdu
 `python -m pytest -q tests/test_creative.py tests/test_creative_rendering.py tests/test_creative_api.py`
 
 `python tests/creative_browser_journey.py` drives the real localhost application,
-including login, edit/save, FFmpeg rendering, a portrait-only rebuild, adoption and
+including login, edit/save, FFmpeg rendering, decoded Chrome playback, a portrait-only rebuild, adoption and
 mobile overflow checks. It uses a labelled typography fixture, not a claimed real
 customer campaign. CI retains desktop/mobile screenshots and a result JSON. Neither
 this test nor the standard renderer contacts a provider, Adobe or a social account.
+
+The browser journey uses official Chrome for H.264/AAC playback verification (install
+Chrome or set `CHROMIUM_EXECUTABLE` to a codec-capable binary). It requires decoded
+frames and advancing playback time; showing a video element is not enough.

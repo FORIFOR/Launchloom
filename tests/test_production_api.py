@@ -6,13 +6,17 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 from launchloom.production_api import register_production_routes
+from launchloom.store import Store
 
 
 @pytest.fixture
 def setup(tmp_path):
     app = FastAPI()
     campaign = {'brief': {'name': 'Test', 'tagline': 'A film', 'features': []}, 'released': False, 'state': 'draft'}
-    app.state.store = SimpleNamespace(campaign=lambda cid: campaign if cid == 'abc123' else None)
+    # Production registration now includes the persisted creative routes. Keep
+    # campaign lookup isolated, but use the real SQLite contract for migrations.
+    app.state.store = Store(tmp_path / 'fixture.sqlite3')
+    app.state.store.campaign = lambda cid: campaign if cid == 'abc123' else None
     app.state.settings = SimpleNamespace(data_dir=tmp_path)
     @app.middleware('http')
     async def auth(request, call_next):

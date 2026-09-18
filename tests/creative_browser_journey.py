@@ -62,8 +62,12 @@ def main():
                     "production_revision": state["production_revision"]})
                 response.raise_for_status()
                 with sync_playwright() as playwright:
-                    executable = os.getenv("CHROMIUM_EXECUTABLE") or shutil.which("chromium")
-                    browser = playwright.chromium.launch(headless=True, executable_path=executable, args=["--no-sandbox"])
+                    # Official Chrome includes the H.264/AAC codecs that the product exports.
+                    # The workflow uses the stock runner browser; no policies are bypassed.
+                    executable = os.getenv("CHROMIUM_EXECUTABLE")
+                    browser = playwright.chromium.launch(headless=True, executable_path=executable,
+                        channel=None if executable else os.getenv("CREATIVE_BROWSER_CHANNEL", "chrome"),
+                        args=["--no-sandbox"])
                     page = browser.new_page(viewport={"width": 1440, "height": 1100}, locale="ja-JP")
                     errors = []; page.on("pageerror", lambda error: errors.append(str(error)))
                     page.goto(f"{address}/creative?campaign={cid}")
@@ -75,8 +79,26 @@ def main():
                     page.locator("#render-all").click()
                     expect(page.locator("#message")).to_contain_text("レンダーが完了", timeout=60000)
                     expect(page.locator("#film")).to_be_visible()
-                    page.locator("#film").evaluate("el => { el.currentTime = 0.4; }")
-                    page.wait_for_timeout(200)
+                    # A visible <video> is not proof of playback. Require decoded frames
+                    # and advancing time before taking the screenshot or adopting.
+                    try:
+                        page.locator("#film").evaluate("""el => {
+                            el.muted = true;
+                            return Promise.race([el.play(), new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error('Video did not start')), 15000))]);
+                        }""")
+                        page.wait_for_function("""() => {
+                            const v = document.querySelector('#film');
+                            return v.readyState >= 2 && !v.error && v.videoWidth === 1280 && v.currentTime > 0.25;
+                        }""", timeout=20000)
+                        page.locator("#film").evaluate("el => { el.pause(); }")
+                    except Exception:
+                        (output / "video-diagnostic.json").write_text(json.dumps(page.locator("#film").evaluate("""v => ({
+                            readyState:v.readyState, networkState:v.networkState, videoWidth:v.videoWidth,
+                            error:v.error ? {code:v.error.code, message:v.error.message} : null
+                        })"""), indent=2))
+                        page.screenshot(path=str(output / "creative-failed-playback.png"), full_page=True)
+                        raise
                     page.screenshot(path=str(output / "creative-desktop.png"), full_page=True)
                     page.locator("#portrait").click()
                     page.locator("#instruction").fill("文字を上へ")
@@ -105,8 +127,8 @@ def main():
                     (output / "result.json").write_text(json.dumps({
                         "passed": True, "real_ffmpeg": True, "real_api": True,
                         "portrait_only_rebuild": rebuilt, "adoption_count": 1,
-                        "publications": 0, "page_errors": errors}, ensure_ascii=False, indent=2))
-                    print("PASS: real UI/API/FFmpeg; portrait-only rebuild; adoption; mobile overflow; no publication")
+                        "publications": 0, "decoded_browser_playback": True, "page_errors": errors}, ensure_ascii=False, indent=2))
+                    print("PASS: real UI/API/FFmpeg and decoded browser playback; portrait-only rebuild; adoption; mobile overflow; no publication")
         finally:
             server.should_exit = True; thread.join(timeout=15)
 
