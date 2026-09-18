@@ -25,6 +25,10 @@ from launchloom.server import create_app
 from launchloom.creative import BrandProfile, CreativeLayer, CreativeScene, CreativeSpec
 
 
+def extra_checks(page, client, cid, output):
+    """Optional extension exercised separately by the workflow browser suite."""
+
+
 def main():
     output = Path(os.getenv("CREATIVE_BROWSER_ARTIFACTS", "creative-browser-artifacts"))
     output.mkdir(exist_ok=True, parents=True)
@@ -118,6 +122,7 @@ def main():
                     assert len(client.get(f"/api/campaigns/{cid}/final-films").json()["items"]) == 1
                     assert app.state.store.campaign(cid)["released"] == 0
                     assert app.state.store.publications(cid) == []
+                    extra_checks(page, client, cid, output)
                     page.set_viewport_size({"width": 390, "height": 844})
                     page.locator("#layout-mode").click()
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")

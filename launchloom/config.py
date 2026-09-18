@@ -43,6 +43,12 @@ class Settings:
     afterfx_executable: str | None = field(default_factory=lambda: os.getenv("AFTERFX_EXECUTABLE") or None)
     aerender_executable: str | None = field(default_factory=lambda: os.getenv("AERENDER_EXECUTABLE") or shutil.which("aerender"))
 
+    # Optional creative assistant. Separate from the legacy LLM planning switch.
+    enable_creative_ai: bool = field(default_factory=lambda: os.getenv("ENABLE_CREATIVE_AI") == "1")
+    enable_creative_vision: bool = field(default_factory=lambda: os.getenv("ENABLE_CREATIVE_VISION") == "1")
+    creative_ai_json_mode: bool = field(default_factory=lambda: os.getenv("CREATIVE_AI_JSON_MODE", "1") == "1")
+    creative_ai_max_tokens: int = field(default_factory=lambda: int(os.getenv("CREATIVE_AI_MAX_TOKENS", "2400")))
+
     @property
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.port}"
@@ -58,6 +64,8 @@ class Settings:
                 self.token = secrets.token_urlsafe(32)
                 token_file.write_text(self.token)
                 token_file.chmod(0o600)
+        if not 256 <= self.creative_ai_max_tokens <= 8000:
+            raise ValueError("CREATIVE_AI_MAX_TOKENS must be 256–8000")
         if len(self.token) < 24:
             raise ValueError("LAUNCHLOOM_TOKEN must have at least 24 characters")
         if not 10 <= self.production_execution_timeout_seconds <= 3600:

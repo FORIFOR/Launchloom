@@ -24,6 +24,7 @@ jobs:
       - run: python -m playwright install --with-deps chromium
       - run: node --check launchloom/web/creative-studio.js && node --check launchloom/web/creative-entry.js
       - run: python tests/creative_browser_journey.py
+      - run: python tests/creative_workflow_browser_journey.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

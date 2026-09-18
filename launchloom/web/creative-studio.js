@@ -1,3 +1,4 @@
+import {mountCreativeWorkflow} from './creative-workflow.js';
 const $ = (id) => document.getElementById(id);
 const ja = (localStorage.getItem('launchloom-creative-language') || navigator.language || 'en').startsWith('ja');
 const t = (j, e) => ja ? j : e;
@@ -53,6 +54,7 @@ function controls() {
   $('move-left').disabled = index === 0;
   $('move-right').disabled = index === spec.scenes.length - 1;
   $('progress').hidden = !pending;
+  workflow.refresh();
 }
 function refreshPreview() {
   if (!spec) return;
@@ -294,4 +296,13 @@ $('try-sample').onclick = async () => {
   } catch (error) { if (token === generation) { pending = false; $('try-sample').disabled = false; if (spec) controls(); notice(error.message, true); } }
 };
 window.addEventListener('beforeunload', (event) => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
+const workflow = mountCreativeWorkflow({
+  state: () => ({cid, data, spec, dirty, pending, job:selectedJob, output}),
+  api, notice, render, t,
+  applySaved: async(saved) => {
+    data = {...data, ...saved, derived:false, source_changed:false};
+    spec = structuredClone(saved.spec); dirty = false; view = 'layout';
+    $('reviewed').checked = false; draw();
+  }
+});
 refreshCampaigns().catch((error) => notice(error.message, true));

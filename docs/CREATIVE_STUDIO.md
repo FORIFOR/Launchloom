@@ -47,18 +47,20 @@ remain available and are not rewritten by creative saves.
 
 ## Boundaries, intentionally visible
 
-This is not a general natural-language editor, a new external video-generation
-adapter, an AE replacement, or an automatic aesthetic judge. Brand prose is stored
-for creative handoff; the standard renderer applies preset/accent but does not
-interpret free-form prose. The standard renderer currently supports one video,
+The standard renderer is not an AE replacement or an automatic aesthetic judge.
+An optional free-form AI editor now proposes typed changes through a review gate
+(see CREATIVE_WORKFLOWS.md); it does not generate arbitrary editing code. Brand
+prose is stored for creative handoff and may inform the opt-in AI proposal; the
+standard renderer itself applies preset/accent rather than interpreting prose. The standard renderer currently supports one video,
 up to three text layers and a preset background per scene. Separate image/audio
 layers, custom cameras and cursor/action tracking require another renderer and
 are rejected rather than silently omitted. Existing mixed audio inside a recording
 is preserved. Font coverage remains an operator/environment responsibility.
 
-The editorial specs and old production plans are separate revisions; this release
-is not yet a single editable source driving every LP, social draft and renderer.
-V2 edits do not automatically regenerate the legacy LP, launch kit or social copy.
+The editorial specs and old production plans remain separate revisions. New v2
+launch packages derive their LP, scene captions and social drafts from the same
+rendered creative revision. V2 edits never rewrite the legacy LP, kit or published
+posts; package creation is an explicit reviewed action.
 The prior `changed_scene_ids()` function is only a local payload diff; use the full
 render key for cache reuse. Generated video is never eligible as proof. A recording
 and an approved feature link do not independently prove an advertising claim's truth.
@@ -81,8 +83,10 @@ are not a tamper-proof ledger against the machine owner.
 
 All inherit the local session/bearer authentication and cross-origin write guard.
 Requests are bounded to 128 KB. Writes and renders bind exact creative/production
-revisions; adopting an older composition is rejected. No new publish permissions,
-API keys, cloud dependencies, model charges or external-data consent are introduced.
+revisions; adopting an older composition is rejected. Local rendering, measured
+QA, repair proposals and package creation require no cloud key or provider charge.
+The additional AI editing and sampled-frame review actions require explicit
+configuration and data/charge consent. Publishing remains a separate approval.
 
 ## Verification
 
@@ -97,3 +101,11 @@ this test nor the standard renderer contacts a provider, Adobe or a social accou
 The browser journey uses official Chrome for H.264/AAC playback verification (install
 Chrome or set `CHROMIUM_EXECUTABLE` to a codec-capable binary). It requires decoded
 frames and advancing playback time; showing a video element is not enough.
+
+## Reviewed creative workflows
+
+The optional free-form AI editor, bounded typography repair, sampled-frame review
+and same-revision LP/social/captions package are now documented in
+[CREATIVE_WORKFLOWS.md](CREATIVE_WORKFLOWS.md). AI and frame transfer remain opt-in;
+local rendering/QA/package creation require no cloud key. The original limitations
+above apply to the standard renderer, not to these additional explicit actions.

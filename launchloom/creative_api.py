@@ -249,14 +249,7 @@ def register_creative_routes(app, current_production):
         return {"spec": candidate.model_dump(), "revision": creative_revision(candidate),
                 "production_revision": production_rev, "derived": False, "saved": True}
 
-    @app.put("/api/campaigns/{cid}/creative-spec")
-    async def save(cid: str, request: Request):
-        data = await body(request, {"spec", "expected_revision", "production_revision"})
-        _, production, campaign, assets, previous, base, _ = context(cid)
-        check_revision(data, previous, production, base)
-        if cid in busy:
-            raise HTTPException(409, "Another production action is running")
-        candidate = CreativeSpec.model_validate(data["spec"])
+    def validate_candidate(candidate, campaign, assets):
         approved = {f"feature-{i}" for i, f in enumerate(campaign["brief"]["features"]) if f.get("approved")}
         for scene in candidate.scenes:
             if any(key not in approved for key in scene.claim_ids):
@@ -269,6 +262,16 @@ def register_creative_routes(app, current_production):
                     raise HTTPException(422, "Media provenance cannot be changed by editing the spec")
                 if asset and layer.asset_sha256 and layer.asset_sha256 != asset.sha256:
                     raise HTTPException(409, "Media changed. Select the current asset and review it again.")
+
+    @app.put("/api/campaigns/{cid}/creative-spec")
+    async def save(cid: str, request: Request):
+        data = await body(request, {"spec", "expected_revision", "production_revision"})
+        _, production, campaign, assets, previous, base, _ = context(cid)
+        check_revision(data, previous, production, base)
+        if cid in busy:
+            raise HTTPException(409, "Another production action is running")
+        candidate = CreativeSpec.model_validate(data["spec"])
+        validate_candidate(candidate, campaign, assets)
         result = store_spec(cid, candidate, data["expected_revision"], base, creative_revision(previous))
         db.log(cid, "creative", "Saved operator-edited creative spec; existing finished films and posts are unchanged.")
         return result
@@ -306,6 +309,13 @@ def register_creative_routes(app, current_production):
             future = asyncio.create_task(asyncio.to_thread(render_project, spec, assets, cache, destination,
                                          scene_id=scene_id, outputs=outputs, progress=progress))
             result = await asyncio.shield(future)
+            from .creative_quality import inspect_render
+            def inspect_outputs():
+                return {output: inspect_render(spec, child(destination, output + ".mp4"), output,
+                                              info["sha256"], scene_id)
+                        for output, info in result["outputs"].items()}
+            future = asyncio.create_task(asyncio.to_thread(inspect_outputs))
+            result["quality_review"] = await asyncio.shield(future)
             with db.connect() as c:
                 c.execute("UPDATE creative_jobs SET state='ready',result=?,ended=? WHERE id=?",
                           (json.dumps(result), time.time(), jid))
@@ -451,3 +461,7 @@ def register_creative_routes(app, current_production):
         finally:
             if not committed: target.unlink(missing_ok=True)
             busy.discard(cid)
+
+    from .creative_workflow_api import register_workflow_routes
+    register_workflow_routes(app, context=context, job=job, rendered=rendered,
+        check_revision=check_revision, validate_candidate=validate_candidate, body=body, busy=busy)
