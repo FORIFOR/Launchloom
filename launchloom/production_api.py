@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from .production import initial_plan, validate_plan, revision, build_bundle
+from .creative import creative_revision, from_production_plan
 
 
 def register_production_routes(app):
@@ -42,6 +43,18 @@ def register_production_routes(app):
     @app.get('/api/campaigns/{cid}/production')
     async def get_production(cid: str):
         return current(cid)[1]
+
+    @app.get('/api/campaigns/{cid}/creative-spec')
+    async def get_creative_spec(cid: str):
+        _, data = current(cid)
+        campaign = db.campaign(cid)
+        spec = from_production_plan(data['plan'], campaign['brief'])
+        return {
+            'spec': spec.model_dump(),
+            'revision': creative_revision(spec),
+            'production_revision': data['revision'],
+            'derived': True,
+        }
 
     @app.put('/api/campaigns/{cid}/production')
     async def save_production(cid: str, request: Request):
