@@ -34,6 +34,7 @@ def extra_checks(page,client,cid,output):
     expect(page.locator('#proposal')).to_be_visible()
     assert client.get(f'/api/campaigns/{cid}/creative-spec').json()['revision']==before
     assert len(calls)==1
+    page.screenshot(path=str(output/'creative-proposal-review.png'),full_page=True)
     page.locator('#proposal-reviewed').check()
     page.locator('#apply-render-proposal').click()
     expect(page.locator('#proposal')).to_be_hidden()
@@ -58,11 +59,25 @@ def extra_checks(page,client,cid,output):
         assert '伝えたいことを、ひとつに。' in kit.read('posts.json').decode()
         assert json.loads(kit.read('manifest.json'))['creative_revision']==after['revision']
     assert len(client.get(f'/api/campaigns/{cid}/final-films').json()['items'])==1
+    # Verify the newly AI-edited portrait too, not only the earlier wide render.
+    page.locator('#film').evaluate("el => { el.muted=true; return Promise.race([el.play(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Playback timed out')),15000))]); }")
+    page.wait_for_function("() => { const v=document.querySelector('#film'); return v.videoWidth===720 && v.videoHeight===1280 && v.currentTime>0.25 && !v.error; }",timeout=20000)
+    page.locator('#film').evaluate("el => el.pause()")
     page.screenshot(path=str(output/'creative-workflow-desktop.png'),full_page=True)
+    # Inspect the actual authenticated LP, including its relative media paths.
+    preview=page.context.new_page()
+    from urllib.parse import urljoin
+    preview.goto(urljoin(page.url,page.locator('#kit-preview').get_attribute('href')))
+    expect(preview.locator('h1')).to_have_text('伝えたいことを、ひとつに。')
+    preview.locator('video').evaluate("el => { el.muted=true; return Promise.race([el.play(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Playback timed out')),15000))]); }")
+    preview.wait_for_function("() => { const v=document.querySelector('video'); return v.videoWidth===1280 && v.currentTime>0.25 && !v.error; }",timeout=20000)
+    preview.locator('video').evaluate("el => el.pause()")
+    preview.screenshot(path=str(output/'synchronized-landing-page.png'),full_page=True)
+    preview.close()
     (output/'workflow-result.json').write_text(json.dumps({
         'model':'test-double (not live AI)', 'model_calls':len(calls),'reviewed_multiscene_edit':True,
         'real_render':True,'synchronized_kit':True,'frame_qa':True,'existing_film_unchanged':True,
-        'automatic_publication':False},ensure_ascii=False,indent=2))
+        'automatic_publication':False,'edited_portrait_decoded':True,'landing_page_video_decoded':True},ensure_ascii=False,indent=2))
 
 
 if __name__=='__main__':
