@@ -34,7 +34,9 @@ class PublishPostSamplesTests(unittest.TestCase):
             self.assertFalse((root/'post-drafts.json').exists())
     def test_only_three_paths_are_updated(self):
         with tempfile.TemporaryDirectory() as d:
-            root = Path(d); (root/'ja').mkdir()
+            # publish() resolves its root, so compare against the resolved one:
+            # on macOS the temporary directory is reached through a symlink.
+            root = Path(d).resolve(); (root/'ja').mkdir()
             for p in ['index.html', 'ja/index.html']: (root/p).write_text(PAGE)
             (root/'film.mp4').write_bytes(b'unchanged')
             changed = publish(root, {'ja': drafts(), 'en': drafts()})
