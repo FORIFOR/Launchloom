@@ -16,5 +16,6 @@ dist/
 # Any studio data directory, whatever it is called.
 .launchloom*/
 check*/
+creative-browser-artifacts/
 launchloom-selftest.txt
 launchloom-selftest.json
