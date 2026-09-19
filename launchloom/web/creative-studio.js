@@ -306,3 +306,28 @@ const workflow = mountCreativeWorkflow({
   }
 });
 refreshCampaigns().catch((error) => notice(error.message, true));
+
+function beginnerGuide(step='edit'){
+  document.querySelectorAll('.beginner-step').forEach((node)=>node.classList.toggle('is-current',node.dataset.jump===step));
+  const title=document.getElementById('next-title'), copy=document.getElementById('next-copy');
+  if(!title||!copy)return;
+  const messages={
+    edit:[t('まずはシーンと文章を整えましょう','First, choose a scene and refine the words'),t('プレビュー下のシーンを選び、右側の文章を編集します。難しい設定は後回しで大丈夫です。','Choose a scene below the preview and edit its words on the right. Advanced settings can wait.')],
+    preview:[t('次は動画を書き出して確認しましょう','Next, render and watch the video'),t('使用権を確認して「動画を書き出す」を押します。完成するまで公開はされません。','Confirm media rights and press Render video. Nothing is published while you review it.')],
+    finish:[t('最後に、見た動画を完成版にします','Finally, finish the version you just watched'),t('再生して問題なければ確認欄にチェックし、「この版を完成動画に採用」を押します。公開はまだ別の操作です。','Watch it, check the review box, then adopt this exact version. Publishing remains separate.')]
+  };
+  [title.textContent,copy.textContent]=messages[step]||messages.edit;
+}
+document.getElementById('advanced-toggle')?.addEventListener('click',(event)=>{
+  const shown=document.body.classList.toggle('show-advanced'); event.currentTarget.setAttribute('aria-pressed',String(shown));
+  event.currentTarget.textContent=shown?t('詳細設定を隠す','Hide advanced tools'):t('詳細設定を表示','Show advanced tools');
+});
+document.querySelectorAll('.beginner-step').forEach((node)=>node.addEventListener('click',()=>{
+  const step=node.dataset.jump; beginnerGuide(step);
+  const target=step==='edit'?document.getElementById('inspector'):step==='preview'?document.getElementById('render-all'):document.getElementById('adoption');
+  target?.scrollIntoView({behavior:'smooth',block:'center'});
+}));
+document.getElementById('save')?.addEventListener('click',()=>setTimeout(()=>beginnerGuide('preview'),150));
+document.getElementById('render-all')?.addEventListener('click',()=>beginnerGuide('preview'));
+document.getElementById('adopt')?.addEventListener('click',()=>beginnerGuide('finish'));
+beginnerGuide('edit');
