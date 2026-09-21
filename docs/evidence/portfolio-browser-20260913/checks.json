@@ -1,0 +1,144 @@
+{
+  "browser": "Codex in-app browser",
+  "checks": [
+    {
+      "slug": "genie",
+      "viewport": "390×844 emulation",
+      "heading": "会議のメモを、次の仕事へ。",
+      "scrollWidth": 390,
+      "title": "Genie — 会議のメモを、次の仕事へ。",
+      "video": [
+        {
+          "error": null,
+          "height": 1080,
+          "ready": 4,
+          "width": 1920
+        }
+      ],
+      "videoCount": 1,
+      "width": 390
+    },
+    {
+      "slug": "ai-meeting",
+      "viewport": "390×844 emulation",
+      "heading": "話したことを、次の一歩に。",
+      "scrollWidth": 390,
+      "title": "AI Meeting — 話したことを、次の一歩に。",
+      "video": [
+        {
+          "error": null,
+          "height": 1080,
+          "ready": 4,
+          "width": 1920
+        }
+      ],
+      "videoCount": 1,
+      "width": 390
+    },
+    {
+      "slug": "oathra",
+      "viewport": "390×844 emulation",
+      "heading": "完了には、相手の根拠がいる。",
+      "scrollWidth": 390,
+      "title": "Oathra — 完了には、相手の根拠がいる。",
+      "video": [
+        {
+          "error": null,
+          "height": 1080,
+          "ready": 4,
+          "width": 1920
+        }
+      ],
+      "videoCount": 1,
+      "width": 390
+    },
+    {
+      "slug": "aisecure",
+      "viewport": "390×844 emulation",
+      "heading": "大量のログから、調べるべき事案へ。",
+      "scrollWidth": 390,
+      "title": "AISecure — 大量のログから、調べるべき事案へ。",
+      "video": [
+        {
+          "error": null,
+          "height": 1080,
+          "ready": 4,
+          "width": 1920
+        }
+      ],
+      "videoCount": 1,
+      "width": 390
+    },
+    {
+      "slug": "agent-team",
+      "viewport": "390×844 emulation",
+      "heading": "成果物をつくり、検証して直す。",
+      "scrollWidth": 390,
+      "title": "Agent Team — 成果物をつくり、検証して直す。",
+      "video": [
+        {
+          "error": null,
+          "height": 1080,
+          "ready": 4,
+          "width": 1920
+        }
+      ],
+      "videoCount": 1,
+      "width": 390
+    },
+    {
+      "slug": "genie",
+      "viewport": "1280×900",
+      "heading": "会議のメモを、次の仕事へ。",
+      "scrollWidth": 1280,
+      "videoReady": 4,
+      "width": 1280
+    },
+    {
+      "slug": "ai-meeting",
+      "viewport": "1280×900",
+      "heading": "話したことを、次の一歩に。",
+      "scrollWidth": 1280,
+      "videoReady": 1,
+      "width": 1280
+    },
+    {
+      "slug": "oathra",
+      "viewport": "1280×900",
+      "heading": "完了には、相手の根拠がいる。",
+      "scrollWidth": 1280,
+      "videoReady": 1,
+      "width": 1280
+    },
+    {
+      "slug": "aisecure",
+      "viewport": "1280×900",
+      "heading": "大量のログから、調べるべき事案へ。",
+      "scrollWidth": 1280,
+      "videoReady": 1,
+      "width": 1280
+    },
+    {
+      "slug": "agent-team",
+      "viewport": "1280×900",
+      "heading": "成果物をつくり、検証して直す。",
+      "scrollWidth": 1280,
+      "videoReady": 4,
+      "width": 1280
+    }
+  ],
+  "agentTeamPlayback": {
+    "currentTime": 34.8,
+    "ended": true,
+    "error": null,
+    "paused": true
+  },
+  "notTested": [
+    "Safari",
+    "Firefox",
+    "physical mobile devices",
+    "Lighthouse",
+    "LCP",
+    "CLS"
+  ]
+}

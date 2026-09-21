@@ -43,7 +43,14 @@ with tempfile.TemporaryDirectory() as directory:
                         assert not page.evaluate('document.documentElement.scrollWidth>innerWidth+1'),f'{tab} overflow'
                         assert page.locator('#workbench').inner_text().strip(),f'{tab} empty DOM'
                         report.append({'width':width,'language':language,'view':tab,'actual_server':True,'no_overflow':True,'state':'empty workspace'})
-                    page.locator('#new-button').click();dialog=page.locator('#create-dialog');dialog.wait_for(state='visible')
+                    # The empty workspace leads with the sample; the brief form is
+                    # reached from the first-success panel, so open it the way a
+                    # first-time operator does.
+                    # The loop above ends on the activity tab; the first-success
+                    # panel lives on the studio tab.
+                    page.locator('#nav [data-tab="film"]').click()
+                    page.locator('.first-success details summary').click()
+                    page.locator('[data-new]').click();dialog=page.locator('#create-dialog');dialog.wait_for(state='visible')
                     for name in ['external_data_consent','allow_site_writes','staging_confirmed','media_rights']:
                         assert not dialog.locator(f'[name="{name}"]').is_checked(),name
                     assert dialog.locator('[name="review_plan"]').is_checked()

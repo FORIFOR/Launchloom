@@ -1,8 +1,8 @@
 // No client-side API secrets. The studio uses an HttpOnly local session cookie.
-import {watch, preferredLanguage, setLanguage, t} from './i18n.js';
+import {watch, preferredLanguage, setLanguage, t} from './i18n.js?v=review-2';
 const $ = (id) => document.getElementById(id);
 const escape = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state = {config:{}, campaigns:[], current:null, tab:'film', ratio:'landscape', timer:null, integrations:[], recorded:null, recorder:null, lastSignature:''};
+const state = {config:{}, campaigns:[], current:null, tab:'film', ratio:'landscape', timer:null, integrations:[], recorded:null, recorder:null, lastSignature:'', sampleBusy:false, createIntent:null};
 const labels={draft:'下書き',queued:'制作待ち',building:'制作中',awaiting_review:'構成の確認待ち',ready:'制作完了',failed:'要確認',interrupted:'中断',approved:'承認済み',submitting:'送信中',submitted:'Postiz受付済み',needs_reconciliation:'送信結果を要確認'};
 const stageLabels={direction:'企画・方向性',awaiting_review:'構成の確認待ち',brief:'企画',planning:'企画',site:'LP制作',capture:'操作収録',generation:'映像生成',render:'映像編集',rendering:'映像編集',package:'梱包・検証',quality:'品質確認',ready:'制作完了'};
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').hidden=true,5500);}
@@ -10,32 +10,97 @@ function modal(id){if(!$(id).open)$(id).showModal();}
 async function api(path, options={}){
   const headers=new Headers(options.headers||{});
   if(options.body && !(options.body instanceof Blob) && !(options.body instanceof ArrayBuffer)){headers.set('Content-Type','application/json');options.body=JSON.stringify(options.body);}
-  const r=await fetch(path,{...options,headers,credentials:'same-origin'});
-  const data=r.status===204?{}:await r.json().catch(()=>({detail:r.statusText}));
-  if(!r.ok){if(r.status===401)modal('access-dialog');const message=typeof data.detail==='string'?data.detail:JSON.stringify(data.detail||data);throw new Error(message);}
-  return data;
+  // A black-holed read must expose recovery rather than leave the last status forever.
+  const controller=new AbortController();
+  const readTimeout=(options.method||'GET')==='GET'?setTimeout(()=>controller.abort(),15000):null;
+  try {
+    const r=await fetch(path,{...options,headers,credentials:'same-origin',signal:controller.signal});
+    const data=r.status===204?{}:await r.json().catch(error=>{if(controller.signal.aborted)throw error;return {detail:r.statusText};});
+    if(!r.ok){if(r.status===401)modal('access-dialog');const message=typeof data.detail==='string'?data.detail:JSON.stringify(data.detail||data);throw new Error(message);}
+    return data;
+  } finally {if(readTimeout)clearTimeout(readTimeout);}
+}
+// Only a random operation key and language are retained, never input copy or tokens.
+let pendingSample = null;
+try { pendingSample = JSON.parse(sessionStorage.getItem('launchloom-sample-request') || 'null'); } catch {}
+function rememberSample(value) {
+  pendingSample = value;
+  try { if(value) sessionStorage.setItem('launchloom-sample-request', JSON.stringify(value));
+    else sessionStorage.removeItem('launchloom-sample-request'); } catch {}
+}
+function rememberLocation() {
+  if(!state.current)return;
+  const url=new URL(location.href);url.searchParams.set('campaign',state.current.id);url.searchParams.set('tab',state.tab);
+  history.replaceState(null,'',url);
+}
+function connectionProblem(error) {
+  $('connection-notice').hidden=false;
+  $('connection-detail').textContent=t('接続が途切れ、最新の状態を確認できません。制作が止まったとは限りません。入力はこの画面に残っています。');
+}
+function clearConnectionProblem() { $('connection-notice').hidden=true; }
+function renderWelcome() {
+  return `<section class="panel first-success" aria-labelledby="first-success-title">
+    <span class="eyebrow">YOUR FIRST LAUNCH KIT</span><h2 id="first-success-title">動画・LP・SNS原稿を、ひとつのキットに。</h2>
+    <p>まずは内蔵のOrbitサンプルで、字幕をひとつ直して書き出してみましょう。</p>
+    <ol><li>サンプルアプリを自動で収録</li><li>構成と字幕を編集・保存</li><li>動画を確認してZIPをダウンロード</li></ol>
+    <p class="notice">ローカル処理・生成AI料金なし。APIキー不要。公開・投稿は行いません。音声未指定のサンプルは無音です。</p>
+    <button class="button dark" data-sample ${state.sampleBusy?'disabled':''}>サンプルを編集して作る ↗</button>
+    <p>サンプルは実在サービスの実績ではなく、このリポジトリに含まれる検証用アプリです。</p>
+    <details><summary>自分のプロダクトで作る</summary><p>製品情報と紹介してよい機能を入力し、操作動画を取り込めます。</p><button class="button small" data-new>企画をつくる ↗</button></details>
+  </section>`;
+}
+function resultSummary() {
+  return `<section class="panel result-summary" aria-labelledby="result-title"><h2 id="result-title" tabindex="-1">制作キットができました。</h2>
+    <p>横長・縦長の動画、LP、SNS原稿、字幕をZIPにまとめました。まず動画を再生して確認してください。</p>
+    <div class="links-row"><button class="button small" data-go="site">LPを見る</button><button class="button small" data-go="distribution">SNS原稿を見る</button></div>
+    <p class="notice">この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。</p></section>`;
+}
+async function startSample() {
+  if(state.sampleBusy)return;
+  state.sampleBusy=true;
+  $('demo-button').disabled=true;document.querySelectorAll('[data-sample]').forEach(b=>b.disabled=true);
+  if(!pendingSample?.key)rememberSample({key:crypto.randomUUID(),language:preferredLanguage()});
+  try {
+    const c=await api('/api/demo?review_plan=true&language='+encodeURIComponent(pendingSample.language),
+      {method:'POST',headers:{'Idempotency-Key':pendingSample.key}});
+    rememberSample({...pendingSample,cid:c.id});
+    state.campaigns=[c,...state.campaigns.filter(item=>item.id!==c.id)];state.current=c;state.tab='film';rememberLocation();
+    await refresh(true);
+  } catch(error) {
+    connectionProblem(error);
+    toast('受付結果を確認できません。同じサンプルボタンで前回の受付を確認できます。');
+  } finally {
+    state.sampleBusy=false;$('demo-button').disabled=false;document.querySelectorAll('[data-sample]').forEach(b=>b.disabled=false);
+  }
 }
 function output(name){return state.current?.outputs?.[name]||'';}
 function updateCampaignBar(){
+  document.querySelector('.campaign-bar').hidden=!state.campaigns.length;
+  $('new-button').hidden=!state.current;
+  $('new-side').hidden=!state.current;
   $('campaign-select').innerHTML=state.campaigns.length?state.campaigns.map(c=>`<option value="${c.id}">${escape(c.brief.name)} · ${new Date(c.created*1000).toLocaleDateString()}</option>`).join(''):'<option>最初のキャンペーン</option>';
   if(state.current)$('campaign-select').value=state.current.id;
+  $('production-link').closest('.production-entry').hidden=state.current?.state!=='ready';
   $('production-link').href='/production'+(state.current?'?campaign='+encodeURIComponent(state.current.id):'');
   $('campaign-state').textContent=labels[state.current?.state]||'未作成';
   $('campaign-state').className='pill '+(state.current?.state||'');
 }
 function renderPipeline(){
-  const c=state.current,p=c?.progress||0;
-  const completed=c?.state==='ready'?4:p>=82?3:p>=40?2:p>=20?1:p>8?0:-1;
-  const stages=['企画・方向性','ランディングページ','操作収録','映像・パッケージ','承認・配信','実測・改善'];
-  $('pipeline').innerHTML=stages.map((label,i)=>`<div class="pipeline-step ${i<completed?'done':i===completed?'current':''}"><div class="line"></div><div class="step-label"><span class="step-index">0${i+1}</span>${label}</div></div>`).join('');
-  if(c?.state==='ready')document.querySelectorAll('.pipeline-step').forEach((el,i)=>{el.className='pipeline-step '+(i<4?'done':i===4?'current':'');});
+  const c=state.current;
+  $('pipeline').hidden=!c;
+  const step=c?.state==='ready'?2:c?.state==='awaiting_review'?0:c?.plan_approved?1:0;
+  const stages=['内容を確認','動画を作成','完成物を受け取る'];
+  $('pipeline').innerHTML=stages.map((label,i)=>`<div class="pipeline-step ${i<step?'done':i===step?'current':''}" ${i===step?'aria-current="step"':''}><div class="line"></div><div class="step-label"><span class="step-index">${i+1}</span>${t(label)}</div></div>`).join('');
 }
+
 function errorPanel(){const c=state.current;if(!['failed','interrupted'].includes(c?.state))return '';return `<div class="error-panel"><strong>制作を停止しました。公開は行っていません。</strong><p>${escape(c.error)}</p><button class="button small" id="retry-button">元の設定で再試行</button></div>`;}
 
 const styleNames={editorial:'Editorial ／ 余白と紙の質感',spotlight:'Spotlight ／ 暗がりに、製品だけが光る',grid:'Grid ／ 方眼と小さな見出し'};
 function sceneFields(scenes){
-  return scenes.map((s,i)=>`<div class="scene-edit" data-scene-edit="${i}"><span class="eyebrow">0${i+1} / ${escape(s.kind.toUpperCase())}</span><label>見出し<input class="scene-title" maxlength="90" value="${escape(s.title)}"></label><label>補足<input class="scene-detail" maxlength="180" value="${escape(s.detail||'')}"></label><label>字幕 <small>空欄なら見出しを使います</small><input class="scene-caption" maxlength="120" value="${escape(s.caption||'')}" placeholder="${escape(s.title)}"></label></div>`).join('');
+  const roles={hook:'最初に伝えること',proof:'機能を紹介',cta:'最後のひとこと'};
+  return scenes.map((s,i)=>`<section class="scene-edit" data-scene-edit="${i}"><h3><span class="scene-number">${i+1}</span> ${t(roles[s.kind]||'機能を紹介')}</h3><label>見出し<input class="scene-title" maxlength="90" value="${escape(s.title)}"></label><label>字幕 <small>空欄なら見出しを使います</small><input class="scene-caption" maxlength="120" value="${escape(s.caption||'')}" placeholder="${escape(s.title)}"></label><details class="scene-more"><summary>補足を編集</summary><label>補足<input class="scene-detail" maxlength="180" value="${escape(s.detail||'')}"></label></details></section>`).join('');
 }
+
 // Only what the operator actually changed is sent, so the server applies a typed
 // diff instead of replacing a storyboard it validated earlier.
 function collectPlanEdit(){
@@ -57,22 +122,24 @@ function collectPlanEdit(){
   return (edit.concept===undefined&&edit.visual_direction===undefined&&!edit.scenes)?null:edit;
 }
 function storyboardForm(plan,options){
-  return `<div class="review-grid"><label class="span2">この映像の狙い<textarea id="plan-concept" rows="2" maxlength="300">${escape(plan.concept)}</textarea></label><label class="span2">演出方針 <small>${escape(styleNames[options?.visual_style]||options?.visual_style||'editorial')}</small><textarea id="plan-direction" rows="2" maxlength="500">${escape(plan.visual_direction)}</textarea></label></div><div class="scene-editor">${sceneFields(plan.scenes)}</div>`;
+  return `<div class="scene-editor">${sceneFields(plan.scenes)}</div><details class="advanced plan-advanced"><summary>映像全体の狙い・演出を調整</summary><div class="review-grid"><label class="span2">この映像の狙い<textarea id="plan-concept" rows="2" maxlength="300">${escape(plan.concept)}</textarea></label><label class="span2">演出方針 <small>${escape(styleNames[options?.visual_style]||options?.visual_style||'editorial')}</small><textarea id="plan-direction" rows="2" maxlength="500">${escape(plan.visual_direction)}</textarea></label></div></details>`;
 }
 function renderReview(){
   const c=state.current,plan=c.plan,still=c.outputs?.['review-frame.jpg'];
-  return `<section class="panel review-panel"><div class="card-heading"><h2>◫ &nbsp; 届ける前に、構成を確かめる。</h2><span class="pill">レンダリング前</span></div><p class="notice">まだ映像は書き出していません。生成AIへの依頼も、外部への送信もしていません。文言を直してから承認してください。<br>機能の主張そのものは企画で確定済みです。ここで直すのは、見出し・補足・字幕の言い回しです。</p>${still?`<img class="review-still" src="${still}" alt="収録した画面の1コマ">`:''}${storyboardForm(plan,c.options)}<div class="dialog-actions"><span>編集は制作者の文言として記録されます。</span><button class="button small" id="save-plan">下書きとして保存</button><button class="button dark" id="approve-plan">承認してレンダリング ↗</button></div><p class="error" id="review-panel-error"></p></section>`;
+  return `<section class="panel review-panel"><div class="review-intro"><div><h2 id="review-panel-title" tabindex="-1">動画に入れる言葉を確認</h2><p>下の見出し・字幕を直せます。そのままでよければ、動画を作成してください。</p><p class="review-deliverables">完成すると、横長・縦長の動画、LP、SNS原稿をダウンロードできます。</p></div>${still?`<figure><img class="review-still" src="${still}" alt="収録した画面の1コマ"><figcaption>収録済みの画面 · 完成動画ではありません</figcaption></figure>`:''}</div><div class="review-actions"><div><span id="plan-save-state" role="status">保存済みの内容を表示しています</span><small>動画作成では公開・投稿を行いません。</small></div><button class="button small" id="save-plan">編集を保存</button><button class="button dark" id="approve-plan">保存して動画を作る →</button></div><p class="error" role="alert" id="review-panel-error"></p>${storyboardForm(plan,c.options)}<details class="review-boundary"><summary>編集の反映範囲・実行済みの処理</summary><p class="notice">この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。</p><p class="notice">まだ映像は書き出していません。文言を直してから承認してください。企画LLMを選んだ場合、その企画処理は実行済みです。</p></details></section>`;
 }
+
 function renderRevise(){
   const c=state.current,plan=c.plan;
-  return `<details class="panel revise-panel"><summary>${t('構成を直して、この素材のまま作り直す')}${c.revision?` · ${t('改訂')} ${c.revision}`:''}</summary><p class="notice">収録済みの映像をそのまま使います。再収録も、生成AIへの再依頼も行いません。作り直すと現在の動画・LP・キットは置き換わります。</p>${storyboardForm(plan,c.options)}<div class="dialog-actions"><span>投稿済みの内容は変わりません。</span><button class="button dark" id="revise-plan">この内容で作り直す ↻</button></div><p class="error" id="revise-error"></p></details>`;
+  return `<details class="panel revise-panel"><summary>${t('構成を直して、この素材のまま作り直す')}${c.revision?` · ${t('改訂')} ${c.revision}`:''}</summary><p class="notice">収録済みの映像をそのまま使います。再収録も、生成AIへの再依頼も行いません。作り直すと現在の動画・LP・キットは置き換わります。</p>${storyboardForm(plan,c.options)}<p class="notice">この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。</p><div class="dialog-actions"><span>投稿済みの内容は変わりません。</span><button class="button dark" id="revise-plan">この内容で作り直す ↻</button></div><p class="error" id="revise-error"></p></details>`;
 }
 function renderFilm(){
   const c=state.current,ready=c?.state==='ready',name=c?.brief.name||'Your next good thing';
+  if(!c)return renderWelcome();
   if(c?.state==='awaiting_review'&&c.plan)return renderReview();
   const scenes=c?.plan?.scenes||[{kind:'hook',title:'心を動かす、最初の3秒。'},{kind:'proof',title:'本当に動くところを見せる。'},{kind:'cta',title:'次の一歩につなげる。'}];
   const warnings=c?.qa?.warnings||[];
-  return `<div class="workbench-grid"><div><section class="studio-card"><div class="card-heading"><h2>◫ &nbsp; プロダクトフィルム <span class="kicker">/ ${ready?'READY TO REVIEW':'YOUR NEXT STORY'}</span></h2><div class="ratio-switch"><button data-ratio="landscape" class="${state.ratio==='landscape'?'active':''}">16 : 9</button><button data-ratio="portrait" class="${state.ratio==='portrait'?'active':''}">9 : 16</button></div></div><div class="player ${state.ratio==='portrait'?'portrait':''}">${ready?`<video id="film-player" controls playsinline preload="metadata" poster="${output(state.ratio+'.jpg')}" src="${output(state.ratio+'.mp4')}"></video>`:`<div class="empty-preview"><span class="preview-label">${escape(name.toUpperCase())} / PRODUCT FILM</span><h2>${escape(c?.brief.tagline||'いいものを、\n見過ごされないものに。').replace('\n','<br>')}</h2><p>${c?'企画から実ファイルを制作しています。':'映像も、サイトも、その先の広がりも。'}</p><i class="preview-ring"></i><b class="preview-dot"></b><span class="empty-play">${c?'レンダリング完了後に実際の動画を表示します。':'未作成 · サンプルで、制作の一連を試す ↗'}</span></div>`}${['queued','building'].includes(c?.state)?`<div class="rendering-status"><span><i class="spinner"></i>${escape(stageLabels[c.stage]||c.stage)}</span><b>${c.progress}%</b></div>`:''}</div><div class="timeline"><div class="timeline-label"><span>STORYBOARD / ${scenes.length} SCENES</span><span>${ready?'RENDERED IN 24 FPS':'CONCEPT → PROOF → ACTION'}</span></div><div class="timeline-track">${scenes.map((s,i)=>`<button class="clip" data-scene="${i}" ${!ready?'disabled':''}><span>0${i+1} / ${escape(s.kind.toUpperCase())}</span><b>${escape(s.title)}</b></button>`).join('')}</div></div><div class="card-bottom"><span>${ready?'実ファイル生成済み · 公開前に映像を確認してください。':'ローカル制作には生成AIのAPIキーは不要です。'}</span>${ready?`<a class="button small" href="${output('launch-kit.zip')}" download>制作キットを書き出す ↓</a>`:'<button class="button small" data-new>最初の企画をつくる ↗</button>'}</div></section>${ready&&c?.plan?renderRevise():''}<section class="next-strip"><div><span class="eyebrow">THE NEXT RIGHT STEP</span><h3>${ready?'いい映像に、いい入口を。':'ひとつの企画、いくつもの届け方。'}</h3><p>${ready?'同じトーンのLPと、投稿原稿もできています。':'まずは内蔵サンプルを動かして、実際の制作物を確認。'}</p></div><button class="button small" data-go="${ready?'site':'distribution'}"><span>${ready?'LPを見る':'配信のしくみ'}</span> ↗</button></section></div><aside class="details-column"><section class="detail-card"><span class="eyebrow">CREATIVE DIRECTION</span><h3>${escape(c?.plan?.concept||'伝わる。\nそのあとに、動きたくなる。').replace('\n','<br>')}</h3><p>${escape(c?.plan?.visual_direction||'華やかさだけで終わらせず、実際の機能を、使う場面へつなげます。')}</p><div class="detail-row"><span>プロダクト</span><b>${escape(c?.brief.name||'未設定')}</b></div><div class="detail-row"><span>映像の入力</span><b>${escape(c?.options?.capture_mode==='sample'?'内蔵の実動作アプリ':c?.options?.capture_mode==='url'?'Playwright 自動収録':c?.options?.capture_mode==='upload'?'収録・アップロード':'機能紹介アニメーション')}</b></div><div class="detail-row"><span>生成エンジン</span><b>${escape(c?.options?.film_provider||'local')} / FFmpeg</b></div><div class="detail-row"><span>アクセント</span><span class="swatches"><i style="background:${escape(c?.brief.accent||'#ed6847')}"></i><i style="background:#293d37"></i><i style="background:#dce4d2"></i><i style="background:#f6f2e9"></i></span></div></section><section class="detail-card"><span class="eyebrow">QUALITY & TRUST</span><div class="quality-row"><span class="checkmark">✓</span><span>確認済みの機能だけを紹介</span></div><div class="quality-row"><span class="checkmark">✓</span><span>APIキーはブラウザに渡さない</span></div><div class="quality-row"><span class="checkmark">✓</span><span>外部投稿には別途、明示承認が必要</span></div>${warnings.map(w=>`<div class="quality-row"><span>↳</span><span>${escape(w)}</span></div>`).join('')}</section></aside></div>`;
+  return (ready?resultSummary():'')+`<div class="workbench-grid"><div><section class="studio-card"><div class="card-heading"><h2>◫ &nbsp; プロダクトフィルム <span class="kicker">/ ${ready?'READY TO REVIEW':'YOUR NEXT STORY'}</span></h2><div class="ratio-switch"><button data-ratio="landscape" class="${state.ratio==='landscape'?'active':''}">16 : 9</button><button data-ratio="portrait" class="${state.ratio==='portrait'?'active':''}">9 : 16</button></div></div><div class="player ${state.ratio==='portrait'?'portrait':''}">${ready?`<video id="film-player" controls playsinline preload="metadata" poster="${output(state.ratio+'.jpg')}" src="${output(state.ratio+'.mp4')}"></video>`:`<div class="empty-preview"><span class="preview-label">${escape(name.toUpperCase())} / PRODUCT FILM</span><h2>${escape(c?.brief.tagline||'いいものを、\n見過ごされないものに。').replace('\n','<br>')}</h2><p>${['queued','building'].includes(c?.state)?'企画から実ファイルを制作しています。':'制作はまだ完了していません。状態と制作ログを確認してください。'}</p><i class="preview-ring"></i><b class="preview-dot"></b><span class="empty-play">${c?'レンダリング完了後に実際の動画を表示します。':'未作成 · サンプルで、制作の一連を試す ↗'}</span></div>`}${['queued','building'].includes(c?.state)?`<div class="rendering-status"><span><i class="spinner"></i>${escape(stageLabels[c.stage]||c.stage)}</span><b>${c.progress}%</b></div>`:''}</div><div class="timeline"><div class="timeline-label"><span>STORYBOARD / ${scenes.length} SCENES</span><span>${ready?'RENDERED IN 30 FPS':'CONCEPT → PROOF → ACTION'}</span></div><div class="timeline-track">${scenes.map((s,i)=>`<button class="clip" data-scene="${i}" ${!ready?'disabled':''}><span>0${i+1} / ${escape(s.kind.toUpperCase())}</span><b>${escape(s.title)}</b></button>`).join('')}</div></div><div class="card-bottom"><span>${ready?'実ファイル生成済み · 公開前に映像を確認してください。':'ローカル制作には生成AIのAPIキーは不要です。'}</span>${ready?`<a class="button small" href="${output('launch-kit.zip')}" download>制作キットを書き出す ↓</a>`:'<button class="button small" data-new>最初の企画をつくる ↗</button>'}</div></section>${ready&&c?.plan?renderRevise():''}<section class="next-strip"><div><span class="eyebrow">THE NEXT RIGHT STEP</span><h3>${ready?'いい映像に、いい入口を。':'ひとつの企画、いくつもの届け方。'}</h3><p>${ready?'同じトーンのLPと、投稿原稿もできています。':'まずは内蔵サンプルを動かして、実際の制作物を確認。'}</p></div><button class="button small" data-go="${ready?'site':'distribution'}"><span>${ready?'LPを見る':'配信のしくみ'}</span> ↗</button></section></div><aside class="details-column"><section class="detail-card"><span class="eyebrow">CREATIVE DIRECTION</span><h3>${escape(c?.plan?.concept||'伝わる。\nそのあとに、動きたくなる。').replace('\n','<br>')}</h3><p>${escape(c?.plan?.visual_direction||'華やかさだけで終わらせず、実際の機能を、使う場面へつなげます。')}</p><div class="detail-row"><span>プロダクト</span><b>${escape(c?.brief.name||'未設定')}</b></div><div class="detail-row"><span>映像の入力</span><b>${escape(c?.options?.capture_mode==='sample'?'内蔵の実動作アプリ':c?.options?.capture_mode==='url'?'Playwright 自動収録':c?.options?.capture_mode==='upload'?'収録・アップロード':'機能紹介アニメーション')}</b></div><div class="detail-row"><span>生成エンジン</span><b>${escape(c?.options?.film_provider||'local')} / FFmpeg</b></div><div class="detail-row"><span>アクセント</span><span class="swatches"><i style="background:${escape(c?.brief.accent||'#ed6847')}"></i><i style="background:#293d37"></i><i style="background:#dce4d2"></i><i style="background:#f6f2e9"></i></span></div></section><section class="detail-card"><span class="eyebrow">QUALITY & TRUST</span><div class="quality-row"><span class="checkmark">✓</span><span>確認済みの機能だけを紹介</span></div><div class="quality-row"><span class="checkmark">✓</span><span>APIキーはブラウザに渡さない</span></div><div class="quality-row"><span class="checkmark">✓</span><span>外部投稿には別途、明示承認が必要</span></div>${warnings.map(w=>`<div class="quality-row"><span>↳</span><span>${escape(w)}</span></div>`).join('')}</section></aside></div>`;
 }
 function empty(message){return `<section class="panel empty-panel"><div><span class="eyebrow">ONE THING AT A TIME.</span><h2>${escape(message)}</h2><p>企画を作成するか、内蔵サンプルでローカル制作をお試しください。外部への投稿は行いません。</p><button class="button" data-new>企画をつくる ↗</button></div></section>`;}
 function renderSite(){
@@ -115,11 +182,13 @@ function renderResults(){
 }
 function renderActivity(){if(!state.current)return empty('すべての工程に、足あとを。');return `<section class="panel" style="padding:25px"><span class="eyebrow">ACTIVITY / ${state.current.id}</span><h2>何が、どこまで進んだか。</h2>${(state.current.events||[]).map(e=>`<div class="event"><time>${new Date(e.created*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</time><span class="pill">${escape(e.kind)}</span><p>${escape(e.message)}</p></div>`).join('')||'<p class="notice">制作を開始すると記録されます。</p>'}</section>`;}
 function render(){
-  renderPipeline();updateCampaignBar();document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===state.tab));
+  const focusedId=$('workbench').contains(document.activeElement)?document.activeElement.id:'';
+  rememberLocation();renderPipeline();updateCampaignBar();document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===state.tab));
   $('workbench').innerHTML=errorPanel()+({film:renderFilm,site:renderSite,distribution:renderDistribution,results:renderResults,activity:renderActivity}[state.tab])();
   $('retry-button')?.addEventListener('click',async()=>{try{await api(`/api/campaigns/${state.current.id}/build`,{method:'POST',body:state.current.options});await refresh(true);}catch(e){toast(e.message);}});
   $('load-integrations')?.addEventListener('click',loadIntegrations);
   $('save-plan')?.addEventListener('click',()=>savePlan(false));
+  document.querySelector('.review-panel')?.addEventListener('input',()=>{if($('plan-save-state'))$('plan-save-state').textContent=t('未保存の変更があります');});
   $('approve-plan')?.addEventListener('click',()=>savePlan(true));
   $('revise-plan')?.addEventListener('click',revisePlan);
   $('release-campaign')?.addEventListener('click',()=>setRelease(true));
@@ -127,18 +196,27 @@ function render(){
   $('check-remote')?.addEventListener('click',checkRemoteStates);
   $('deploy-preview')?.addEventListener('click',previewDeployment);
   $('analytics-button')?.addEventListener('click',async()=>{try{const d=await api(`/api/campaigns/${state.current.id}/social-analytics`);$('analytics-output').hidden=false;$('analytics-output').textContent=JSON.stringify(d,null,2);}catch(e){toast(e.message);}});
+  if(focusedId)$(focusedId)?.focus({preventScroll:true});
 }
 
 async function savePlan(approve){
+  const cid=state.current.id;
+  const focusedId=document.activeElement?.id;
   const error=$('review-panel-error');error.textContent='';
   const buttons=['save-plan','approve-plan'].map($);buttons.forEach(b=>b&&(b.disabled=true));
+  const fields=[...document.querySelectorAll('#workbench input, #workbench textarea')];
+  fields.forEach(field=>field.disabled=true);
   try{
     const edit=collectPlanEdit();
-    if(edit)await api(`/api/campaigns/${state.current.id}/plan`,{method:'PATCH',body:edit});
-    if(approve){await api(`/api/campaigns/${state.current.id}/render`,{method:'POST'});toast('構成を承認しました。レンダリングを開始します。');}
+    if(edit)await api(`/api/campaigns/${cid}/plan`,{method:'PATCH',body:edit});
+    if(approve){await api(`/api/campaigns/${cid}/render`,{method:'POST'});toast('構成を承認しました。レンダリングを開始します。');}
     else toast(edit?'構成を保存しました。':'変更はありません。');
-    await refresh(true);
+    if(state.current?.id===cid)await refresh(true);
   }catch(e){error.textContent=e.message;buttons.forEach(b=>b&&(b.disabled=false));}
+  finally {
+    fields.forEach(field=>field.disabled=false);
+    if(!approve && state.current?.id===cid && document.activeElement===document.body && focusedId)$(focusedId)?.focus({preventScroll:true});
+  }
 }
 async function revisePlan(){
   const error=$('revise-error');error.textContent='';
@@ -212,12 +290,40 @@ async function loadIntegrations(){try{const r=await api('/api/integrations');sta
 async function refresh(force=false){
   clearTimeout(state.timer);
   if(!state.current)return;
-  const c=await api('/api/campaigns/'+state.current.id);state.current=c;
+  const cid=state.current.id, previous=state.current.state;
+  let c;
+  try { c=await api('/api/campaigns/'+cid); }
+  catch(error) { if(state.current?.id===cid)connectionProblem(error);throw error; }
+  if(state.current?.id!==cid)return;
+  clearConnectionProblem();state.current=c;
+  if(pendingSample?.cid===c.id)rememberSample(null);
+  state.campaigns=state.campaigns.map(item=>item.id===cid?c:item);
   const signature=JSON.stringify([c.id,c.state,c.progress,c.stage,c.revision,c.publications?.map(p=>p.state),c.final_films?.map(f=>f.id),c.released,c.metrics]);
-  if(force||signature!==state.lastSignature){state.lastSignature=signature;render();}
-  if(['queued','building'].includes(c.state))state.timer=setTimeout(()=>refresh().catch(e=>toast(e.message)),1500);
+  if(force||signature!==state.lastSignature){
+    const focused=document.activeElement;
+    const canFocus=focused===document.body||focused?.id==='demo-button';
+    state.lastSignature=signature;render();
+    if(canFocus&&['queued','building'].includes(previous)&&!['queued','building'].includes(c.state))
+      (c.state==='awaiting_review'?$('review-panel-title'):$('result-title'))?.focus();
+  }
+  if(['queued','building'].includes(c.state))state.timer=setTimeout(()=>refresh().catch(()=>{}),1500);
 }
-async function initialize(){state.config=await api('/api/config');state.campaigns=await api('/api/campaigns');if(state.campaigns.length){const query=new URLSearchParams(location.search);state.current=state.campaigns.find(c=>c.id===query.get('campaign'))||state.campaigns[0];if(['film','site','distribution','results','activity'].includes(query.get('tab')))state.tab=query.get('tab');await refresh(true);}else render();}
+async function initialize(){
+  state.config=await api('/api/config');state.campaigns=await api('/api/campaigns');
+  const query=new URLSearchParams(location.search);
+  if(['film','site','distribution','results','activity'].includes(query.get('tab')))state.tab=query.get('tab');
+  if(query.get('campaign')) {
+    // A selected campaign may be older than the 100-entry list. Do not silently open another one.
+    state.current={id:query.get('campaign')};await refresh(true);
+  } else if(state.campaigns.length){state.current=state.campaigns[0];await refresh(true);}
+  else {clearConnectionProblem();render();}
+}
+$('check-connection').onclick=async()=>{
+  const button=$('check-connection');button.disabled=true;
+  try {if(state.current)await refresh();else await initialize();}
+  catch(error){connectionProblem(error);}
+  finally {button.disabled=false;}
+};
 function connectionStep(done,title,detail,extra=''){
   return `<div class="wizard-step ${done?'done':''}"><span class="step-mark">${done?'✓':'·'}</span><div><b>${title}</b><p>${detail}</p>${extra}</div></div>`;
 }
@@ -259,6 +365,7 @@ document.addEventListener('click',async(event)=>{
   const b=event.target.closest('button');if(!b)return;
   if(b.dataset.close)$(b.dataset.close).close();
   if(b.dataset.new!==undefined)newCampaign();
+  if(b.dataset.sample!==undefined)await startSample();
   if(b.dataset.tab||b.dataset.go){state.tab=b.dataset.tab||b.dataset.go;render();}
   if(b.dataset.ratio){state.ratio=b.dataset.ratio;render();}
   if(b.dataset.scene!==undefined){const v=$('film-player');if(v&&Number.isFinite(v.duration)){const n=state.current.plan.scenes.length,i=Number(b.dataset.scene);v.currentTime=i===0?0:i===n-1?Math.max(0,v.duration-3):3+(i-1)*(v.duration-6)/(n-2);v.play().catch(()=>{});}}
@@ -279,7 +386,7 @@ document.addEventListener('click',async(event)=>{
 for(const id of ['new-button','new-side'])$(id).onclick=newCampaign;
 for(const id of ['settings-button','connect-button'])$(id).onclick=settings;
 $('campaign-select').onchange=async(e)=>{state.current=state.campaigns.find(c=>c.id===e.target.value);try{await refresh(true);}catch(err){toast(err.message);}};
-$('demo-button').onclick=async()=>{const b=$('demo-button');b.disabled=true;try{const c=await api('/api/demo?language='+preferredLanguage(),{method:'POST'});state.campaigns.unshift(c);state.current=c;state.tab='film';await refresh(true);}catch(e){toast(e.message);}finally{b.disabled=false;}};
+$('demo-button').onclick=startSample;
 $('access-form').onsubmit=async(e)=>{e.preventDefault();try{await api('/api/session',{method:'POST',body:{token:$('access-token').value}});$('access-token').value='';$('access-dialog').close();await initialize();}catch(err){$('access-error').textContent=err.message;}};
 $('capture-mode').onchange=()=>{const mode=$('capture-mode').value;$('url-options').hidden=mode!=='url';$('upload-options').hidden=mode!=='upload';$('trim-options').hidden=mode==='none';};
 $('record-button').onclick=async()=>{
@@ -310,9 +417,13 @@ $('create-form').onsubmit=async(e)=>{
     if((options.film_provider!=='local'||options.llm_plan)&&!options.external_data_consent)throw new Error('選択した外部Providerへの送信許可が必要です。');
     const channels=f.getAll('channels');if(!channels.length)throw new Error('SNSを1つ以上選択してください。');
     const brief={channels,goal:str('goal'),name:str('name'),audience:str('audience'),tagline:str('tagline'),description:str('description'),product_url:str('product_url'),features,accent:str('accent'),language:str('language')};
-    const c=await api('/api/campaigns',{method:'POST',body:brief});
+    const signature=JSON.stringify({brief,options});
+    if(state.createIntent?.signature!==signature)state.createIntent={signature,key:crypto.randomUUID()};
+    const c=await api('/api/campaigns',{method:'POST',body:brief,headers:{'Idempotency-Key':state.createIntent.key}});
+    state.campaigns=[c,...state.campaigns.filter(item=>item.id!==c.id)];state.current=c;state.tab='film';rememberLocation();
+    if(c.state!=='draft'){state.createIntent=null;$('create-dialog').close();await refresh(true);return;}
     for(const [kind,file] of [['capture',mode==='upload'?capture:null],['audio',audio],['narration',narration]])if(file)await api(`/api/campaigns/${c.id}/media?kind=${kind}&rights_confirmed=true`,{method:'POST',body:file,headers:{'Content-Type':'application/octet-stream'}});
-    await api(`/api/campaigns/${c.id}/build`,{method:'POST',body:options});state.campaigns.unshift(c);state.current=c;state.tab='film';$('create-dialog').close();state.recorded=null;form.reset();$('capture-mode').onchange();await refresh(true);
+    await api(`/api/campaigns/${c.id}/build`,{method:'POST',body:options});state.createIntent=null;$('create-dialog').close();state.recorded=null;form.reset();$('capture-mode').onchange();await refresh(true);
   }catch(err){$('create-error').textContent=err.message;}finally{$('create-submit').disabled=false;}
 };
 // The studio is written in Japanese; this translates what it renders, including
@@ -322,4 +433,4 @@ watch();
 // never goes through the translation table itself.
 $('language-toggle').textContent=preferredLanguage()==='ja'?'EN':'JA';
 $('language-toggle').onclick=()=>setLanguage(preferredLanguage()==='ja'?'en':'ja');
-render();initialize().catch(e=>{if(!$('access-dialog').open)toast(e.message);});
+render();initialize().catch(e=>{if(!$('access-dialog').open)connectionProblem(e);});

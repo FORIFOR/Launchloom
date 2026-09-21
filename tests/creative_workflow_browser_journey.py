@@ -90,5 +90,6 @@ if __name__=='__main__':
         return original(settings,**kwargs)
     journey.create_app=create_app
     journey.extra_checks=extra_checks
+    journey.suite='creative workflow browser journey: reviewed AI edit, frame QA, synchronized kit'
     os.environ['CREATIVE_BROWSER_ARTIFACTS']='creative-browser-artifacts/workflow'
     journey.main()

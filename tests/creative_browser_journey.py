@@ -25,6 +25,9 @@ from launchloom.server import create_app
 from launchloom.creative import BrandProfile, CreativeLayer, CreativeScene, CreativeSpec
 
 
+suite = "creative browser journey"
+
+
 def extra_checks(page, client, cid, output):
     """Optional extension exercised separately by the workflow browser suite."""
 
@@ -135,7 +138,7 @@ def main():
                         "passed": True, "real_ffmpeg": True, "real_api": True,
                         "portrait_only_rebuild": rebuilt, "adoption_count": 1,
                         "publications": 0, "decoded_browser_playback": True, "page_errors": errors}, ensure_ascii=False, indent=2))
-                    print("PASS: real UI/API/FFmpeg and decoded browser playback; portrait-only rebuild; adoption; mobile overflow; no publication")
+                    print(f"PASS [{suite}]: real UI/API/FFmpeg and decoded browser playback; portrait-only rebuild; adoption; mobile overflow; no publication")
         finally:
             server.should_exit = True; thread.join(timeout=15)
 

@@ -1,0 +1,110 @@
+/* Obsidian — production board and creative studio, after ObsidianUI (MIT).
+   Loaded after each page's own stylesheet so the studio, the board and the
+   preview editor are one surface. Colour only: sizing, hit areas and the
+   reduced-motion rules of the earlier sheets are untouched.
+   The preview stage keeps the renderer's own colours: it shows what the film
+   will actually look like, so recolouring it would make the preview wrong. */
+:root{
+  color-scheme:dark;
+  --ob-bg:#000;
+  --ob-surface:#0a0a0a;
+  --ob-raise:#141414;
+  --ob-line:#1a1a1a;
+  --ob-line-strong:#262626;
+  --ob-fg:#fafafa;
+  --ob-fg-dim:#a1a1a1;
+  --ob-fg-faint:#8f8f8f;
+  --ob-accent:#fe6e00;
+  --ob-positive:#00bb7f;
+  /* The names both sheets style against. */
+  --paper:var(--ob-bg);
+  --ink:var(--ob-fg);
+  --muted:var(--ob-fg-dim);
+  --line:var(--ob-line);
+  --rule:var(--ob-line);
+  --surface:var(--ob-surface);
+  --accent:var(--ob-accent);
+  --stage:#000;
+  --stage-ink:var(--ob-fg);
+  --stage-muted:var(--ob-fg-dim);
+}
+body{
+  background-color:var(--ob-bg);
+  background-image:radial-gradient(circle at 1px 1px,#171717 1px,transparent 0);
+  background-size:32px 32px;
+  background-attachment:fixed;
+  color:var(--ob-fg);
+  letter-spacing:-.011em;
+}
+h1,h2,h3{color:var(--ob-fg);letter-spacing:-.03em}
+p,label{color:var(--ob-fg-dim)}
+.eyebrow{color:var(--ob-fg-faint);letter-spacing:.16em}
+
+header,.masthead{background:rgba(0,0,0,.72);color:var(--ob-fg);border-bottom:1px solid var(--ob-line);backdrop-filter:blur(12px)}
+.brand,.wordmark{color:var(--ob-fg)}
+.brand span,header a,.masthead nav a{color:var(--ob-fg-dim)}
+header a:hover,.masthead nav a:hover{color:var(--ob-fg)}
+
+button{background:var(--ob-surface);border:1px solid var(--ob-line-strong);border-radius:12px;color:var(--ob-fg)}
+button:hover:not(:disabled){background:var(--ob-raise);border-color:#404040}
+button.primary{background:var(--ob-fg);border-color:rgba(250,250,250,.5);color:#171717;font-weight:600}
+button.primary:hover:not(:disabled){background:#e5e5e5;border-color:rgba(250,250,250,.6)}
+input,select,textarea{background:var(--ob-bg);border:1px solid var(--ob-line-strong);border-radius:10px;color:var(--ob-fg)}
+input::placeholder,textarea::placeholder{color:#6b6b6b}
+input:hover,select:hover,textarea:hover{border-color:#404040}
+:focus-visible{outline:2px solid var(--ob-fg);outline-offset:3px}
+
+/* Production board. These two carry the earlier sheet's own specificity. */
+.journey{background:rgba(0,0,0,.82);border-bottom:1px solid var(--ob-line);backdrop-filter:blur(12px)}
+.journey a{color:var(--ob-fg-dim)}
+.journey a:last-child{color:var(--ob-accent)}
+.scene-fields input,.scene-fields select,.scene-fields textarea,
+.settings input,.settings select{background:var(--ob-bg);border-color:var(--ob-line-strong);color:var(--ob-fg)}
+.scope{border-left:2px solid var(--ob-accent)}
+.scope p{color:var(--ob-fg-dim)}
+.project{border-block:1px solid var(--ob-line)}
+.project p{color:var(--ob-fg-dim)}
+.duration strong{color:var(--ob-fg)}
+.duration span{color:var(--ob-fg-dim)}
+.scene{background:var(--ob-surface);border:1px solid var(--ob-line);border-radius:16px}
+.scene-number,.asset,.steps span{color:var(--ob-fg-faint)}
+.scene-role{color:var(--ob-fg-dim)}
+.handoff{border-top:1px solid var(--ob-line)}
+.steps p,.actions p,.scope-note,.final-message{color:var(--ob-fg-dim)}
+.final-film-section{border-top:1px solid var(--ob-line)}
+.final-import,.final-review{background:var(--ob-surface);border:1px solid var(--ob-line);border-radius:16px}
+.final-review video{background:#000;border-radius:10px}
+.final-review p{color:var(--ob-fg-dim)}
+.final-review a{background:var(--ob-fg);color:#171717}
+.final-hash{color:var(--ob-fg-faint)}
+.execution-status.ready{color:var(--ob-positive)}
+.execution-status.blocked{color:#f5b483}
+.execution-row button.paid{background:var(--ob-accent);border-color:var(--ob-accent);color:#0a0a0a}
+footer{color:var(--ob-fg-faint);border-top:1px solid var(--ob-line)}
+.error{color:#ff8a90!important}
+
+/* Creative studio */
+.local-note{color:var(--ob-fg-dim)}
+.status-dot{background:var(--ob-positive);box-shadow:0 0 8px rgba(0,187,127,.55)}
+.project-bar{border-block:1px solid var(--ob-line)}
+.lede{color:var(--ob-fg-dim)}
+.warning{background:rgba(254,110,0,.08);border:1px solid rgba(254,110,0,.25);border-radius:10px;color:#f5b483}
+.segmented button[aria-pressed=true]{background:var(--ob-fg);color:#171717;border-color:rgba(250,250,250,.5)}
+/* Frame only. The stage is a preview of the actual film, so it is pinned back
+   to the renderer's own per-preset paper and ink; the tokens above would
+   otherwise repaint it black and the preview would no longer be true. */
+.stage-surround{background:var(--ob-bg);border:1px solid var(--ob-line);border-radius:16px}
+.stage{background:#F6F5F0;color:#20251F}
+.stage[data-preset=spotlight]{background:#171A17;color:#F6F5F0}
+.stage[data-preset=grid]{background-color:#edf3ed;color:#20251F}
+/* The caption is a <p>, so the page-wide muted colour above would tint it. */
+.stage p,.stage label{color:inherit}
+.blockers{color:#f5b483}
+.proposal del{color:#ff8a90}
+.proposal ins{color:#00d294}
+#message.error{color:#ff8a90}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}

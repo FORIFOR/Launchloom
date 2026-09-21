@@ -9,9 +9,10 @@ returned by these routes. No automatic cloud API or hosted account is provisione
 |---|---|---|
 | GET | /healthz | Basic health; no secrets |
 | POST | /api/session | `{ "token": "..." }` → local session cookie |
+| GET | /api/openapi.json | Authenticated OpenAPI 3.1, including primary task response types |
 | GET | /api/config | Connection flags, not credentials |
 | GET/POST | /api/campaigns | List / create strict Brief |
-| POST | /api/demo | Create and queue the offline real-app demo |
+| POST | /api/demo | Create and queue the offline real-app demo; `?review_plan=true` pauses for editing |
 | GET | /api/campaigns/{id} | State, progress, logs, output URLs, metrics |
 | POST | /api/campaigns/{id}/media?kind=capture&rights_confirmed=true | Raw binary body; not multipart. kind can be audio |
 | POST | /api/campaigns/{id}/build | Strict BuildOptions. Enqueue once |
@@ -67,7 +68,8 @@ itself submit; `/submit` is a separate command. Live publication defaults OFF.
 
 With `"review_plan": true` in BuildOptions, a build stops after capture and the
 campaign state becomes `awaiting_review`. Nothing has been rendered and no
-provider has been contacted. `PATCH /plan` takes a typed diff:
+video-generation provider has been contacted. Opt-in LLM planning has already
+run under its separate external-data consent. `PATCH /plan` takes a typed diff:
 
 ```json
 {
@@ -123,3 +125,18 @@ For automated production from a brief, use `examples/client.py`. It never posts 
 SNS. Use a test-origin allowlist and explicit consent in BuildOptions as required.
 The API accepts operator-approved feature evidence, not independently verified
 truth.
+
+## Creation and recovery contract
+
+Creation endpoints accept optional `Idempotency-Key` (8–128 ASCII letters, digits,
+`._:-`). Same normalized input/key returns the same campaign in its **current**
+state. Different input/key reuse returns 409. Keys are shared between campaign and
+sample creation, retained for the lifetime of the local database. The initial
+sample job and campaign commit atomically. A replay never retries a stopped job.
+No-key requests retain legacy create-new behavior. `/api/demo` keeps automatic
+rendering by default for existing clients; the browser explicitly requests review.
+
+Use GET on the returned campaign id to observe completion. 201 means created; 202
+means accepted, possibly already progressed on a replay. Neither means rendered
+or published. Full states, errors, version policy, client exit codes and examples
+are in [COMPATIBILITY.md](COMPATIBILITY.md).
