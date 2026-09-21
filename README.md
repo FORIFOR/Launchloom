@@ -17,12 +17,22 @@ from the same plan, on your own machine.
 
 **[Watch what it makes → forifor.github.io/Launchloom](https://forifor.github.io/Launchloom/)**
 
+![The Launchloom studio after a build: the rendered film, its storyboard and the quality checks](docs/screenshots/studio-ready.png)
+
+*The studio after one run of the bundled sample. Real output, not a mockup: a
+decodable film in both aspect ratios, the storyboard it was cut from, and the
+checks that say what is and is not verified. Screenshot taken from the actual
+browser during the [first-success test](tests/first_success_browser_journey.py).*
+
+<details>
+<summary>The original one-click demo (historical)</summary>
+
 ![Launchloom producing a film, a landing page and social drafts from one click](docs/screenshots/demo.gif)
 
-*One click. A real app is driven and recorded, a film is cut in both aspect
-ratios, a landing page is written, and the posts are drafted — locally, with no
-API key. This is a historical recording of the automatic demo. The current browser
-flow adds an editable review step before rendering. See the [current walkthrough](docs/FIRST_PROOF.md).*
+*A recording of the earlier automatic demo. The current browser flow adds an
+editable review step before rendering — see the [current walkthrough](docs/FIRST_PROOF.md).*
+
+</details>
 
 </div>
 
