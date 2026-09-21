@@ -1,7 +1,7 @@
 # Local integration and recovery contract
 
-Target: Launchloom package **0.1.1**, with the first-success additions documented
-in this working revision. `/healthz` reports the package version, not a guarantee
+Target: Launchloom package **0.1.2**, the release that carries the first-success
+additions described here. `/healthz` reports the package version, not a guarantee
 that two development checkouts are identical. Pin a release or commit and record
 the OpenAPI document used by your integration. This is single-operator alpha
 software: one SQLite database, one server process/worker, one trusted operator.
