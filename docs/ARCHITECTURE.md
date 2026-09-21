@@ -30,7 +30,8 @@ With `review_plan`, a build stops once the cheap, reversible work is done:
 `draft → queued → building → awaiting_review → queued → building → ready`
 
 The gate sits after planning, the landing page and capture, and **before**
-rendering and before any generative provider is contacted. A reviewed storyboard
+rendering and before a video-generation provider is contacted. Opt-in LLM planning
+runs before this gate, under its separate data consent. A reviewed storyboard
 is stored with `plan_approved`, and the next build uses it verbatim instead of
 regenerating one.
 
@@ -100,7 +101,9 @@ and all non-video costs are excluded. Enforce monetary caps at the actual Provid
 ## Deterministic media
 
 A three-second opening, up to twenty seconds of proof, three-second CTA.
-24fps H.264/yuv420p, faststart, separate 1280×720 and 720×1280 layouts.
+Standard studio: 30fps H.264/yuv420p, faststart, separate 1920×1080 and
+1080×1920 layouts. The experimental v2 creative renderer separately uses
+1280×720 / 720×1280 at 24fps; do not infer one contract from the other.
 Draft = 960×540 and 540×960. Product screen footage is recorded or uploaded;
 generated b-roll is only an explicitly labeled conceptual opening.
 Cursor coordinates drive clamped eased zoom. Imported footage carries no cursor
@@ -145,3 +148,13 @@ preview's fingerprint, so a landing page regenerated in the meantime invalidates
 it. Hosted provider APIs are deliberately absent — a directory is what a static
 host or a repository working copy actually needs, and it is the only target that
 can be verified without someone's credentials.
+
+## First-success transport boundary
+
+`Store.create_campaign` owns atomic campaign/initial-job creation and durable
+idempotency keys. `Store.enqueue` owns active-job deduplication and immutable build
+options. HTTP responses use `contracts.py`; strict input types remain `models.py`.
+The browser and `examples/client.py` present those states and explicit actions;
+neither implements its own generation, authorization or job store. The client
+example is an HTTP adapter, not a stable in-process SDK. Creation replays never
+retry jobs or revive publishing approvals. See `COMPATIBILITY.md`.

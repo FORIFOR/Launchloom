@@ -74,6 +74,21 @@ the moment a film was rendered and watched. Watch the film.
 
 ## Documentation
 
+For studio/task or integration changes, fix acceptance before implementation using
+`docs/quality/acceptance.md`, preserve failing evidence, and run:
+
+```bash
+python scripts/verify-local-quality.py --output /tmp/launchloom-quality
+python tests/first_success_browser_journey.py --output /tmp/launchloom-first-success
+```
+
+The runner records commands, exit codes, package build/import and source hashes.
+The browser journey uses a disposable local database, real media and a real worker
+restart. Neither establishes external-provider or human-usability success. Do not
+label synthetic composition as a native IME test or viewport resizing as browser
+zoom. Record PASS / FAIL / BLOCKED / NOT_APPLICABLE for the actual environment.
+Public HTTP compatibility and client recovery are described in `docs/COMPATIBILITY.md`.
+
 If behaviour changes, update the doc that describes it, and update
 `docs/VERIFICATION.md` if you actually ran something. That file records what was
 executed on a real machine; please keep it a record and not a wish list.

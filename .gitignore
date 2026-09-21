@@ -16,6 +16,8 @@ dist/
 # Any studio data directory, whatever it is called.
 .launchloom*/
 check*/
+# Verification evidence is retained locally, not in git history.
+docs/quality/evidence/
 creative-browser-artifacts/
 launchloom-selftest.txt
 launchloom-selftest.json

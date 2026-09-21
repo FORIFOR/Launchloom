@@ -50,8 +50,11 @@ all representative paths have a real trace and measured cost, not only mocks.
 
 **Still open:** text-to-speech and narration generation (today both tracks are
 files the operator supplies), more than two tracks, motion blur, callout and
-arrow tracks, and per-scene re-rendering that reuses unchanged scenes instead of
-composing the film again.
+arrow tracks. Per-scene cache reuse is now implemented in the experimental v2
+creative editor (`CREATIVE_STUDIO.md`); the standard studio still recomposes its
+film. Free-form typed edit proposals and same-revision v2 kits are described in
+`CREATIVE_WORKFLOWS.md`. These do not establish live-provider compatibility or
+human aesthetic quality.
 
 Acceptance: judge actual text legibility, focus tracking, pacing and end-to-end
 intent with humans; not only pixel hashes or a model-assigned score.

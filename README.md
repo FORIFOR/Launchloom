@@ -10,7 +10,7 @@ from the same plan, on your own machine.
 
 [![Checks](https://github.com/FORIFOR/Launchloom/actions/workflows/check.yml/badge.svg)](https://github.com/FORIFOR/Launchloom/actions/workflows/check.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-635%20passing-brightgreen.svg)](docs/VERIFICATION.md)
+[Verification record](docs/quality/verification.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)](pyproject.toml)
 [![Local first](https://img.shields.io/badge/runs-on%20your%20machine-ed6847.svg)](#what-it-does-not-do)
 [![日本語](https://img.shields.io/badge/README-日本語-333.svg)](README.ja.md)
@@ -21,15 +21,16 @@ from the same plan, on your own machine.
 
 *One click. A real app is driven and recorded, a film is cut in both aspect
 ratios, a landing page is written, and the posts are drafted — locally, with no
-API key. The build itself takes about twenty seconds; it is compressed here.*
+API key. This is a historical recording of the automatic demo. The current browser
+flow adds an editable review step before rendering. See the [current walkthrough](docs/FIRST_PROOF.md).*
 
 </div>
 
 ---
 
-## Try it in three minutes
+## Get your first editable kit
 
-No account. No API key. Nothing leaves your machine.
+The bundled local sample needs no account or AI API key. Production time depends on your machine; installation may take longer.
 
 ```bash
 git clone https://github.com/FORIFOR/Launchloom.git && cd Launchloom
@@ -40,9 +41,25 @@ python -m launchloom serve
 ```
 
 Open `http://127.0.0.1:8787`, paste the access key printed in your terminal, and
-press **「サンプルで試す」 / Try the sample**. Launchloom drives a small task app
-bundled in this repo, records it, and hands you an MP4, a vertical cut, a landing
-page, captions, social drafts and a ZIP.
+choose **Edit the sample and make a kit** (the campaign-bar **Try the sample**
+button uses the same flow).
+
+1. Orbit, the bundled test app, is recorded locally. Wait for **Waiting for review**.
+2. Change a caption and **Save draft**. The sample remains editable after reload.
+3. **Save and create films**, play both formats, then **Download the launch kit**.
+   The ZIP includes videos, a landing page, social drafts, captions and file hashes.
+
+No media or posts are published by these steps. Without supplied audio the sample
+is silent; without a product URL its CTA is disabled. Headline/caption edits in the
+standard studio affect the film; LP/social copy comes from the original brief.
+For synchronized scene copy across all outputs, use the optional
+[experimental creative workflow](docs/CREATIVE_WORKFLOWS.md).
+
+If a connection drops, **Reconnect and check status** reads the saved state without
+starting another build. The campaign id stays in the page URL. After a lost sample
+creation response, the same sample button recovers the original request even after
+reload in that tab. A stopped worker is shown as interrupted; review its cause
+before explicitly retrying. [Recovery and integration guide](docs/COMPATIBILITY.md).
 
 Requires Python 3.11+, FFmpeg and Chromium. macOS and Docker are verified;
 `docs/VERIFICATION.md` says exactly what was run and what was not.
@@ -89,7 +106,8 @@ interface it was supposed to prove. Both are fixed in this repo.
 ## Nothing renders before you have read it
 
 Tick *review before rendering* and the build stops after capture. Nothing has
-been encoded and no AI provider has been contacted. You see one frame of what was
+been encoded and no video-generation provider has been contacted. If you opted into
+LLM planning, that separately consented planning call has already run. You see one frame of what was
 recorded and every scene's wording, and you edit it — headline, supporting line,
 caption — then approve.
 
@@ -223,3 +241,13 @@ production package, and import the finished H.264/AAC MP4 from your editing tool
 Preview the exact version and continue to post review. Seedance, coding-agent and Adobe execution are optional, separately enabled actions;
 no post is sent without separate release and approval. See [the workflow guide](docs/PRODUCTION_HANDOFF.md).
 
+
+## Integrate locally
+
+The versioned package exposes an authenticated HTTP API, with machine-readable
+OpenAPI at `/api/openapi.json`. Use the [resumable Python HTTP example](examples/client.py)
+and read [compatibility, state, errors and permissions](docs/COMPATIBILITY.md).
+There is no separately supported Python SDK; internal modules and the experimental
+production/creative routes may change. [Acceptance conditions](docs/quality/acceptance.md)
+and [recorded verification](docs/quality/verification.md) distinguish tested behavior
+from external integrations and human usability studies that remain unverified.
