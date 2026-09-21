@@ -65,7 +65,11 @@ def main():
                     page.wait_for_function("() => !document.querySelector('#access-dialog').open")
                     page.wait_for_function('(id)=>document.querySelector("#campaign-select").value===id',arg=first['id'])
                     assert page.locator('#campaign-select').input_value()==first['id']
-                    page.locator('#production-link').click()
+                    # The studio offers the production board only once a campaign
+                    # has a film. This fixture is a draft, so assert that rule and
+                    # then open the board the way its URL is built.
+                    assert page.locator('.production-entry').is_hidden()
+                    page.goto(base+'/production?campaign='+first['id'])
                     page.locator('#editor').wait_for(state='visible')
                     assert 'campaign='+first['id'] in page.url
                     assert page.locator('#campaign').input_value()==first['id']
