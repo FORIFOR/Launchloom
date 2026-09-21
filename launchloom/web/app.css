@@ -2,6 +2,7 @@
 @import url('./app-base.css');
 @import url('./workspace.css');
 @import url('./quiet-cinema.css');
+@import url('./obsidian.css');
 
 /* The legacy compact layout hides the footer. These are functional controls,
    not decoration: restore them so language and settings remain reachable. */
@@ -57,3 +58,10 @@
 .scene-editor{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.scene-edit h3{font-size:16px;display:flex;align-items:center;gap:8px;margin:0 0 18px}.scene-number{display:inline-grid;place-items:center;width:28px;height:28px;border:1px solid var(--line);border-radius:50%;font-size:14px}
 .scene-more summary,.plan-advanced summary,.review-boundary summary{cursor:pointer;min-height:44px;display:list-item;padding:12px 0;font-size:14px}.plan-advanced,.review-boundary{margin-top:20px}
 @media(max-width:800px){.review-intro{grid-template-columns:minmax(0,1fr)}.review-intro figure{display:none}.scene-editor{grid-template-columns:minmax(0,1fr)}.review-actions{position:static}.review-actions>div{flex-basis:100%}.review-actions .button{flex:1;min-width:130px}.pipeline-step .step-label{font-size:12px}}
+
+/* Obsidian theme corrections for the colours this file sets after the imports. */
+.production-entry span{color:var(--ob-fg-dim)}
+.review-intro .review-still{background:#000}
+.review-actions{background:rgba(0,0,0,.88);backdrop-filter:blur(12px);border-block-color:var(--ob-line)}
+.scene-number{border-color:var(--ob-line-strong)}
+.first-success details{border-top-color:var(--ob-line)}

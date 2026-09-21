@@ -18,6 +18,7 @@ model outputs, media, or a separately operated Postiz installation.
 | ComfyUI | Optional independent HTTP service | Project, custom-node, model and output licenses separately |
 | fal | Optional hosted model API | Provider and selected model terms; not an OSS dependency |
 | System fonts | Loaded from operator OS; no font files shipped | OS/font license |
+| ObsidianUI | Design reference for the studio theme; no source vendored | MIT; preserve attribution |
 
 Screen Studio is a reference for interaction, not a dependency or unofficial API.
 Openscreen is an MIT-licensed reference candidate; its code is not integrated or
@@ -27,6 +28,7 @@ shipping a desktop bundle or container image commercially. This is not a license
 audit or legal clearance.
 
 Primary sources reviewed for the implementation:
+- https://www.obsidianui.dev/llms.txt
 - https://github.com/getopenscreen/openscreen
 - https://github.com/gitroomhq/postiz-app
 - https://github.com/gitroomhq/postiz-app/blob/main/LICENSE

@@ -9,6 +9,24 @@ Latest UI revision: [review-screen simplification](ux-improvement.md), with a fr
 841-test/package run and real browser artifact/recovery verification. Earlier
 source fingerprints below describe earlier revisions, not this new layout.
 
+## Studio theme: Obsidian
+
+The studio, production board and preview editor were re-themed after
+[ObsidianUI](https://www.obsidianui.dev); see [OBSIDIAN.md](../OBSIDIAN.md). The
+change is a colour and surface layer over the existing stylesheets, so the sizing
+and hit areas measured for the accessibility checks are unchanged.
+
+Measured on macOS with installed Chrome and FFmpeg: the full suite passed at 848
+tests, and `tests/first_success_browser_journey.py` passed F1, F2, F3, R1, R2,
+R3, U2, U3-composition, C2 and network, with zero page errors and zero external
+requests. Document width equalled viewport width at 390px, and animations stayed
+disabled under reduced motion. **U3-native-IME and U1-zoom remain BLOCKED** for
+the same reasons recorded below; the theme did not change their status.
+
+Two surfaces are deliberately not themed, because each is a preview of real
+output: the preview editor's stage keeps the renderer's own per-preset colours,
+and the landing-page frame shows the generated page as it will be published.
+
 ## Follow-up: resolve unmet checks
 
 The request to resolve all remaining items produced an additional **Linux PASS**:

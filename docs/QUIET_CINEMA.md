@@ -2,6 +2,11 @@
 
 Launchloom's visual system is **Quiet Cinema**: calm editorial surfaces around one vivid product stage.
 
+Scope: the public pages (`homepage/`), the generated launch-kit landing pages and
+the film renderer. The local studio, production board and preview editor now use
+[Obsidian](OBSIDIAN.md), which is layered over this system's stylesheet; the
+principles below still govern what those surfaces are allowed to claim.
+
 ## Principles
 
 1. **The product is the image.** Real recordings and rendered outputs lead; decoration does not.
