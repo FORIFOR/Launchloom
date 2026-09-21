@@ -119,7 +119,7 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
         if capture_file and capture_file.exists():
             review_still(root,capture_file,options.capture_start)
         store.progress(cid,'awaiting_review',40,state='awaiting_review')
-        store.log(cid,'review','構成と収録内容を確認してください。承認するまでレンダリングも生成AIも実行しません。')
+        store.log(cid,'review','構成と収録内容を確認してください。承認するまでレンダリングと映像生成は実行しません。企画LLMを選んだ場合、その処理は実行済みです。')
         return None
     broll=None
     if options.film_provider!='local':

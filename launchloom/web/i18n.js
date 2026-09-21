@@ -10,11 +10,54 @@
 // non-breaking space — never HTML entities, which would show up literally.
 
 const EN = {
+  '内容を確認': 'Review content',
+  '動画を作成': 'Create films',
+  '完成物を受け取る': 'Download your kit',
+  '最初に伝えること': 'Opening message',
+  '機能を紹介': 'Show a feature',
+  '最後のひとこと': 'Closing message',
+  '補足を編集': 'Edit supporting text',
+  '映像全体の狙い・演出を調整': 'Adjust the overall concept and direction',
+  '動画に入れる言葉を確認': 'Review the words in your film',
+  '下の見出し・字幕を直せます。そのままでよければ、動画を作成してください。': 'Edit the headlines and captions below, or create the films as they are.',
+  '完成すると、横長・縦長の動画、LP、SNS原稿をダウンロードできます。': 'Download landscape and portrait films, a landing page and social drafts when ready.',
+  '収録済みの画面 · 完成動画ではありません': 'Recorded screen · not the finished film',
+  '保存済みの内容を表示しています': 'Showing your saved content',
+  '未保存の変更があります': 'You have unsaved changes',
+  '動画作成では公開・投稿を行いません。': 'Creating films does not publish or post anything.',
+  '編集を保存': 'Save edits',
+  '保存して動画を作る →': 'Save and create films →',
+  '編集の反映範囲・実行済みの処理': 'What these edits affect and what has already run',
+  'プロダクトの紹介キットを作る': 'Create your product launch kit',
+  '動画・紹介ページ・SNS原稿を、ひとつの企画から。': 'Films, a landing page and social drafts from one brief.',
+  'ローカルの制作画面を開く': 'Open your local studio',
+
+  // First success and recovery
+  '制作内容へ移動': 'Skip to studio content',
+  '最新の状態は未確認です。': 'Latest status is unconfirmed.',
+  '接続して状態を確認': 'Reconnect and check status',
+  '接続が途切れ、最新の状態を確認できません。制作が止まったとは限りません。入力はこの画面に残っています。': 'Connection lost. The server may still be working. Your input remains on this page.',
+  '動画・LP・SNS原稿を、ひとつのキットに。': 'A film, landing page and social drafts in one kit.',
+  'まずは内蔵のOrbitサンプルで、字幕をひとつ直して書き出してみましょう。': 'Start with the bundled Orbit sample. Edit one caption, then export it.',
+  'サンプルアプリを自動で収録': 'Record the bundled sample app',
+  '構成と字幕を編集・保存': 'Edit and save the storyboard and captions',
+  '動画を確認してZIPをダウンロード': 'Review the films and download the ZIP',
+  'ローカル処理・生成AI料金なし。APIキー不要。公開・投稿は行いません。音声未指定のサンプルは無音です。': 'Local processing, no AI charges or API keys. Nothing is published. The sample is silent without supplied audio.',
+  'サンプルを編集して作る ↗': 'Edit the sample and make a kit ↗',
+  'サンプルは実在サービスの実績ではなく、このリポジトリに含まれる検証用アプリです。': 'The sample is a test app in this repository, not evidence of a real service or customer result.',
+  '自分のプロダクトで作る': 'Use your own product',
+  '製品情報と紹介してよい機能を入力し、操作動画を取り込めます。': 'Enter your product information and approved features, then import a recording.',
+  '制作キットができました。': 'Your launch kit is ready.',
+  '横長・縦長の動画、LP、SNS原稿、字幕をZIPにまとめました。まず動画を再生して確認してください。': 'The ZIP contains landscape and portrait films, a page, social drafts and captions. Play the films first.',
+  'SNS原稿を見る': 'See social drafts',
+  'この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。': 'Headline and caption edits here change the film. The page and social drafts use the original brief.',
+  '受付結果を確認できません。同じサンプルボタンで前回の受付を確認できます。': 'The request outcome is unknown. Use the same sample button to recover the previous request.',
+  '制作はまだ完了していません。状態と制作ログを確認してください。': 'Production is not complete. Check the status and activity log.',
+  'まだ映像は書き出していません。文言を直してから承認してください。企画LLMを選んだ場合、その企画処理は実行済みです。': 'No film has been rendered yet. Review and edit the wording before approval. If you selected LLM planning, that planning call already ran.',
   // — shell, navigation, campaign bar —
   'Launchloom — 作った、その先まで。': 'Launchloom — from a product to a launch',
   '作った、その先まで': 'You built it. Now show it',
   '作った、その先まで。': 'You built it. Now show it.',
-  'ひとつの企画から、映像・サイト・届け方まで。': 'One brief. A film, a page, and a way to reach people.',
   '制作スタジオ': 'Studio',
   'ランディングページ': 'Landing page',
   '配信・承認': 'Distribution',
@@ -34,8 +77,6 @@ const EN = {
   // — pipeline stages —
   '企画・方向性': 'Brief & direction',
   '操作収録': 'Capture',
-  '映像・パッケージ': 'Film & kit',
-  '承認・配信': 'Approve & send',
   '構成の確認待ち': 'Waiting for review',
   '企画': 'Brief',
   'LP制作': 'Landing page',
@@ -56,7 +97,6 @@ const EN = {
   '未作成': 'Not started',
 
   // — access dialog —
-  'おかえりなさい。': 'Welcome back.',
   '起動したターミナルに表示されたアクセスキーを入力してください。APIキーとは別の、ローカル専用キーです。':
     'Enter the access key printed in the terminal where you started the studio. It is a local key, not an API key for any service.',
   'アクセスキー': 'Access key',
@@ -64,7 +104,6 @@ const EN = {
 
   // — film tab —
   '◫ &nbsp; プロダクトフィルム': '◫ \u00a0 Product film',
-  '映像も、サイトも、その先の広がりも。': 'The film, the page, and everything after.',
   'いいものを、\n見過ごされないものに。': 'Good work,\nfinally seen.',
   'いいものを、': 'Good work,',
   '見過ごされないものに。': 'finally seen.',
@@ -103,21 +142,12 @@ const EN = {
   '未設定': 'Not set',
 
   // — review gate —
-  '◫ &nbsp; 届ける前に、構成を確かめる。': '◫ \u00a0 Read it before it renders.',
-  'レンダリング前': 'Before rendering',
-  'まだ映像は書き出していません。生成AIへの依頼も、外部への送信もしていません。文言を直してから承認してください。':
-    'Nothing has been rendered yet. No AI provider has been contacted and nothing has been sent anywhere. Edit the wording, then approve.',
-  '機能の主張そのものは企画で確定済みです。ここで直すのは、見出し・補足・字幕の言い回しです。':
-    'What the product claims was settled in the brief. What you change here is how the headlines, supporting lines and captions are worded.',
   'この映像の狙い': 'What this film is for',
   '演出方針': 'Visual direction',
   '見出し': 'Headline',
   '補足': 'Supporting line',
   '字幕': 'Caption',
   '空欄なら見出しを使います': 'Empty means use the headline',
-  '編集は制作者の文言として記録されます。': 'Edits are recorded as your wording.',
-  '下書きとして保存': 'Save as draft',
-  '承認してレンダリング ↗': 'Approve and render ↗',
   '構成を直して、この素材のまま作り直す': 'Reword it and re-render from the same material',
   '収録済みの映像をそのまま使います。再収録も、生成AIへの再依頼も行いません。作り直すと現在の動画・LP・キットは置き換わります。':
     'The existing recording is reused. Nothing is recorded again and no provider is asked again. Re-rendering replaces the current film, page and kit.',
@@ -386,8 +416,8 @@ const EN = {
     'Checking resolution, container, missing files and the evidence behind the copy.',
   '制作パッケージができました。外部への公開・投稿はまだ行っていません。':
     'The kit is ready. Nothing has been published or posted.',
-  '構成と収録内容を確認してください。承認するまでレンダリングも生成AIも実行しません。':
-    'Read the storyboard and the capture. Nothing renders and no provider is contacted until you approve.',
+  '構成と収録内容を確認してください。承認するまでレンダリングと映像生成は実行しません。企画LLMを選んだ場合、その処理は実行済みです。':
+    'Read the storyboard and capture. Video rendering and generation wait for approval; any opted-in planning LLM has already run.',
   '承認済みの構成で制作します。文言は上書きしません。': 'Producing from the approved storyboard. Your wording is not overwritten.',
   '構成を編集しました（文言は制作者によるもの）。': 'Storyboard edited (the wording is the operator’s).',
   'この素材のまま、構成を作り直します。再収録と生成AIへの再依頼は行いません。':
@@ -417,7 +447,7 @@ const EN = {
   '予約': 'Schedule',
   'なし': 'none',
 
-  'HD / 1280×720・720×1280': 'HD — 1280×720 and 720×1280',
+  'HD / 1920×1080・1080×1920': 'HD — 1920×1080 and 1080×1920',
   'Draft / 960×540・540×960': 'Draft — 960×540 and 540×960',
   '投稿先': 'Destination',
   '実行': 'When',

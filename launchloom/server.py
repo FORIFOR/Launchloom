@@ -11,14 +11,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import __version__
 from .config import Settings
 from .models import Brief, BuildOptions, PublicationDraft, Approval, PlanEdit, Reconciliation
-from .store import Store
+from .store import Store, CreationConflict
+from .contracts import CampaignRecord, CampaignSnapshot, BuildJob, TASK_ERRORS
 from .pipeline import SAMPLE_BRIEF, SAMPLES, worker_loop
 from .planning import apply_plan_edit
 from .providers import PostizPublisher, validate_publication, receipt_ids, match_remote, remote_candidates, REMOTE_STATES, CHANNEL_SETTINGS, CHANNEL_LIMITS
@@ -91,6 +92,20 @@ def create_app(settings: Settings|None=None,run_worker=True):
         return response
     @app.exception_handler(ValueError)
     async def value_error(request,e):return JSONResponse({'detail':str(e)[:500]},422)
+    @app.exception_handler(CreationConflict)
+    async def creation_conflict(request,e):return JSONResponse({'detail':str(e)},409)
+    @app.get('/api/openapi.json', include_in_schema=False)
+    async def openapi_document():
+        """Authenticated discovery. Security is enforced by the same middleware."""
+        schema=app.openapi()
+        schema.setdefault('components',{})['securitySchemes']={
+            'LocalBearer':{'type':'http','scheme':'bearer'},
+            'LocalSession':{'type':'apiKey','in':'cookie','name':'launchloom_session'}}
+        for path, methods in schema['paths'].items():
+            if (path.startswith('/api/') and path!='/api/session') or path.startswith('/artifacts/'):
+                for operation in methods.values():
+                    if isinstance(operation,dict):operation['security']=[{'LocalBearer':[]},{'LocalSession':[]}]
+        return schema
     @app.get('/healthz')
     async def health():return {'ok':True,'version':__version__}
     @app.post('/api/session')
@@ -121,16 +136,16 @@ def create_app(settings: Settings|None=None,run_worker=True):
               'codex':bool(s.enable_local_agents and s.codex_executable),
               'claude':bool(s.enable_local_agents and s.claude_executable),
               'after_effects':bool(s.enable_after_effects and (s.afterfx_executable or s.aerender_executable))}}
-    @app.get('/api/campaigns')
+    @app.get('/api/campaigns',response_model=list[CampaignRecord],response_model_exclude_unset=True,responses=TASK_ERRORS)
     async def list_campaigns():return db.campaigns()
-    @app.post('/api/campaigns',status_code=201)
-    async def create(brief:Brief):return db.create_campaign(brief.model_dump())
-    @app.post('/api/demo',status_code=202)
-    async def demo(language:str='ja'):
-        c=db.create_campaign(SAMPLES.get(language,SAMPLE_BRIEF))
-        db.enqueue(c['id'],BuildOptions(capture_mode='sample').model_dump())
-        return db.campaign(c['id'])
-    @app.get('/api/campaigns/{cid}')
+    @app.post('/api/campaigns',status_code=201,response_model=CampaignRecord,response_model_exclude_unset=True,responses=TASK_ERRORS)
+    async def create(brief:Brief, idempotency_key:str|None=Header(default=None)):
+        return db.create_campaign(brief.model_dump(),idempotency_key=idempotency_key)
+    @app.post('/api/demo',status_code=202,response_model=CampaignRecord,response_model_exclude_unset=True,responses=TASK_ERRORS)
+    async def demo(language:str='ja', review_plan:bool=False, idempotency_key:str|None=Header(default=None)):
+        return db.create_campaign(Brief.model_validate(SAMPLES.get(language,SAMPLE_BRIEF)).model_dump(),
+            idempotency_key=idempotency_key,options=BuildOptions(capture_mode='sample',review_plan=review_plan).model_dump())
+    @app.get('/api/campaigns/{cid}',response_model=CampaignSnapshot,response_model_exclude_unset=True,responses=TASK_ERRORS)
     async def get_campaign(cid:str):
         c=campaign(cid);r=root(cid)
         c['events']=db.events(cid);c['publications']=db.publications(cid)
@@ -146,10 +161,10 @@ def create_app(settings: Settings|None=None,run_worker=True):
         if c['final_films'] and c['state']!='ready':
             c['posts']=make_posts(Brief.model_validate(c['brief']),cid)
         return c
-    @app.post('/api/campaigns/{cid}/build',status_code=202)
+    @app.post('/api/campaigns/{cid}/build',status_code=202,response_model=BuildJob,responses=TASK_ERRORS)
     async def enqueue(cid:str,options:BuildOptions):
         campaign(cid);return db.enqueue(cid,options.model_dump())
-    @app.patch('/api/campaigns/{cid}/plan')
+    @app.patch('/api/campaigns/{cid}/plan',response_model=CampaignRecord,responses=TASK_ERRORS)
     async def edit_plan(cid:str,edit:PlanEdit):
         c=campaign(cid)
         if c['state'] not in {'awaiting_review','ready'}:raise HTTPException(409,'A storyboard can be reworded while it waits for review, or after it is finished')
@@ -157,7 +172,7 @@ def create_app(settings: Settings|None=None,run_worker=True):
         updated=apply_plan_edit(c['plan'],edit)
         db.log(cid,'review','構成を編集しました（文言は制作者によるもの）。')
         return db.save_plan(cid,updated)
-    @app.post('/api/campaigns/{cid}/render',status_code=202)
+    @app.post('/api/campaigns/{cid}/render',status_code=202,response_model=BuildJob,responses=TASK_ERRORS)
     async def approve_plan(cid:str):
         c=campaign(cid)
         if c['state']!='awaiting_review':raise HTTPException(409,'This campaign is not waiting for a storyboard review')

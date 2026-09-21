@@ -1,11 +1,15 @@
 from __future__ import annotations
 import json
+import re
 import sqlite3
 import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from .security import canonical, digest
+
+class CreationConflict(ValueError):
+    """An operation key was already used for different input."""
 
 class Store:
     """SQLite is the source of truth. One render worker; no in-memory-only job queue."""
@@ -23,6 +27,9 @@ class Store:
             CREATE TABLE IF NOT EXISTS jobs(
               id TEXT PRIMARY KEY, campaign_id TEXT NOT NULL, state TEXT NOT NULL,
               options TEXT NOT NULL, created REAL NOT NULL, started REAL, ended REAL);
+            CREATE TABLE IF NOT EXISTS campaign_requests(
+              key TEXT PRIMARY KEY, fingerprint TEXT NOT NULL,
+              campaign_id TEXT NOT NULL REFERENCES campaigns(id));
             CREATE UNIQUE INDEX IF NOT EXISTS one_active_job ON jobs(campaign_id)
               WHERE state IN ('queued','running');
             CREATE TABLE IF NOT EXISTS events(
@@ -78,10 +85,31 @@ class Store:
         with self.connect() as c: return self.decode(c.execute("SELECT * FROM campaigns WHERE id=?", (cid,)).fetchone())
     def campaigns(self):
         with self.connect() as c: return [self.decode(r) for r in c.execute("SELECT * FROM campaigns ORDER BY created DESC LIMIT 100")]
-    def create_campaign(self, brief):
+    def create_campaign(self, brief, *, idempotency_key=None, options=None):
+        """Persist one creation intent, optionally with its first job, atomically.
+
+        Keys survive process restarts for the lifetime of this local database.
+        Replaying a creation never retries a failed job or changes saved edits.
+        """
+        if idempotency_key is not None and not re.fullmatch(r'[A-Za-z0-9._:-]{8,128}', idempotency_key):
+            raise ValueError('Idempotency-Key must be 8–128 ASCII letters, digits, dot, colon, underscore or hyphen')
+        fingerprint = digest({'brief':brief, 'options':options})
         cid = uuid.uuid4().hex[:16]
         with self.connect() as c:
+            c.execute('BEGIN IMMEDIATE')
+            if idempotency_key is not None:
+                old=c.execute('SELECT * FROM campaign_requests WHERE key=?',(idempotency_key,)).fetchone()
+                if old:
+                    if old['fingerprint'] != fingerprint:
+                        raise CreationConflict('Idempotency-Key already used for different input. Resume the original campaign or use a new key for a new intent.')
+                    return self.decode(c.execute('SELECT * FROM campaigns WHERE id=?',(old['campaign_id'],)).fetchone())
             c.execute("INSERT INTO campaigns(id,brief,created) VALUES(?,?,?)", (cid,canonical(brief),time.time()))
+            if options is not None:
+                c.execute("INSERT INTO jobs(id,campaign_id,state,options,created) VALUES(?,?,'queued',?,?)",
+                          (uuid.uuid4().hex[:16],cid,canonical(options),time.time()))
+                c.execute("UPDATE campaigns SET state='queued',options=? WHERE id=?",(canonical(options),cid))
+            if idempotency_key is not None:
+                c.execute('INSERT INTO campaign_requests VALUES(?,?,?)',(idempotency_key,fingerprint,cid))
         return self.campaign(cid)
     def progress(self, cid, stage, percent, state="building", error=None, plan=None):
         with self.connect() as c:
@@ -101,14 +129,14 @@ class Store:
             c.execute("BEGIN IMMEDIATE")
             row=c.execute("SELECT state,options FROM campaigns WHERE id=?",(cid,)).fetchone()
             if not row: raise ValueError("Campaign not found")
+            if row['options'] and json.loads(row['options']) != options:
+                raise ValueError("Retries must use the original build options. Clone the brief to change them.")
             active=c.execute("SELECT * FROM jobs WHERE campaign_id=? AND state IN ('queued','running')",(cid,)).fetchone()
             if active: return self.decode(active)
             if row['state']=='ready' and not revision:
                 raise ValueError("This campaign is finished. Revise it from the review panel, or create a new campaign to change the brief.")
             if revision and row['state'] not in {'ready','awaiting_review'}:
                 raise ValueError("Only a finished or reviewable campaign can be revised")
-            if row['options'] and json.loads(row['options']) != options:
-                raise ValueError("Retries must use the original build options. Clone the brief to change them.")
             c.execute("INSERT INTO jobs(id,campaign_id,state,options,created) VALUES(?,?,'queued',?,?)",(jid,cid,canonical(options),time.time()))
             c.execute("UPDATE campaigns SET state='queued',options=?,error=NULL WHERE id=?",(canonical(options),cid))
             # Resuming a reviewed campaign is the first render, not a revision.
