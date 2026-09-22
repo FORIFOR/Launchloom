@@ -62,6 +62,8 @@ html[lang="ja"] h1,html[lang="ja"] .stage-foot span{line-break:strict;word-break
 .mobile-film{display:none}
 .play-hint{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgba(17,20,17,.72);border:1px solid rgba(255,255,255,.5);display:grid;place-items:center;pointer-events:none;color:#F6F5F0;font-size:22px;line-height:1}
 .signature.is-playing .play-hint{display:none}
+.dur-chip{position:absolute;right:14px;bottom:14px;padding:4px 9px;border-radius:999px;background:rgba(17,20,17,.82);border:1px solid #3B403A;color:#E8E6DF;font:11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}
+.signature.is-playing .dur-chip{display:none}
 .signature-label{position:absolute;left:14px;bottom:14px;padding:6px 8px;background:rgba(17,20,17,.86);color:#E8E6DF;font:9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;border:1px solid #383D36;border-radius:4px;pointer-events:none}
 /* Signature Moment: a single aperture reveal around the real product output. */
 .js .signature .stage-media{clip-path:inset(34% 0 34% 0 round 12px);transform:scale(1.015);transition:clip-path .9s cubic-bezier(.2,.75,.15,1),transform .9s cubic-bezier(.2,.75,.15,1)}
@@ -104,7 +106,7 @@ section{padding-block:clamp(86px,10vw,144px);border-bottom:1px solid var(--line)
   .nav-links{gap:12px;font-size:12px;flex-wrap:wrap;justify-content:flex-end}.nav-links{gap:14px}.brand{font-size:18px}
   .hero{padding-bottom:62px}.hero-grid{display:flex;flex-direction:column;gap:28px;padding-top:26px;align-items:stretch}
   .hero-head{padding-top:clamp(28px,7vw,44px)}.hero-head h1{max-width:none}.hero-head h1{font-size:clamp(28px,8.2vw,40px);line-height:1.22}
-  .hero-copy{display:contents}.hero-copy .lede{order:3;margin-top:0;font-size:16px;line-height:1.7}.hero-copy .actions{order:5;margin-top:14px}.hero-copy .try-line{order:6;margin-top:16px}.signature{order:4;margin-top:18px}.hero-copy .meta{order:7;margin-top:14px}
+  .hero-copy{display:contents}.hero-copy .lede{order:3;margin-top:0;font-size:16px;line-height:1.68}.hero-copy .actions{order:5;margin-top:12px}.hero-copy .try-line{order:6;margin-top:12px}.signature{order:4;margin-top:18px}.hero-copy .meta{order:7;margin-top:14px}
   .desktop-film{display:none}.mobile-film{display:block}.stage video{aspect-ratio:9/16;max-height:52vh;object-fit:contain}.stage-head,.stage-foot{min-height:40px;padding:10px 12px}.stage-foot{display:block}.stage-foot span{display:block}.stage-foot span+span{margin-top:4px}
   .js .signature .stage-media{clip-path:inset(26% 0 26% 0 round 10px)}
   .proof-line .shell{display:grid;grid-template-columns:1fr 1fr;width:100%;padding-inline:20px}.proof-intro{grid-column:1/-1;grid-row:auto;padding:18px 0;border-right:0;border-bottom:1px solid var(--line)}.proof-item{padding:16px 12px;border-right:0}.proof-item:nth-child(even){padding-left:0;border-right:1px solid var(--line)}.proof-item:nth-child(odd){padding-right:0}.proof-item:nth-child(4),.proof-item:nth-child(5){border-top:1px solid var(--line)}
