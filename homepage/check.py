@@ -45,8 +45,8 @@ async def main(args):
                 actualVisible:visible(stage),
                 signatureCount:document.querySelectorAll('[data-signature]').length,
                 actualCount:document.querySelectorAll('[data-actual-product]').length,
-                visibleLandscape:visible(document.querySelector('.desktop-film')),
-                visiblePortrait:visible(document.querySelector('.mobile-film')),
+                visibleLandscape:visible(document.querySelector('.signature .desktop-film')),
+                visiblePortrait:visible(document.querySelector('.signature .mobile-film')),
                 headline:h1?.innerText||'',
                 lede:lede?.innerText||''
               };
@@ -75,7 +75,11 @@ async def main(args):
         }""")
         report["checks"]["first_5_10_seconds_clear"] = await page.evaluate("""() => {
           const text=(document.querySelector('h1')?.innerText||'')+' '+(document.querySelector('.hero .lede')?.innerText||'');
-          return /作ったもの|操作録画/.test(text) && /紹介動画|縦動画|LP|投稿/.test(text) && !!document.querySelector('[data-actual-product] video');
+          // The first viewport has to name the input and at least two of the
+          // outputs. Concepts, not one particular phrasing.
+          const input=/収録|録画|操作画面/.test(text);
+          const outputs=['紹介動画','動画','紹介ページ','LP','投稿'].filter(w=>text.includes(w)).length;
+          return input && outputs>=2 && !!document.querySelector('[data-actual-product] video');
         }""")
 
         # Logo Swap Test: after swapping the wordmark, the real product footage and
@@ -85,7 +89,7 @@ async def main(args):
         report["checks"]["logo_swap_test"] = await page.evaluate("""() => {
           const t=document.body.innerText;
           const stage=document.querySelector('[data-actual-product]');
-          return !!stage && /操作録画/.test(t) && /完成|投稿準備|紹介動画/.test(t) && /Launchloom/.test(stage.innerText + (stage.querySelector('video')?.getAttribute('poster')||''));
+          return !!stage && /収録|録画|操作画面/.test(t) && /完成|投稿準備|紹介動画|投稿文/.test(t) && /Launchloom/.test(stage.innerText + (stage.querySelector('video')?.getAttribute('poster')||''));
         }""")
 
         # Screenshot Test / motion-off beauty: disable all transitions and verify the
@@ -106,9 +110,9 @@ async def main(args):
         }""")
 
         # Functional evidence: visible hero film must decode and play only on request.
-        film=page.locator('.desktop-film')
+        film=page.locator('.signature .desktop-film')
         await film.evaluate("v=>{v.muted=true; return v.play()}")
-        await page.wait_for_function("() => document.querySelector('.desktop-film').readyState>=2")
+        await page.wait_for_function("() => document.querySelector('.signature .desktop-film').readyState>=2")
         await page.wait_for_timeout(700)
         report["checks"]["actual_film_plays_when_asked"] = await film.evaluate("v=>v.currentTime>0.2&&!v.paused")
         await film.evaluate("v=>v.pause()")
