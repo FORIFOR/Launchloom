@@ -3,10 +3,11 @@ export async function mountFinalFilms(root, cid) {
   root.replaceChildren();
   const wrapper = document.createElement('div');
   root.append(wrapper);
-  wrapper.innerHTML = `<form class="final-import"><div class="fields"><label>完成動画<input name="file" type="file" accept="video/mp4,video/quicktime" required></label><label>この版の名前<input name="title" maxlength="80" placeholder="紹介動画 v1" required></label></div><label class="consent"><input name="ai" type="checkbox">生成AIを使った映像・音声を含みます（自己申告）</label><label class="consent"><input name="rights" type="checkbox" required>映像・音声の利用権を確認しました。</label><p class="scope-note">取り込むとキャンペーンの公開許可を保留に戻します。すでに外部で予約・公開された投稿は取り消されません。</p><button type="submit" class="primary">完成動画を取り込む</button><progress max="100" value="0" hidden aria-label="動画アップロードの進捗"></progress><p class="final-message" role="status" aria-live="polite"></p></form><div class="final-library"></div>`;
+  wrapper.innerHTML = `<form class="final-import"><div class="fields"><label>完成動画<input name="file" type="file" accept="video/mp4,video/quicktime" required></label><label>この版の名前<input name="title" maxlength="80" placeholder="紹介動画 v1" required></label></div><label class="consent"><input name="ai" type="checkbox">生成AIを使った映像・音声を含みます（自己申告）</label><label class="consent"><input name="rights" type="checkbox" required>映像・音声の利用権を確認しました。</label><p class="scope-note">取り込むとキャンペーンの公開許可を保留に戻します。すでに外部で予約・公開された投稿は取り消されません。</p><button type="submit" class="primary">完成動画を取り込む</button><progress max="100" value="0" hidden aria-label="動画アップロードの進捗"></progress><p class="final-message" role="status" aria-live="polite"></p></form><button type="button" class="final-reload">一覧を読み直す（再送信しません）</button><div class="final-library"></div>`;
   const form = wrapper.querySelector('form'), msg = wrapper.querySelector('.final-message');
   const library = wrapper.querySelector('.final-library');
-  let films = [], selected, uploading = false;
+  const reload = wrapper.querySelector('.final-reload');
+  let films = [], selected, uploading = false, refreshing = false;
   const live = () => root.contains(wrapper);
   function message(text, error = false) { msg.textContent = text; msg.classList.toggle('error', error); }
   function renderLibrary() {
@@ -28,14 +29,24 @@ export async function mountFinalFilms(root, cid) {
   async function refresh() {
     const response=await fetch(`/api/campaigns/${encodeURIComponent(cid)}/final-films`,{credentials:'same-origin'});
     if(!response.ok)throw new Error('完成動画の一覧を読み込めませんでした。スタジオへのログイン状態を確認してください。');
-    const data=await response.json();films=data.items;renderLibrary();
+    const data=await response.json();
+    if(!Array.isArray(data.items))throw new Error('一覧の形式を確認できませんでした。入力は変更していません。');
+    films=data.items;renderLibrary();
   }
+  reload.addEventListener('click', async () => {
+    if(uploading || refreshing || !live())return;
+    refreshing=true;reload.disabled=true;
+    form.querySelector('button[type="submit"]').disabled=true;
+    try { await refresh(); message('一覧を更新しました。取り込んだ動画があるか確認してください。動画は再送信していません。'); }
+    catch(error) { message(error.message,true); }
+    finally { refreshing=false;reload.disabled=false;form.querySelector('button[type="submit"]').disabled=uploading; }
+  });
   const unload = e => {if(uploading){e.preventDefault();e.returnValue='';}};
   form.addEventListener('submit', async event => {
-    event.preventDefault();if(uploading||!form.reportValidity())return;
+    event.preventDefault();if(uploading||refreshing||!form.reportValidity())return;
     const file=form.elements.file.files[0];
     if(!file||!file.size||file.size>200*1024*1024){message('0バイトより大きく、200 MB以下のMP4を選択してください。',true);return;}
-    uploading=true;window.addEventListener('beforeunload',unload);form.querySelector('button').disabled=true;
+    uploading=true;reload.disabled=true;window.addEventListener('beforeunload',unload);form.querySelector('button').disabled=true;
     const progress=form.querySelector('progress');progress.hidden=false;progress.value=0;
     message('動画をアップロードしています。外部サービスには送信しません。');
     try {
@@ -50,9 +61,15 @@ export async function mountFinalFilms(root, cid) {
         x.ontimeout=()=>reject(new Error('処理結果が不明です。再アップロードせず、一覧を再読み込みして確認してください。'));
         x.send(file);
       });
-      selected=film.id;await refresh();form.reset();message('完成動画を保存しました。映像を確認してから投稿準備へ進んでください。まだ公開していません。');
+      if(!film || typeof film.id!=='string' || !film.id)throw new Error('受付結果を確認できませんでした。再アップロードせず、一覧を読み直してください。');
+      selected=film.id;
+      // The upload already succeeded. A subsequent GET failure must not look like
+      // an upload failure or encourage submitting the same film again.
+      form.reset();
+      try { await refresh(); message('完成動画を保存しました。映像を確認してから投稿準備へ進んでください。まだ公開していません。'); }
+      catch { message('動画の保存は完了しましたが、一覧を更新できませんでした。「一覧を読み直す」で確認してください。再アップロードは不要です。',true); }
     }catch(error){message(error.message,true);}
-    finally{uploading=false;window.removeEventListener('beforeunload',unload);form.querySelector('button').disabled=false;progress.hidden=true;}
+    finally{uploading=false;reload.disabled=false;window.removeEventListener('beforeunload',unload);form.querySelector('button').disabled=false;progress.hidden=true;}
   });
   try{await refresh();}catch(error){message(error.message,true);}
 }
