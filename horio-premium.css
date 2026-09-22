@@ -95,7 +95,8 @@ section{padding-block:clamp(86px,10vw,144px);border-bottom:1px solid var(--line)
 /* Mobile has its own hierarchy and uses the actual vertical output. */
 @media(max-width:760px){
   :root{--pad:20px}
-  .nav{height:68px}.nav-links a:not(.lang):not(.github-link){display:none}.nav-links{gap:14px}.brand{font-size:18px}
+  .nav{height:68px}.nav-links .lab-context{display:none}
+  .nav-links{gap:12px;font-size:12px;flex-wrap:wrap;justify-content:flex-end}.nav-links{gap:14px}.brand{font-size:18px}
   .hero{padding-bottom:62px}.hero-grid{display:flex;flex-direction:column;gap:28px;padding-top:26px;align-items:stretch}
   .hero-head{padding-top:clamp(28px,7vw,44px)}.hero-head h1{max-width:none}.hero-head h1{font-size:clamp(28px,8.2vw,40px);line-height:1.22}
   .hero-copy{display:contents}.hero-copy .lede{order:3;margin-top:0;font-size:16px;line-height:1.7}.hero-copy .actions{order:5;margin-top:18px}.hero-copy .try-line{order:6;margin-top:12px}.signature{order:4;margin-top:20px}.hero-copy .meta{order:7;margin-top:0}
