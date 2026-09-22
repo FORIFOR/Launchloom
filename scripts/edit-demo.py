@@ -183,12 +183,25 @@ def main(raw_dir: Path, output: Path, lang: str, suffix: str):
     # the studio itself is on screen rather than the sample app it is editing.
     at = {m['label']: m['t'] for m in marks}
     poster_at = at['caption-saved'] - 1.2
-    for poster, (cw, ch, cx0, cy0) in (
-            (output / f'studio-demo{suffix}-poster.jpg', region(0.50, 0.50, 0.94)),
-            (output / f'studio-demo{suffix}-vertical-poster.jpg', region(0.50, 0.50, 0.94, 4 / 3))):
-        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', f'{poster_at:.2f}', '-i', str(raw),
-                        '-frames:v', '1', '-vf', f'crop={cw}:{ch}:{cx0}:{cy0}', '-q:v', '3',
-                        str(poster)], check=True)
+
+    # Landscape: full width of the source, cropped only vertically, so nothing
+    # is sliced off the sides.
+    lw, lh, lx, ly = region(0.50, 0.50, 1.0)
+    subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', f'{poster_at:.2f}', '-i', str(raw),
+                    '-frames:v', '1', '-vf', f'crop={lw}:{lh}:{lx}:{ly}', '-q:v', '3',
+                    str(output / f'studio-demo{suffix}-poster.jpg')], check=True)
+
+    # Portrait: build the same 720x1280 composition the vertical cut uses. A
+    # 4:3 still in a 9:16 frame letterboxes into ~300px of black and eats the
+    # phone's first screen.
+    vw, vh, vx, vy = region(0.50, 0.50, 0.94, 4 / 3)
+    inner_h = int(720 * vh / vw) // 2 * 2
+    top = int(1280 * 0.17)
+    subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', f'{poster_at:.2f}', '-i', str(raw),
+                    '-frames:v', '1', '-filter_complex',
+                    f'[0:v]crop={vw}:{vh}:{vx}:{vy},scale=720:{inner_h}[s];'
+                    f'color=c=0x000000:s=720x1280[bg];[bg][s]overlay=x=0:y={top}',
+                    '-q:v', '3', str(output / f'studio-demo{suffix}-vertical-poster.jpg')], check=True)
 
     report = {}
     for name, p, planned in ((f'site{suffix}', site, t1), (f'vertical{suffix}', vert, t2)):
