@@ -1,0 +1,51 @@
+{
+  "marks": [
+    {
+      "t": 1.73,
+      "label": "empty-studio"
+    },
+    {
+      "t": 2.91,
+      "label": "sample-clicked"
+    },
+    {
+      "t": 13.86,
+      "label": "review-open"
+    },
+    {
+      "t": 17.19,
+      "label": "caption-typed"
+    },
+    {
+      "t": 18.86,
+      "label": "caption-saved"
+    },
+    {
+      "t": 19.64,
+      "label": "render-start"
+    },
+    {
+      "t": 66.93,
+      "label": "render-done"
+    },
+    {
+      "t": 68.21,
+      "label": "film-play-start"
+    },
+    {
+      "t": 79.21,
+      "label": "film-playing"
+    },
+    {
+      "t": 83.71,
+      "label": "landing-page"
+    },
+    {
+      "t": 87.41,
+      "label": "social-drafts"
+    }
+  ],
+  "width": 1440,
+  "height": 900,
+  "edited_caption": "思いついた瞬間に、書き留める。"
+}

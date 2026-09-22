@@ -1,0 +1,46 @@
+{
+  "site": {
+    "path": "homepage/studio-demo.mp4",
+    "lang": "ja",
+    "planned_seconds": 23.11,
+    "actual_seconds": 23.17,
+    "bytes": 1982163,
+    "codec_name": "h264",
+    "width": 1280,
+    "height": 720,
+    "r_frame_rate": "30/1"
+  },
+  "vertical": {
+    "path": "homepage/studio-demo-vertical.mp4",
+    "lang": "ja",
+    "planned_seconds": 15.13,
+    "actual_seconds": 15.13,
+    "bytes": 609690,
+    "codec_name": "h264",
+    "width": 720,
+    "height": 1280,
+    "r_frame_rate": "30/1"
+  },
+  "site-en": {
+    "path": "homepage/studio-demo-en.mp4",
+    "lang": "en",
+    "planned_seconds": 22.83,
+    "actual_seconds": 22.93,
+    "bytes": 1887140,
+    "codec_name": "h264",
+    "width": 1280,
+    "height": 720,
+    "r_frame_rate": "30/1"
+  },
+  "vertical-en": {
+    "path": "homepage/studio-demo-en-vertical.mp4",
+    "lang": "en",
+    "planned_seconds": 15.31,
+    "actual_seconds": 15.33,
+    "bytes": 593469,
+    "codec_name": "h264",
+    "width": 720,
+    "height": 1280,
+    "r_frame_rate": "30/1"
+  }
+}
