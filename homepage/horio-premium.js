@@ -14,3 +14,19 @@ document.documentElement.classList.add('js');
   }, {threshold: .42});
   observer.observe(stage);
 })();
+
+// The command is the real call to action; make it one click.
+document.querySelectorAll('[data-copy]').forEach((b) => {
+  b.addEventListener('click', async () => {
+    const code = b.parentElement.querySelector('code');
+    if (!code) return;
+    try { await navigator.clipboard.writeText(code.innerText); } catch (e) { return; }
+    const was = b.textContent; b.textContent = b.dataset.copied;
+    setTimeout(() => { b.textContent = was; }, 1600);
+  });
+});
+// Hide the play affordance once the film is actually running.
+document.querySelectorAll('.signature video').forEach((v) => {
+  v.addEventListener('play', () => v.closest('.signature')?.classList.add('is-playing'));
+  v.addEventListener('pause', () => v.closest('.signature')?.classList.remove('is-playing'));
+});

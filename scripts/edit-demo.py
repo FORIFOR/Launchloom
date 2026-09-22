@@ -177,12 +177,18 @@ def main(raw_dir: Path, output: Path, lang: str, suffix: str):
     t2 = build(raw, resolve(marks, lang, VERTICAL_KEYS, VERTICAL_CAPTIONS[lang],
                             {'render': 22.0}), vert, 'vertical', work)
 
-    for src, poster in ((site, output / f'studio-demo{suffix}-poster.jpg'),
-                        (vert, output / f'studio-demo{suffix}-vertical-poster.jpg')):
-        # A frame from the third beat: the poster should show the claim, not a
-        # title card.
-        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', '2.0', '-i', str(src),
-                        '-frames:v', '1', '-q:v', '4', str(poster)], check=True)
+    # Posters come from the raw recording, not the cut: a frame of the cut
+    # carries a burned-in caption that repeats the page's own headline and
+    # covers the UI the poster is meant to show. Take the review screen, where
+    # the studio itself is on screen rather than the sample app it is editing.
+    at = {m['label']: m['t'] for m in marks}
+    poster_at = at['caption-saved'] - 1.2
+    for poster, (cw, ch, cx0, cy0) in (
+            (output / f'studio-demo{suffix}-poster.jpg', region(0.50, 0.50, 0.94)),
+            (output / f'studio-demo{suffix}-vertical-poster.jpg', region(0.50, 0.50, 0.94, 4 / 3))):
+        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', f'{poster_at:.2f}', '-i', str(raw),
+                        '-frames:v', '1', '-vf', f'crop={cw}:{ch}:{cx0}:{cy0}', '-q:v', '3',
+                        str(poster)], check=True)
 
     report = {}
     for name, p, planned in ((f'site{suffix}', site, t1), (f'vertical{suffix}', vert, t2)):
