@@ -92,11 +92,23 @@ jobs:
           cp homepage/horio-premium.css public-site/horio-premium.css
           cp homepage/horio-premium.js public-site/horio-premium.js
           cp homepage/production-sample.zip public-site/production-sample.zip
+          # The hero recording is referenced by the HTML above, so it has to ship
+          # with it. Named explicitly rather than copying every video.
+          cp homepage/studio-demo.mp4 public-site/studio-demo.mp4
+          cp homepage/studio-demo-vertical.mp4 public-site/studio-demo-vertical.mp4
+          cp homepage/studio-demo-poster.jpg public-site/studio-demo-poster.jpg
+          cp homepage/studio-demo-vertical-poster.jpg public-site/studio-demo-vertical-poster.jpg
+          cp homepage/studio-demo-en.mp4 public-site/studio-demo-en.mp4
+          cp homepage/studio-demo-en-vertical.mp4 public-site/studio-demo-en-vertical.mp4
+          cp homepage/studio-demo-en-poster.jpg public-site/studio-demo-en-poster.jpg
+          cp homepage/studio-demo-en-vertical-poster.jpg public-site/studio-demo-en-vertical-poster.jpg
       - name: Commit site without modifying videos or other published files
         if: steps.revision.outputs.current == 'true'
         working-directory: public-site
         run: |
-          git add -- index.html ja/index.html horio-premium.css horio-premium.js production-sample.zip
+          git add -- index.html ja/index.html horio-premium.css horio-premium.js production-sample.zip \
+            studio-demo.mp4 studio-demo-vertical.mp4 studio-demo-poster.jpg studio-demo-vertical-poster.jpg \
+            studio-demo-en.mp4 studio-demo-en-vertical.mp4 studio-demo-en-poster.jpg studio-demo-en-vertical-poster.jpg
           git diff --cached --exit-code && exit 0
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Sync reviewed production journey from ${GITHUB_SHA}"
           git push origin HEAD:gh-pages

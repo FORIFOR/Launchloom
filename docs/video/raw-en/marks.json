@@ -1,0 +1,51 @@
+{
+  "marks": [
+    {
+      "t": 1.51,
+      "label": "empty-studio"
+    },
+    {
+      "t": 2.68,
+      "label": "sample-clicked"
+    },
+    {
+      "t": 13.51,
+      "label": "review-open"
+    },
+    {
+      "t": 17.83,
+      "label": "caption-typed"
+    },
+    {
+      "t": 19.46,
+      "label": "caption-saved"
+    },
+    {
+      "t": 20.14,
+      "label": "render-start"
+    },
+    {
+      "t": 50.54,
+      "label": "render-done"
+    },
+    {
+      "t": 51.77,
+      "label": "film-play-start"
+    },
+    {
+      "t": 62.77,
+      "label": "film-playing"
+    },
+    {
+      "t": 67.2,
+      "label": "landing-page"
+    },
+    {
+      "t": 70.9,
+      "label": "social-drafts"
+    }
+  ],
+  "width": 1440,
+  "height": 900,
+  "edited_caption": "Write it down the moment it lands."
+}

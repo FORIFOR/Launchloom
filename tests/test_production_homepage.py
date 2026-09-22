@@ -18,8 +18,18 @@ def test_homepage_keeps_samples_and_accessible_navigation():
     p = Tags(); p.feed(text)
     assert len(p.ids) == len(set(p.ids))
     assert set(p.hashes) <= set(p.ids)
-    assert len(p.videos) == 2 and all('controls' in v for v in p.videos)
+    # Videos come in desktop/mobile pairs, so the mobile view is a re-cut and
+    # not a shrunken desktop frame. Count the pairs rather than the elements:
+    # the page may carry more than one pair (the studio recording and the film
+    # a run produced), but each must still be a complete pair.
+    assert p.videos, 'the page shows no video at all'
+    assert len(p.videos) % 2 == 0, p.videos
+    desktop = [v for v in p.videos if v.get('class') == 'desktop-film']
+    mobile = [v for v in p.videos if v.get('class') == 'mobile-film']
+    assert len(desktop) == len(mobile) == len(p.videos) // 2, p.videos
+    assert all('controls' in v for v in p.videos)
     assert all('autoplay' not in v for v in p.videos)
+    assert all(v.get('poster') for v in p.videos), 'every video needs a poster'
     assert len(re.findall(r'<ul\b[^>]*\bclass="drafts"[^>]*>', text)) == 1
     assert len(re.findall(r'<template\b[^>]*\bdata-caption="posts"[^>]*>', text)) == 1
     assert 'Seedance 2.5・コーディングエージェント実行' in text and '明示実行を実装' in text

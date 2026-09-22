@@ -39,8 +39,18 @@ def test_public_homepages_use_quiet_cinema_without_claiming_new_capabilities():
         assert token in theme
     assert 'href="../horio-premium.css"' in ja
     assert 'href="./horio-premium.css"' in en
-    assert '作ったものを、<br>届けられる形へ。' in ja
-    assert 'Built to be<br>seen.' in en
+    # The headline used to be a mood line ("作ったものを、届けられる形へ。" /
+    # "Built to be seen."). Measured against five current reference pages, the
+    # first-line practice is to spend the largest type on what the product does,
+    # so the assertion now demands that rather than pinning one phrase: the h1
+    # has to name the deliverables a stranger would be looking for.
+    import re as _re
+    for text, words in ((ja, ('動画', '紹介ページ', '投稿文')), (en, ('film', 'page', 'posts'))):
+        h1 = _re.search(r'<h1>(.*?)</h1>', text, _re.S)
+        assert h1, 'the page has no h1'
+        head = h1.group(1).replace('<br>', ' ')
+        for w in words:
+            assert w in head, (w, head)
     # Capability labels remain explicit after the visual redesign.
     assert 'Seedance 2.5・コーディングエージェント実行' in ja
     assert '明示実行を実装' in ja
