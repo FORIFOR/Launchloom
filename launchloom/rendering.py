@@ -245,6 +245,9 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
     d.text((w-margin-n(112),margin),'PRODUCT FILM',font=font(n(11)),fill=muted)
     intro=3;outro_start=intro+proof_duration;duration=outro_start+3
     if t<intro:
+        # Render the reviewed opening, just as proof and closing scenes already
+        # use their saved wording. Keep legacy plans without a hook readable.
+        hook=next((scene for scene in plan.scenes if scene.kind=='hook'),None)
         if broll is not None:
             image=ImageOps.fit(broll,(w,h),method=Image.Resampling.LANCZOS)
             base=Image.blend(image.convert('RGBA'),Image.new('RGBA',(w,h),'#121b1c'),.48)
@@ -259,8 +262,8 @@ def render_frame(brief,plan,w,h,t,proof_duration,raw,events,broll=None,visual_st
             d.ellipse((cx-n(13),cy-n(13),cx+n(13),cy+n(13)),fill=accent)
         offset=n(25)*(1-smooth(t/.7))
         d.text((margin,n(183 if portrait else 196)+offset),'GOOD WORK DESERVES TO BE SEEN.',font=font(n(11)),fill=muted)
-        yy=wrapped(d,brief.tagline,(margin,n(237 if portrait else 238)+offset),n(595 if portrait else 770),n(60 if portrait else 57),dark,True,4)
-        wrapped(d,brief.audience,(margin,yy+n(22)),n(560 if portrait else 570),n(18),muted,max_lines=2)
+        yy=wrapped(d,hook.title if hook is not None else brief.tagline,(margin,n(237 if portrait else 238)+offset),n(595 if portrait else 770),n(60 if portrait else 57),dark,True,4)
+        wrapped(d,hook.detail if hook is not None else brief.audience,(margin,yy+n(22)),n(560 if portrait else 570),n(18),muted,max_lines=2)
         d.text((margin,h-n(98)),'01  /  A DIFFERENT WAY FORWARD',font=font(n(12)),fill=muted)
     elif t<outro_start:
         tt=t-intro

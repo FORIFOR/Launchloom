@@ -131,9 +131,12 @@ detect accidental corruption; they are not signatures against the machine owner.
 
 Standard studio: HD 1920×1080 / 1080×1920, draft 960×540 / 540×960, 30fps H.264
 yuv420p MP4; optional supplied audio. V2 creative renderer: 1280×720 / 720×1280,
-24fps H.264/AAC. These are distinct render contracts. SRT is scene captions, not
-speech transcription. Legacy scene edits change film/captions; legacy LP and
-social text derive from the brief. V2 synchronized packages are explicit actions.
+24fps H.264/AAC. These are distinct render contracts. Standard-studio scene
+headlines and supporting text change the video layout. Captions update only the
+separate `captions.srt`; they are not burned into the MP4 or transcribed from speech.
+An empty caption uses its scene headline. Text already inside imported footage
+cannot be edited here. Standard-studio LP and social text derive from the original
+brief. V2 synchronized packages are explicit actions.
 No URL means disabled CTA, not a fake destination. Social files are drafts.
 
 Python >=3.11 is the declared floor; actual tested versions are recorded in
