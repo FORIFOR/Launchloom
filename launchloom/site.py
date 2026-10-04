@@ -6,6 +6,7 @@ from pathlib import Path
 from .models import Brief
 from .config import Settings
 from .security import tracking_token
+from .output_licenses import TEMPLATE_MODIFICATION_NOTICE, write_template_notices
 
 TEMPLATE_DIR=Path(__file__).parent/'templates'
 
@@ -26,5 +27,7 @@ def build_site(brief: Brief,cid: str,dest: Path,settings: Settings,has_film: boo
       'SAMPLE':'<span class="sample-note">SAMPLE PRODUCT · 実装済みサンプルアプリのデモ</span>' if brief.is_sample else '',
       'TRACKING':esc(json.dumps(tracking),quote=True)}
     for k,v in replacements.items():body=body.replace('{{'+k+'}}',v)
+    body=body.replace('<!doctype html>', '<!doctype html>\n<!-- '+TEMPLATE_MODIFICATION_NOTICE+' -->', 1)
     (dest/'index.html').write_text(body)
     for name in ('site.css','site.js'):shutil.copy(TEMPLATE_DIR/name,dest/name)
+    write_template_notices(dest)

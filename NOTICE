@@ -1,6 +1,10 @@
 Launchloom 0.1.0
 Original application source and templates are licensed under Apache-2.0.
 
+Scope: the application source/Python wheel described here. A full repository
+archive also contains demonstration media; see homepage/README.md and
+THIRD_PARTY.md before including those materials in another distribution.
+
 No reference-post videos, licensed music, font files, model weights, Screen Studio
 binaries, Postiz source, or Openscreen source are included in this distribution.
 External services, FFmpeg builds, model weights, uploaded assets and browser

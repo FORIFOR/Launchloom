@@ -36,7 +36,8 @@ patching and an isolated worker: parsing untrusted media is not risk-free.
 The landing-page deploy target is one operator-configured directory. It is
 rejected if it overlaps the studio's data directory or the installed package, or
 is a home or filesystem root; a destination file name that is a symlink is
-refused rather than written through. Only five generated file names are written,
+refused rather than written through. Only seven generated file names are written
+(the five site assets plus template LICENSE and NOTICE),
 nothing is deleted, and approval is bound to the previewed files' fingerprint.
 Deployment still requires the campaign to be released.
 

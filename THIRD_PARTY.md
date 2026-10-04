@@ -10,7 +10,7 @@ model outputs, media, or a separately operated Postiz installation.
 | Uvicorn | Python dependency | BSD-3-Clause |
 | HTTPX | Python dependency | BSD-3-Clause |
 | Playwright | Python dependency; browser installed separately | Apache-2.0, browser notices separately |
-| Pillow | Python dependency | HPND and bundled component notices |
+| Pillow | Python dependency | MIT-CMU in Pillow 12.3.0, plus bundled component notices |
 | NumPy | Python dependency | BSD-3-Clause and binary component notices |
 | FFmpeg / ffprobe | System command; no binaries in this ZIP | Build-dependent LGPL/GPL obligations |
 | libx264 | Used when the installed FFmpeg supports it | GPL / applicable commercial terms |
@@ -44,6 +44,33 @@ Primary sources reviewed for the implementation:
 
 Consult the currently installed releases and their license files, not only this
 summary. No implied affiliation with the referenced creators or services.
+
+## Scope of a local application distribution
+
+The Python application wheel contains Launchloom code, web assets, templates and
+license notices. It does not contain homepage films, customer recordings, music,
+font files, FFmpeg or Chromium executables. A full repository archive is broader:
+`homepage/README.md` describes narrated films with a licensed music bed. Do not
+assume a license to use music also permits redistributing it in a paid download.
+Record the applicable media grant or exclude those materials.
+
+Python dependencies installed separately from their upstream distributions keep
+their own licenses. A copied virtual environment or offline wheel collection is
+a redistribution of those dependencies. Its inventory must include transitive
+packages and binary components, not just the table above. For example, the
+2026-10-04 Linux installation contained certifi (MPL-2.0); NumPy's wheel carried
+OpenBLAS/LAPACK notices, libgfortran with the GCC Runtime Library Exception, and
+libquadmath (LGPL-2.1-or-later). Pillow and Playwright also include component
+license files. Preserve and satisfy the licenses of the exact shipped builds.
+
+Generated landing pages include Launchloom template code. Their accompanying
+license notices apply to that code; they do not relicense the operator's product
+claims, recordings, music, narration, branding or provider outputs. Keep the
+notices when distributing the generated site. Encoding a video with FFmpeg does
+not, by itself, assign the FFmpeg software license to the video's contents.
+
+See [local distribution and installation](docs/LOCAL_DISTRIBUTION.md) for the
+tested package boundary and remaining acceptance checks.
 
 ## docker/chromium-seccomp.json
 

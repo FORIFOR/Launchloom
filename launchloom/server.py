@@ -30,6 +30,7 @@ from .finished_films import list_films, checked_film, FINAL_MEDIA, register_fini
 from .production_api import register_production_routes
 from .production_execution import register_production_execution_routes
 from .planning import make_posts
+from .output_licenses import LICENSE_FILES
 
 WEB=Path(__file__).parent/'web'
 
@@ -436,6 +437,8 @@ def create_app(settings: Settings|None=None,run_worker=True):
         r=root(cid)
         # Raw recordings, input audio, render logs and partial files are never served.
         allowed={'landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','launch-kit.zip','storyboard.json','manifest.json','qa.json','posts.json','social-copy.md','captions.srt','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg','review-frame.jpg'}
+        allowed.update(LICENSE_FILES)
+        allowed.update('site/'+name for name in LICENSE_FILES)
         if FINAL_MEDIA.fullmatch(filename):
             try: _,path=checked_film(db,s.data_dir,cid,filename)
             except ValueError as e:raise HTTPException(404,'Final film unavailable') from e

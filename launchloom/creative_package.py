@@ -12,6 +12,7 @@ from .creative_rendering import command, child, file_hash
 from .models import Brief
 from .planning import with_utm, x_weight
 from .post_copy import fit_post
+from .output_licenses import LICENSE_FILES, TEMPLATE_MODIFICATION_NOTICE, write_template_notices
 
 
 def headline(scene):
@@ -83,11 +84,14 @@ def write_package(spec: CreativeSpec, brief: Brief, cid: str, sources: dict, des
         action=f'<p class="notice">{"公開URLが未設定です。" if brief.language=="ja" else "No public product URL is configured."}</p>'
     sample='<p class="notice">SAMPLE · 検証用キャンペーン</p>' if brief.is_sample else ''
     page=f'''<!doctype html><html lang="{brief.language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="launchloom-revision" content="{copy['revision']}"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; media-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'"><title>{esc(spec.title)}</title><link rel="stylesheet" href="site.css"></head><body><main><header>{esc(spec.brand.name)}</header>{sample}<h1>{esc(copy['hero'])}</h1><video controls playsinline preload="metadata" poster="../poster.jpg"><source src="../{primary}.mp4" type="video/mp4"></video>{sections}<footer>{action}</footer></main></body></html>'''
+    page=page.replace('<!doctype html>', '<!doctype html>\n<!-- '+TEMPLATE_MODIFICATION_NOTICE+' -->\n', 1)
     (site/'index.html').write_text(page,encoding='utf-8')
     themes={'editorial':('#F6F5F0','#20251F'),'spotlight':('#171A17','#F6F5F0'),'grid':('#EDF1EC','#20251F')}
     bg,ink=themes[spec.brand.preset]
     css=f'''*{{box-sizing:border-box}}body{{margin:0;background:{bg};color:{ink};font:18px/1.7 system-ui,sans-serif}}main{{max-width:1100px;margin:auto;padding:32px 24px}}header{{font-weight:700;border-bottom:1px solid {ink};padding-bottom:24px}}h1{{font-size:clamp(32px,6vw,76px);line-height:1.2;letter-spacing:-.04em;max-width:900px;white-space:pre-wrap;overflow-wrap:anywhere}}video{{width:100%;max-height:75vh;background:#171A17;border-radius:12px}}section{{padding:44px 0;border-bottom:1px solid {ink};white-space:pre-wrap;overflow-wrap:anywhere}}h2{{font-size:clamp(22px,3vw,38px);line-height:1.4}}footer{{padding:48px 0}}.cta{{display:inline-block;background:{ink};color:{bg};padding:16px 24px;border-radius:8px;text-decoration:none;white-space:pre-wrap;overflow-wrap:anywhere}}.notice{{border-left:4px solid {spec.brand.accent};padding-left:16px}}'''
-    (site/'site.css').write_text(css,encoding='utf-8')
+    (site/'site.css').write_text('/* '+TEMPLATE_MODIFICATION_NOTICE+' */\n'+css,encoding='utf-8')
+    write_template_notices(site)
+    write_template_notices(destination)
     (destination/'README.txt').write_text('Local launch kit. Open site/index.html through a local static server.\nPosts are drafts, not publication receipts. No tracking or analytics is installed.\nVideo, page, captions and posts derive from revision '+copy['revision']+'\n',encoding='utf-8')
     files={p.relative_to(destination).as_posix():file_hash(p) for p in destination.rglob('*') if p.is_file()}
     manifest={'schema_version':1,'creative_revision':copy['revision'],'outputs':{o:sha for o,(_,sha) in sources.items()},
@@ -100,6 +104,7 @@ def write_package(spec: CreativeSpec, brief: Brief, cid: str, sources: dict, des
 def zip_package(folder: Path, destination: Path) -> None:
     # Explicit members only; never package unrelated data from the campaign root.
     names=['manifest.json','README.txt','copy.json','captions.srt','posts.json','social-copy.md','poster.jpg','site/index.html','site/site.css']
+    names += list(LICENSE_FILES) + ['site/'+name for name in LICENSE_FILES]
     manifest=json.loads((folder/'manifest.json').read_text())
     names += [o+'.mp4' for o in manifest['outputs']]
     with zipfile.ZipFile(destination,'x',compression=zipfile.ZIP_DEFLATED) as z:
