@@ -74,7 +74,7 @@ def run_import_journey(page, api, data, output, start_server, process, record):
     try:
         if page.evaluate('document.documentElement.lang') != 'ja':
             page.locator('#language-toggle').click()
-            page.wait_for_function("document.documentElement.lang === 'ja'")
+            page.wait_for_function("() => document.documentElement.lang === 'ja'")
         before = campaign_ids()
         fixture = data / 'buyer-generated-testsrc.mp4'
         generated = subprocess.run([
@@ -160,7 +160,7 @@ def run_import_journey(page, api, data, output, start_server, process, record):
         assert not (root / 'landscape.mp4').exists() and not (root / 'launch-kit.zip').exists()
         completed_jobs(cid, 1)
         page.locator('.review-still').wait_for()
-        page.wait_for_function("document.querySelector('.review-still').naturalWidth > 0")
+        page.wait_for_function("() => document.querySelector('.review-still').naturalWidth > 0")
         record('B1-import', {'campaign': cid, 'invalid_uploads': 2, 'drafts_created': 1,
                             'same_creation_key': True, 'source': 'FFmpeg testsrc2, 8 seconds, no audio',
                             'rights_gate': 'blocked before creation', 'state': review['state']})
@@ -235,7 +235,7 @@ def run_import_journey(page, api, data, output, start_server, process, record):
         for ratio in ('landscape', 'portrait'):
             page.locator('[data-ratio="' + ratio + '"]').click()
             page.locator('#film-player').evaluate('(video) => video.play()')
-            page.wait_for_function("document.querySelector('#film-player').currentTime > .4 && document.querySelector('#film-player').getVideoPlaybackQuality().totalVideoFrames > 0")
+            page.wait_for_function("() => document.querySelector('#film-player').currentTime > .4 && document.querySelector('#film-player').getVideoPlaybackQuality().totalVideoFrames > 0")
             page.locator('#film-player').evaluate('(video) => video.pause()')
         with page.expect_download() as download:
             page.locator('a[download]').click()
@@ -289,11 +289,13 @@ def run_import_journey(page, api, data, output, start_server, process, record):
                     '-frames:v', '1', str(output / ('buyer-' + ratio + '-headline.png')),
                 ], capture_output=True, text=True, timeout=20)
                 assert frame.returncode == 0, frame.stderr
+        layout = page.evaluate("() => ({viewport:innerWidth, document:document.documentElement.scrollWidth, details:[...document.querySelectorAll('.detail-card')].map(e=>({client:e.clientWidth, scroll:e.scrollWidth}))})")
+        assert layout['document'] <= layout['viewport'] + 1, layout
         page.screenshot(path=str(output / 'buyer-import-ready.png'), full_page=True)
         record('B4-export', {'kit': str(kit), 'sha256': hashlib.sha256(kit.read_bytes()).hexdigest(),
                              'members': len(names), 'both_browser_played': True,
                              'both_ffmpeg_decoded': True, 'trimmed_duration_seconds': 10,
-                             'package_license_bytes_match': True, 'private_evidence_excluded': True})
+                             'package_license_bytes_match': True, 'private_evidence_excluded': True, 'layout': layout})
 
         # Reopening a finished campaign and dismissing creation again must be
         # read-only and keep both the finished artifact and job history intact.
@@ -313,6 +315,117 @@ def run_import_journey(page, api, data, output, start_server, process, record):
         assert snapshot(cid)['state'] == 'ready'
         assert hashlib.sha256((root / 'launch-kit.zip').read_bytes()).hexdigest() == hashlib.sha256(kit.read_bytes()).hexdigest()
         record('B5-reopen', 'Ready reload, Escape and Close are read-only; one imported campaign, exactly two completed jobs, same kit bytes')
+
+        # A real second render uses the ready-campaign revision control. Hold
+        # only its HTTP request until both native clicks finish, making the
+        # busy-button check deterministic without dispatching synthetic events.
+        phase = 'ready-revise-double-click'
+        imported = root / 'input' / 'capture.bin'
+        input_sha = hashlib.sha256(imported.read_bytes()).hexdigest()
+        input_mtime = imported.stat().st_mtime_ns
+        prior_revision = snapshot(cid)['revision']
+        prior_video_hashes = {ratio: manifest['files'][ratio + '.mp4']['sha256']
+                              for ratio in ('landscape', 'portrait')}
+        with sqlite3.connect(data / 'launchloom.sqlite3') as db:
+            assert db.execute('SELECT count(*) FROM provider_runs').fetchone()[0] == 0
+        revised_title = '購入者テストの改訂見出し'
+        revised_caption = '作り直した字幕も、新しいSRTに残ります。'
+        page.locator('.revise-panel > summary').click()
+        page.locator('.revise-panel .scene-title').first.fill(revised_title)
+        page.locator('.revise-panel .scene-caption').first.fill(revised_caption)
+        revise_url = base + '/api/campaigns/' + cid + '/revise'
+        held = []
+
+        def hold_revision(route):
+            held.append(route)
+
+        writes_before = len(writes)
+        page.route(revise_url, hold_revision)
+        try:
+            with page.expect_response(lambda response: response.url == revise_url and response.request.method == 'POST') as revision_response:
+                with page.expect_request(lambda request: request.url == revise_url and request.method == 'POST'):
+                    page.locator('#revise-plan').dblclick(delay=50)
+                expect(page.locator('#revise-plan')).to_be_disabled()
+                assert len(held) == 1, 'A double click must produce only one revision request'
+                assert writes[writes_before:] == [('POST', revise_url)]
+                held.pop().continue_()
+            assert revision_response.value.status == 202
+        finally:
+            for route in held:
+                route.abort()
+            page.unroute(revise_url, hold_revision)
+        # Waiting for the old result to leave first avoids falsely accepting the
+        # previous ready screen before the asynchronous revision refresh.
+        expect(page.locator('#result-title')).not_to_be_visible(timeout=15000)
+        page.locator('#result-title').wait_for(timeout=180000)
+        revised = snapshot(cid)
+        assert revised['state'] == 'ready' and revised['revision'] == prior_revision + 1
+        assert revised['released'] == 0 and revised['publications'] == []
+        assert revised['options'] == ready['options']
+        assert revised['plan']['scenes'][0]['title'] == revised_title
+        assert revised['plan']['scenes'][0]['caption'] == revised_caption
+        assert revised['plan']['scenes'][0]['detail'] == edited['detail']
+        completed_jobs(cid, 3)
+        assert campaign_ids() == before | {cid}
+        assert hashlib.sha256(imported.read_bytes()).hexdigest() == input_sha
+        assert imported.stat().st_mtime_ns == input_mtime
+        assert not (root / 'capture').exists()
+        assert writes[writes_before:] == [('POST', revise_url)]
+        with sqlite3.connect(data / 'launchloom.sqlite3') as db:
+            assert db.execute('SELECT count(*) FROM provider_runs').fetchone()[0] == 0
+        for ratio in ('landscape', 'portrait'):
+            page.locator('[data-ratio="' + ratio + '"]').click()
+            page.locator('#film-player').evaluate('(video) => video.play()')
+            page.wait_for_function("() => document.querySelector('#film-player').currentTime > .4 && document.querySelector('#film-player').getVideoPlaybackQuality().totalVideoFrames > 0")
+            page.locator('#film-player').evaluate('(video) => video.pause()')
+        with page.expect_download() as download:
+            page.locator('a[download]').click()
+        revised_kit = output / 'buyer-import-revised-launch-kit.zip'
+        download.value.save_as(revised_kit)
+        assert revised_kit.read_bytes() != kit.read_bytes()
+        assert revised_kit.read_bytes() == (root / 'launch-kit.zip').read_bytes()
+        with zipfile.ZipFile(revised_kit) as archive:
+            assert archive.testzip() is None and set(archive.namelist()) == names
+            revised_manifest = json.loads(archive.read('manifest.json'))
+            assert revised_manifest['campaign_id'] == cid
+            assert revised_manifest['revision'] == prior_revision + 1
+            assert set(revised_manifest['files']) == names - {'manifest.json'}
+            for name, entry in revised_manifest['files'].items():
+                content = archive.read(name)
+                assert hashlib.sha256(content).hexdigest() == entry['sha256'], name
+                assert len(content) == entry['bytes'], name
+                assert private_evidence.encode() not in content, name
+            scene = json.loads(archive.read('storyboard.json'))['scenes'][0]
+            assert scene['title'] == revised_title and scene['caption'] == revised_caption
+            assert scene['detail'] == edited['detail']
+            subtitles = archive.read('captions.srt').decode()
+            assert revised_caption in subtitles and edited['caption'] not in subtitles
+            for notice in ('LICENSE', 'NOTICE'):
+                expected = files('launchloom').joinpath('licenses', notice).read_bytes()
+                assert archive.read(notice) == archive.read('site/' + notice) == expected
+            assert 'Generated from Launchloom template code' in archive.read('site/index.html').decode()
+            for ratio in ('landscape', 'portrait'):
+                assert revised_manifest['files'][ratio + '.mp4']['sha256'] != prior_video_hashes[ratio]
+                film = data / ('buyer-revised-' + ratio + '.mp4')
+                film.write_bytes(archive.read(ratio + '.mp4'))
+                decoded = subprocess.run(['ffmpeg', '-v', 'error', '-i', str(film), '-f', 'null', '-'],
+                                         capture_output=True, text=True, timeout=60)
+                assert decoded.returncode == 0, decoded.stderr
+                frame = subprocess.run([
+                    'ffmpeg', '-v', 'error', '-y', '-ss', '1', '-i', str(film),
+                    '-frames:v', '1', str(output / ('buyer-revised-' + ratio + '-headline.png')),
+                ], capture_output=True, text=True, timeout=20)
+                assert frame.returncode == 0, frame.stderr
+        page.screenshot(path=str(output / 'buyer-import-revised-ready.png'), full_page=True)
+        record('B6-revise', {'kit': str(revised_kit), 'sha256': hashlib.sha256(revised_kit.read_bytes()).hexdigest(),
+                            'campaign': cid, 'revision': revised['revision'], 'completed_jobs': 3,
+                            'double_click': 'Native control double-click with request held; exactly one POST and one new job',
+                            'input_sha256_unchanged': input_sha, 'input_mtime_unchanged': True,
+                            'both_mp4_hashes_changed': True, 'both_browser_played': True,
+                            'both_ffmpeg_decoded': True, 'all_manifest_hashes_match': True,
+                            'package_license_bytes_match': True, 'new_srt_verified': True,
+                            'recapture': 'No capture directory or upload; source bytes and mtime unchanged',
+                            'provider_runs': 0})
         return process
     except BaseException:
         failure = {'phase': phase, 'campaign': cid, 'traceback': traceback.format_exc()}
