@@ -6,14 +6,17 @@ Use the bundled synthetic sample before configuring paid generation or live publ
 
 Run `python -m launchloom serve`, open `http://127.0.0.1:8787` and enter the local
 key printed in that terminal. Select **Edit the sample and make a kit** / **サンプルを編集して作る**.
-The bundled Orbit app is recorded. When the storyboard appears, edit one caption,
+The bundled Orbit app is recorded. When the storyboard appears, edit one SRT caption,
 save it, reload to check the saved copy, then **Save and create films**. Play both
-aspect ratios and download the kit. Open its landing page and social drafts too.
+aspect ratios and download the kit. Open `captions.srt` to check the caption edit,
+and review the landing page and social drafts too.
 The sample is silent without supplied audio; its CTA is disabled without a URL.
 The older README GIF shows the automatic demo, before this editable review step.
 
-The standard studio changes film/captions from scene edits; LP/social wording
-comes from the brief. All-output scene-copy synchronization belongs to the
+In the standard studio, scene headlines and supporting text change the video layout.
+Captions update only the separate `captions.srt`; they are not burned into the MP4.
+Text already inside imported footage cannot be edited here. LP/social wording
+comes from the original brief. All-output scene-copy synchronization belongs to the
 experimental creative workflow. See `CREATIVE_WORKFLOWS.md` for that separate path.
 
 If progress stops updating, use **Reconnect and check status**. If the creation

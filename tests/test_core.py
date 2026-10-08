@@ -19,6 +19,7 @@ from launchloom.security import safe_path,origin,check_capture_url,digest,file_s
 from launchloom.store import Store
 from launchloom.server import create_app
 from launchloom.site import build_site
+from launchloom.output_licenses import write_template_notices
 
 @pytest.fixture
 def brief():return Brief.model_validate(copy.deepcopy(SAMPLE_BRIEF))
@@ -228,6 +229,21 @@ def test_sensitive_recordings_not_served(client,configured):
     cid,root=seeded_ready(client,configured);(root/'input').mkdir();(root/'input/capture.bin').write_bytes(b'secret')
     assert client.get(f'/artifacts/{cid}/input/capture.bin').status_code==404
     assert client.get(f'/artifacts/{cid}/landscape.mp4').status_code==200
+
+def test_template_notices_are_downloadable_but_private_files_stay_hidden(client,configured):
+    cid,root=seeded_ready(client,configured)
+    site=root/'site';site.mkdir()
+    for folder in (root,site):
+        write_template_notices(folder)
+        (folder/'private.txt').write_text('private customer note')
+    for name in ('LICENSE','NOTICE','site/LICENSE','site/NOTICE'):
+        response=client.get(f'/artifacts/{cid}/{name}')
+        assert response.status_code==200
+        assert response.content==(root/name).read_bytes()
+    for name in ('private.txt','site/private.txt','brief.json'):
+        assert client.get(f'/artifacts/{cid}/{name}').status_code==404
+    client.cookies.clear()
+    assert client.get(f'/artifacts/{cid}/site/NOTICE').status_code==401
 
 def test_dry_run_has_no_network(client,configured,monkeypatch):
     cid,root=seeded_ready(client,configured)
@@ -475,6 +491,7 @@ def test_deployment_preview_describes_exact_bytes(client,configured,tmp_path,bri
     cid,root=seeded_ready(client,configured)
     site=root/'site';site.mkdir()
     for name in ('index.html','site.css','site.js','film.mp4','poster.jpg'):(site/name).write_bytes(name.encode())
+    write_template_notices(site)
     target=tmp_path/'public';target.mkdir();(target/'CNAME').write_text('example.test')
     object.__setattr__(configured,'deploy_dir',str(target))
     preview=client.get(f'/api/campaigns/{cid}/deployment-preview').json()
@@ -493,6 +510,7 @@ def test_deploy_refuses_a_stale_approval(client,configured,tmp_path):
     cid,root=seeded_ready(client,configured)
     site=root/'site';site.mkdir()
     for name in ('index.html','site.css','site.js','film.mp4','poster.jpg'):(site/name).write_bytes(name.encode())
+    write_template_notices(site)
     target=tmp_path/'public';target.mkdir()
     object.__setattr__(configured,'deploy_dir',str(target))
     preview=client.get(f'/api/campaigns/{cid}/deployment-preview').json()
@@ -506,6 +524,7 @@ def test_deploy_target_must_not_overlap_studio_data(client,configured):
     cid,root=seeded_ready(client,configured)
     site=root/'site';site.mkdir()
     for name in ('index.html','site.css','site.js','film.mp4','poster.jpg'):(site/name).write_bytes(name.encode())
+    write_template_notices(site)
     object.__setattr__(configured,'deploy_dir',str(configured.data_dir))
     r=client.get(f'/api/campaigns/{cid}/deployment-preview')
     assert r.status_code==422 and 'overlaps' in r.json()['detail']
@@ -514,6 +533,7 @@ def test_deploy_refuses_to_write_through_a_symlink(client,configured,tmp_path):
     cid,root=seeded_ready(client,configured)
     site=root/'site';site.mkdir()
     for name in ('index.html','site.css','site.js','film.mp4','poster.jpg'):(site/name).write_bytes(name.encode())
+    write_template_notices(site)
     target=tmp_path/'public';target.mkdir();elsewhere=tmp_path/'elsewhere.html';elsewhere.write_text('other')
     (target/'index.html').symlink_to(elsewhere)
     object.__setattr__(configured,'deploy_dir',str(target))

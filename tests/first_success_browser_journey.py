@@ -20,7 +20,9 @@ import traceback
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT))
+INSTALLED_WHEEL=os.getenv("LAUNCHLOOM_TEST_INSTALLED")=="1"
+if not INSTALLED_WHEEL:sys.path.insert(0,str(ROOT))
+import launchloom
 import httpx
 from playwright.sync_api import sync_playwright
 from launchloom.config import Settings
@@ -57,7 +59,10 @@ def main(output, browser_executable=None, revision=None):
     output.mkdir(parents=True,exist_ok=True)
     report={'revision':revision or subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
             'source_sha256':source_fingerprint(),'environment':{'os':platform.platform(),'cpu':platform.machine(),'python':sys.version},
-            'command':[sys.executable,*sys.argv], 'checks':[], 'external_requests':[], 'page_errors':[]}
+            'command':[sys.executable,*sys.argv], 'checks':[], 'external_requests':[], 'page_errors':[],
+            'installed_wheel':INSTALLED_WHEEL,'application_path':str(Path(launchloom.__file__).resolve())}
+    if INSTALLED_WHEEL:
+        assert not Path(launchloom.__file__).resolve().is_relative_to(ROOT), 'Installed-wheel journey imported source checkout'
     def record(name,observed,status='PASS'):
         report['checks'].append({'id':name,'status':status,'observed':observed})
         print(name,status,observed,flush=True)
@@ -79,7 +84,9 @@ def main(output, browser_executable=None, revision=None):
             # while excluding provider credentials and user feature settings.
             child_env={k:os.environ[k] for k in ('PATH','HOME','TMPDIR','SYSTEMROOT','LANG',
                                                'PLAYWRIGHT_BROWSERS_PATH','CHROMIUM_EXECUTABLE') if k in os.environ}
-            child_env.update(PYTHONPATH=str(ROOT),LAUNCHLOOM_TOKEN=TOKEN)
+            child_env.update(LAUNCHLOOM_TOKEN=TOKEN)
+            if INSTALLED_WHEEL:child_env['LAUNCHLOOM_TEST_INSTALLED']='1'
+            else:child_env['PYTHONPATH']=str(ROOT)
             def start_server():
                 log=(output/'server.log').open('a')
                 child=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--serve',str(data),'--port',str(port)],
@@ -298,6 +305,8 @@ def main(output, browser_executable=None, revision=None):
                     assert 'campaign='+recovery in page.url
                     assert len(api.get('/api/campaigns').json())==2
                     record('R3','Actual process-group kill during FFmpeg render; restart reports interrupted; explicit UI retry completes same campaign')
+                    from buyer_import_browser_journey import run_import_journey
+                    process=run_import_journey(page,api,data,output,start_server,process,record)
                     assert not report['external_requests'],report['external_requests']
                     assert not report['page_errors'],report['page_errors']
                     record('network','No external browser requests; all external adapters explicitly disabled in server fixture')
