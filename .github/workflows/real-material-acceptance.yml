@@ -1,0 +1,74 @@
+name: Real-material HD acceptance
+on:
+  pull_request:
+    paths:
+      - 'tests/real_material_browser_journey.py'
+      - 'tests/test_real_material_acceptance.py'
+      - '.github/workflows/real-material-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-material-hd:
+    name: Installed wheel, real media, two brands
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - name: Build and install the application-only wheel
+        run: |
+          mkdir -p hd-artifacts/input "$RUNNER_TEMP/hd-buyer-cwd"
+          python -m pip wheel --no-deps . --wheel-dir hd-artifacts/wheel
+          python -m venv "$RUNNER_TEMP/hd-buyer-venv"
+          "$RUNNER_TEMP/hd-buyer-venv/bin/python" -m pip install hd-artifacts/wheel/*.whl
+          "$RUNNER_TEMP/hd-buyer-venv/bin/python" -m pip check | tee hd-artifacts/pip-check.txt
+          "$RUNNER_TEMP/hd-buyer-venv/bin/python" -m playwright install ffmpeg
+          "$RUNNER_TEMP/hd-buyer-venv/bin/python" -m pip freeze > hd-artifacts/packages.txt
+          git rev-parse HEAD > hd-artifacts/checkout-commit.txt
+          sha256sum hd-artifacts/wheel/*.whl > hd-artifacts/wheel-sha256.txt
+          test -n "$(command -v google-chrome)"
+          echo "CHROMIUM_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
+      - name: Retrieve the existing owner-hosted Genie demo and verify identity
+        run: |
+          curl --fail --location --retry 2 --max-time 90 \
+            https://reachmade.com/media/originals/genie/assets/genie-orbit-web.mp4 \
+            --output hd-artifacts/input/genie-orbit-web.mp4
+          echo '4d4fb8d4fde5d1f7ead1ae738a29f64293dc8588fa305ebafac73c79c487c5c3  hd-artifacts/input/genie-orbit-web.mp4' | sha256sum --check
+      - name: Verify actual installed browser prerequisites
+        run: |
+          cd "$RUNNER_TEMP/hd-buyer-cwd"
+          "$RUNNER_TEMP/hd-buyer-venv/bin/python" -m launchloom doctor | tee "$GITHUB_WORKSPACE/hd-artifacts/doctor.txt"
+          grep -q 'Browser launch: OK' "$GITHUB_WORKSPACE/hd-artifacts/doctor.txt"
+          grep -q 'Chromium sandbox: enabled' "$GITHUB_WORKSPACE/hd-artifacts/doctor.txt"
+          ! grep -q 'no Japanese coverage' "$GITHUB_WORKSPACE/hd-artifacts/doctor.txt"
+      - name: Exercise real HD delivery through the standard UI
+        env:
+          LAUNCHLOOM_TEST_INSTALLED: '1'
+        run: |
+          cd "$RUNNER_TEMP/hd-buyer-cwd"
+          "$RUNNER_TEMP/hd-buyer-venv/bin/python" "$GITHUB_WORKSPACE/tests/real_material_browser_journey.py" \
+            --output "$GITHUB_WORKSPACE/hd-artifacts/journey" \
+            --source "$GITHUB_WORKSPACE/hd-artifacts/input/genie-orbit-web.mp4" \
+            --wheel "$GITHUB_WORKSPACE"/hd-artifacts/wheel/*.whl \
+            --source-sha256 4d4fb8d4fde5d1f7ead1ae738a29f64293dc8588fa305ebafac73c79c487c5c3 \
+            --source-provenance 'Existing owner-hosted edited Genie demo; FORIFOR/reachmade commit 1e4bee47f4d268d6f3c33e0ff58e1021945dc2f0, blob 0e3b999ca606a751e1e00ac28bbb85e838b0b7e8; prior identity/ownership review in docs/quality/real-material-2026-10-04.md. Reuse for owner-authorized QA, not fresh Genie capture.' \
+            --revision "$GITHUB_SHA" \
+            --browser-executable "$CHROMIUM_EXECUTABLE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-material-hd-${{ github.sha }}
+          path: |
+            hd-artifacts/
+            !hd-artifacts/input/
+            !hd-artifacts/journey/private-studio-data/
+            !hd-artifacts/journey/second-source/
+            !hd-artifacts/journey/launchloom-standard-ui-source.webm
+          if-no-files-found: error
+          retention-days: 14
