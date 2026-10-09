@@ -11,7 +11,7 @@ from .models import Brief, BuildOptions, Plan
 from .store import Store
 from .planning import make_plan, make_posts
 from .providers import llm_plan, FalFilm, ComfyFilm
-from .capture import capture
+from .capture import capture, sample_events
 from .rendering import render, validate_media
 from .site import build_site
 from .security import file_sha, scrub_error
@@ -108,6 +108,8 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
             validate_media(video);capture_result=json.loads(meta.read_text())
         else:capture_result=await capture(settings,options,root/'capture')
         capture_file=video;events=capture_result['events']
+        # Apply after both paths so a saved sample also follows the brief language.
+        if options.capture_mode=='sample':events=sample_events(events,b.language)
     elif options.capture_mode=='upload':
         capture_file=root/'input/capture.bin'
         if not capture_file.exists():raise ValueError('Upload a recording before building')

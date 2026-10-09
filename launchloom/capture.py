@@ -15,6 +15,26 @@ SAMPLE_STEPS=[
     CaptureStep(action='click',selector='#focus-button',label='次の一歩だけに、集中する。',milliseconds=1800)
 ]
 
+SAMPLE_LABELS={
+    'ja':tuple(step.label for step in SAMPLE_STEPS),
+    'en':('Capture the idea while it is fresh.',
+          'Keep everything in one place.',
+          'See what you have finished.',
+          'Focus on the next step.')
+}
+
+def sample_events(events: list[dict],language: str='ja') -> list[dict]:
+    """Localize known bundled labels without changing cached capture evidence.
+
+    Call only for sample captures. Operator-authored URL/upload labels are not
+    translations, even when their wording happens to match a bundled label.
+    """
+    target=SAMPLE_LABELS.get(language,SAMPLE_LABELS['ja'])
+    labels={label:localized for source in SAMPLE_LABELS.values()
+            for label,localized in zip(source,target)}
+    return [{**event,'label':labels[event['label']]} if event.get('label') in labels
+            else dict(event) for event in events]
+
 MISSING_BROWSER=("Chromium is not installed for this Playwright version. Run "
     "`python -m playwright install chromium`, or set CHROMIUM_EXECUTABLE to an existing browser.")
 
