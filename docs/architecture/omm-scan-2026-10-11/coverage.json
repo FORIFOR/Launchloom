@@ -1,0 +1,78 @@
+{
+  "repo": "FORIFOR/Launchloom",
+  "branch": "main",
+  "tree_sha": "c4d637b73cb80e36a1aaef2bfb09d48993db5c62",
+  "tree_files": 240,
+  "read_files": [
+    {
+      "path": "README.ja.md",
+      "sha": "633eb087c2f3de244a3613f8e8eaca7c4da2b1c7"
+    },
+    {
+      "path": "README.md",
+      "sha": "ea9a9502f6d277c8a150160b5b9d2b031b5eba56"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha": "b2e3c94a2ee56cf95b2e6055c9619c149cf5aba2"
+    },
+    {
+      "path": "launchloom/server.py",
+      "sha": "9b557edfb617873f8f7384d61ca7e52f0e05bc05"
+    },
+    {
+      "path": "launchloom/cli.py",
+      "sha": "1da31f91cc092231d657928fb8c7c40ec530dc48"
+    },
+    {
+      "path": "launchloom/models.py",
+      "sha": "574edc26aebc277dca79c20d833d13d5c8abbcd1"
+    },
+    {
+      "path": "launchloom/store.py",
+      "sha": "a110081d67038e6956efca935bfbed9eeedb0588"
+    },
+    {
+      "path": "launchloom/contracts.py",
+      "sha": "e727cb894eda60bbd9e34e488024dc1c07ab327a"
+    },
+    {
+      "path": "launchloom/pipeline.py",
+      "sha": "c643f8b1fbe83c42e1d2898eff7145b6cd926bab"
+    },
+    {
+      "path": "launchloom/planning.py",
+      "sha": "d7335556393b69180d8bbf778d1956968e07f1cc"
+    },
+    {
+      "path": "launchloom/providers.py",
+      "sha": "7fc1ee9593bcf25081b7f83f611de590943455ff"
+    },
+    {
+      "path": "launchloom/security.py",
+      "sha": "5f53bcd37d50561822aa96ba2322cb2f840b8c41"
+    },
+    {
+      "path": "launchloom/rendering.py",
+      "sha": "f6483bea72309affc9f6caea37e414605dcb4bd7"
+    },
+    {
+      "path": "launchloom/deploy.py",
+      "sha": "e21d031a32df993efcb06ad0c72f19604bf8bb35"
+    },
+    {
+      "path": "launchloom/finished_films.py",
+      "sha": "e04cb63cb79e84ab598604c8ded4ee59381c979e"
+    },
+    {
+      "path": "launchloom/production_api.py",
+      "sha": "c4e33a510a1e7d410f34eb5c57bef67333d41194"
+    },
+    {
+      "path": "launchloom/production_execution.py",
+      "sha": "d1abd6915691da97f571ca4cafa91d68c0229508"
+    }
+  ],
+  "not_read_count": 223,
+  "scope": "initial entry-point and direct-import analysis; not exhaustive semantic scan"
+}

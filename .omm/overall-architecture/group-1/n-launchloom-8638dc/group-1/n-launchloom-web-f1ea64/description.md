@@ -1,0 +1,23 @@
+実在パス: `launchloom/web`。21ファイル。
+
+- `launchloom/web/app-base.css`
+- `launchloom/web/app.css`
+- `launchloom/web/app.js`
+- `launchloom/web/creative-entry.js`
+- `launchloom/web/creative-studio.css`
+- `launchloom/web/creative-studio.html`
+- `launchloom/web/creative-studio.js`
+- `launchloom/web/creative-workflow.js`
+- `launchloom/web/demo-app.css`
+- `launchloom/web/demo-app.html`
+- `launchloom/web/demo-app.js`
+- `launchloom/web/final-films.js`
+- `launchloom/web/i18n.js`
+- `launchloom/web/index.html`
+- `launchloom/web/obsidian-board.css`
+- `launchloom/web/obsidian.css`
+- `launchloom/web/production.css`
+- `launchloom/web/production.html`
+- `launchloom/web/production.js`
+- `launchloom/web/quiet-cinema.css`
+- `launchloom/web/workspace.css`

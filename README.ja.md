@@ -374,3 +374,9 @@ OSS版はローカル制作・自分のキー・自分の投稿先を中核に�
 [入出力・状態・エラー・互換性](docs/COMPATIBILITY.md) と [API一覧](docs/API.md) を参照してください。
 独立した安定版Python SDKは提供していません。
 [合格条件](docs/quality/acceptance.md) と [検証記録](docs/quality/verification.md) に、実行済みと未検証の範囲を記載しています。
+
+<!-- omm-scan-2026-10-11 -->
+
+## 構成図・依存関係
+
+[日本語の構成図と説明を見る](docs/architecture/omm-scan-2026-10-11/README.md)（2026-10-11 初回解析）。解析範囲と未検証事項はリンク先に記載しています。

@@ -261,3 +261,9 @@ There is no separately supported Python SDK; internal modules and the experiment
 production/creative routes may change. [Acceptance conditions](docs/quality/acceptance.md)
 and [recorded verification](docs/quality/verification.md) distinguish tested behavior
 from external integrations and human usability studies that remain unverified.
+
+<!-- omm-scan-2026-10-11 -->
+
+## 構成図・依存関係
+
+[日本語の構成図と説明を見る](docs/architecture/omm-scan-2026-10-11/README.md)（2026-10-11 初回解析）。解析範囲と未検証事項はリンク先に記載しています。

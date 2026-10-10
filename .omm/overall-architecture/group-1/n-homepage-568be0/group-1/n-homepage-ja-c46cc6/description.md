@@ -1,0 +1,23 @@
+実在パス: `homepage/ja`。21ファイル。
+
+- `homepage/ja/camera-poster.jpg`
+- `homepage/ja/camera.mp4`
+- `homepage/ja/captions.vtt`
+- `homepage/ja/film-vertical.mp4`
+- `homepage/ja/film.mp4`
+- `homepage/ja/generated-page.png`
+- `homepage/ja/index.html`
+- `homepage/ja/intro-poster.jpg`
+- `homepage/ja/intro-vertical-poster.jpg`
+- `homepage/ja/intro-vertical.mp4`
+- `homepage/ja/intro.mp4`
+- `homepage/ja/kit-site/film.mp4`
+- `homepage/ja/kit-site/index.html`
+- `homepage/ja/kit-site/poster.jpg`
+- `homepage/ja/kit-site/site.css`
+- `homepage/ja/kit-site/site.js`
+- `homepage/ja/launch-kit.zip`
+- `homepage/ja/og.png`
+- `homepage/ja/poster-vertical.jpg`
+- `homepage/ja/poster.jpg`
+- `homepage/ja/review-gate.png`
