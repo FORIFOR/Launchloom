@@ -15,6 +15,7 @@ from .capture import capture
 from .rendering import render, validate_media
 from .site import build_site
 from .security import file_sha, scrub_error
+from .output_licenses import LICENSE_FILES, write_template_notices
 
 SAMPLE_BRIEF={
     'name':'Orbit','tagline':'大切なことに、余白を。','audience':'ひとりで考え、つくる人へ',
@@ -179,6 +180,8 @@ async def build(settings: Settings,store: Store,cid: str,options: BuildOptions):
     # this tool exists not to do. Nothing ships.
     if leaks:raise ValueError('Unsupported claim in the export, so nothing was written: '+'; '.join(leaks[:3]))
     names=['campaign.json','storyboard.json','posts.json','social-copy.md','captions.srt','qa.json','landscape.mp4','portrait.mp4','landscape.jpg','portrait.jpg','site/index.html','site/site.css','site/site.js','site/film.mp4','site/poster.jpg']
+    write_template_notices(root)
+    names += list(LICENSE_FILES) + ['site/'+name for name in LICENSE_FILES]
     manifest={'version':__version__,'campaign_id':cid,'revision':store.campaign(cid)['revision'],'videos':videos,
         'provenance':{'capture':'bundled-sample' if b.is_sample else options.capture_mode,'concept':options.film_provider,
             'copy':plan.source,'visual_style':options.visual_style,'reviewed_before_render':bool(options.review_plan),

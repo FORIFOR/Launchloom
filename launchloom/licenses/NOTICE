@@ -1,0 +1,16 @@
+Launchloom 0.1.0
+Original application source and templates are licensed under Apache-2.0.
+
+This copy of the Apache-2.0 license applies to Launchloom's original landing-page
+template code in index.html, site.css and site.js (where present). Generated
+pages modify that template code with campaign content.
+
+It does not relicense or clear rights to customer copy, product claims,
+recordings, music, narration, uploaded assets, generated media or provider
+output. Those materials and third-party components remain governed by their
+own rights, terms and licenses. No rights to reference-post media are granted.
+
+These notices describe the template code, not the entire generated launch kit.
+Launchloom's Python dependencies, browser binaries, FFmpeg, model weights and
+external services are not distributed as part of that template code.
+Launchloom is a provisional project name; no trademark clearance is claimed.

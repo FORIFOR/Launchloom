@@ -45,6 +45,6 @@ version = {attr = "launchloom.__version__"}
 [tool.setuptools.packages.find]
 include = ["launchloom*"]
 [tool.setuptools.package-data]
-launchloom = ["web/*", "templates/*"]
+launchloom = ["web/*", "templates/*", "licenses/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]

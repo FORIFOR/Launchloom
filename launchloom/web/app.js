@@ -41,8 +41,8 @@ function clearConnectionProblem() { $('connection-notice').hidden=true; }
 function renderWelcome() {
   return `<section class="panel first-success" aria-labelledby="first-success-title">
     <span class="eyebrow">YOUR FIRST LAUNCH KIT</span><h2 id="first-success-title">動画・LP・SNS原稿を、ひとつのキットに。</h2>
-    <p>まずは内蔵のOrbitサンプルで、字幕をひとつ直して書き出してみましょう。</p>
-    <ol><li>サンプルアプリを自動で収録</li><li>構成と字幕を編集・保存</li><li>動画を確認してZIPをダウンロード</li></ol>
+    <p>まずは内蔵のOrbitサンプルで、字幕（SRT）をひとつ直して書き出してみましょう。</p>
+    <ol><li>サンプルアプリを自動で収録</li><li>構成と字幕（SRT）を編集・保存</li><li>動画を確認してZIPをダウンロード</li></ol>
     <p class="notice">ローカル処理・生成AI料金なし。APIキー不要。公開・投稿は行いません。音声未指定のサンプルは無音です。</p>
     <button class="button dark" data-sample ${state.sampleBusy?'disabled':''}>サンプルを編集して作る ↗</button>
     <p>サンプルは実在サービスの実績ではなく、このリポジトリに含まれる検証用アプリです。</p>
@@ -51,9 +51,9 @@ function renderWelcome() {
 }
 function resultSummary() {
   return `<section class="panel result-summary" aria-labelledby="result-title"><h2 id="result-title" tabindex="-1">制作キットができました。</h2>
-    <p>横長・縦長の動画、LP、SNS原稿、字幕をZIPにまとめました。まず動画を再生して確認してください。</p>
+    <p>横長・縦長の動画、LP、SNS原稿、字幕（SRT）をZIPにまとめました。動画とSRTを確認してください。</p>
     <div class="links-row"><button class="button small" data-go="site">LPを見る</button><button class="button small" data-go="distribution">SNS原稿を見る</button></div>
-    <p class="notice">この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。</p></section>`;
+    <p class="notice">見出し・補足は動画のレイアウトに、字幕は別ファイルのSRTにのみ反映されます。字幕の焼き込みや取込映像内の文字の変更はできません。LP・SNS原稿は最初の企画から作成します。</p></section>`;
 }
 async function startSample() {
   if(state.sampleBusy)return;
@@ -98,7 +98,7 @@ function errorPanel(){const c=state.current;if(!['failed','interrupted'].include
 const styleNames={editorial:'Editorial ／ 余白と紙の質感',spotlight:'Spotlight ／ 暗がりに、製品だけが光る',grid:'Grid ／ 方眼と小さな見出し'};
 function sceneFields(scenes){
   const roles={hook:'最初に伝えること',proof:'機能を紹介',cta:'最後のひとこと'};
-  return scenes.map((s,i)=>`<section class="scene-edit" data-scene-edit="${i}"><h3><span class="scene-number">${i+1}</span> ${t(roles[s.kind]||'機能を紹介')}</h3><label>見出し<input class="scene-title" maxlength="90" value="${escape(s.title)}"></label><label>字幕 <small>空欄なら見出しを使います</small><input class="scene-caption" maxlength="120" value="${escape(s.caption||'')}" placeholder="${escape(s.title)}"></label><details class="scene-more"><summary>補足を編集</summary><label>補足<input class="scene-detail" maxlength="180" value="${escape(s.detail||'')}"></label></details></section>`).join('');
+  return scenes.map((s,i)=>`<section class="scene-edit" data-scene-edit="${i}"><h3><span class="scene-number">${i+1}</span> ${t(roles[s.kind]||'機能を紹介')}</h3><label>見出し<input class="scene-title" maxlength="90" value="${escape(s.title)}"></label><label>字幕（SRT） <small>空欄なら見出しを使います</small><input class="scene-caption" maxlength="120" value="${escape(s.caption||'')}" placeholder="${escape(s.title)}"></label><details class="scene-more"><summary>補足を編集</summary><label>補足<input class="scene-detail" maxlength="180" value="${escape(s.detail||'')}"></label></details></section>`).join('');
 }
 
 // Only what the operator actually changed is sent, so the server applies a typed
@@ -126,12 +126,12 @@ function storyboardForm(plan,options){
 }
 function renderReview(){
   const c=state.current,plan=c.plan,still=c.outputs?.['review-frame.jpg'];
-  return `<section class="panel review-panel"><div class="review-intro"><div><h2 id="review-panel-title" tabindex="-1">動画に入れる言葉を確認</h2><p>下の見出し・字幕を直せます。そのままでよければ、動画を作成してください。</p><p class="review-deliverables">完成すると、横長・縦長の動画、LP、SNS原稿をダウンロードできます。</p></div>${still?`<figure><img class="review-still" src="${still}" alt="収録した画面の1コマ"><figcaption>収録済みの画面 · 完成動画ではありません</figcaption></figure>`:''}</div><div class="review-actions"><div><span id="plan-save-state" role="status">保存済みの内容を表示しています</span><small>動画作成では公開・投稿を行いません。</small></div><button class="button small" id="save-plan">編集を保存</button><button class="button dark" id="approve-plan">保存して動画を作る →</button></div><p class="error" role="alert" id="review-panel-error"></p>${storyboardForm(plan,c.options)}<details class="review-boundary"><summary>編集の反映範囲・実行済みの処理</summary><p class="notice">この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。</p><p class="notice">まだ映像は書き出していません。文言を直してから承認してください。企画LLMを選んだ場合、その企画処理は実行済みです。</p></details></section>`;
+  return `<section class="panel review-panel"><div class="review-intro"><div><h2 id="review-panel-title" tabindex="-1">動画と字幕の文言を確認</h2><p>見出し・補足は動画用、字幕は別ファイルのSRT用です。取込映像内の文字は変更できません。確認したら、動画を作成してください。</p><p class="review-deliverables">完成すると、横長・縦長の動画、LP、SNS原稿をダウンロードできます。</p></div>${still?`<figure><img class="review-still" src="${still}" alt="収録した画面の1コマ"><figcaption>収録済みの画面 · 完成動画ではありません</figcaption></figure>`:''}</div><div class="review-actions"><div><span id="plan-save-state" role="status">保存済みの内容を表示しています</span><small>動画作成では公開・投稿を行いません。</small></div><button class="button small" id="save-plan">編集を保存</button><button class="button dark" id="approve-plan">保存して動画を作る →</button></div><p class="error" role="alert" id="review-panel-error"></p>${storyboardForm(plan,c.options)}<details class="review-boundary"><summary>編集の反映範囲・実行済みの処理</summary><p class="notice">見出し・補足は動画のレイアウトに、字幕は別ファイルのSRTにのみ反映されます。字幕の焼き込みや取込映像内の文字の変更はできません。LP・SNS原稿は最初の企画から作成します。</p><p class="notice">まだ映像は書き出していません。文言を直してから承認してください。企画LLMを選んだ場合、その企画処理は実行済みです。</p></details></section>`;
 }
 
 function renderRevise(){
   const c=state.current,plan=c.plan;
-  return `<details class="panel revise-panel"><summary>${t('構成を直して、この素材のまま作り直す')}${c.revision?` · ${t('改訂')} ${c.revision}`:''}</summary><p class="notice">収録済みの映像をそのまま使います。再収録も、生成AIへの再依頼も行いません。作り直すと現在の動画・LP・キットは置き換わります。</p>${storyboardForm(plan,c.options)}<p class="notice">この画面の見出し・字幕の編集は映像に反映されます。LP・SNS原稿は最初の企画から作成します。</p><div class="dialog-actions"><span>投稿済みの内容は変わりません。</span><button class="button dark" id="revise-plan">この内容で作り直す ↻</button></div><p class="error" id="revise-error"></p></details>`;
+  return `<details class="panel revise-panel"><summary>${t('構成を直して、この素材のまま作り直す')}${c.revision?` · ${t('改訂')} ${c.revision}`:''}</summary><p class="notice">収録済みの映像をそのまま使います。再収録も、生成AIへの再依頼も行いません。作り直すと現在の動画・LP・キットは置き換わります。</p>${storyboardForm(plan,c.options)}<p class="notice">見出し・補足は動画のレイアウトに、字幕は別ファイルのSRTにのみ反映されます。字幕の焼き込みや取込映像内の文字の変更はできません。LP・SNS原稿は最初の企画から作成します。</p><div class="dialog-actions"><span>投稿済みの内容は変わりません。</span><button class="button dark" id="revise-plan">この内容で作り直す ↻</button></div><p class="error" id="revise-error"></p></details>`;
 }
 function renderFilm(){
   const c=state.current,ready=c?.state==='ready',name=c?.brief.name||'Your next good thing';

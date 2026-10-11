@@ -55,13 +55,16 @@ choose **Edit the sample and make a kit** (the campaign-bar **Try the sample**
 button uses the same flow).
 
 1. Orbit, the bundled test app, is recorded locally. Wait for **Waiting for review**.
-2. Change a caption and **Save draft**. The sample remains editable after reload.
+2. Change an SRT caption and **Save edits**. The sample remains editable after reload.
 3. **Save and create films**, play both formats, then **Download the launch kit**.
    The ZIP includes videos, a landing page, social drafts, captions and file hashes.
+   Open `captions.srt` to check your caption edit.
 
 No media or posts are published by these steps. Without supplied audio the sample
-is silent; without a product URL its CTA is disabled. Headline/caption edits in the
-standard studio affect the film; LP/social copy comes from the original brief.
+is silent; without a product URL its CTA is disabled. In the standard studio,
+scene headlines and supporting text change the video layout. Captions update only
+the separate `captions.srt`; they are not burned into the MP4. Text already inside
+imported footage cannot be edited here. LP/social copy comes from the original brief.
 For synchronized scene copy across all outputs, use the optional
 [experimental creative workflow](docs/CREATIVE_WORKFLOWS.md).
 

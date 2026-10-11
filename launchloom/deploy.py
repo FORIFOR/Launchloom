@@ -1,6 +1,6 @@
 """Publish a finished landing page into a directory the operator owns.
 
-Deployment is deliberately boring: it copies the five generated site files into a
+Deployment is deliberately boring: it copies the generated site files and notices into a
 directory the operator configured, and nothing else. It never deletes, never
 writes outside that directory, and never runs before the exact bytes have been
 previewed and approved by fingerprint.
@@ -15,8 +15,9 @@ import shutil
 from pathlib import Path
 from .config import Settings
 from .security import digest, file_sha
+from .output_licenses import LICENSE_FILES
 
-SITE_FILES = ("index.html", "site.css", "site.js", "film.mp4", "poster.jpg")
+SITE_FILES = ("index.html", "site.css", "site.js", "film.mp4", "poster.jpg") + LICENSE_FILES
 
 
 def resolve_target(settings: Settings) -> Path:
@@ -45,6 +46,8 @@ def plan(root: Path, settings: Settings) -> dict:
     for name in SITE_FILES:
         source = site / name
         if not source.is_file():
+            if name in LICENSE_FILES:
+                raise ValueError(f"The landing page is missing {name}; regenerate it with this version of Launchloom before deploying")
             raise ValueError(f"The landing page is missing {name}; finish the campaign first")
         destination = target / name
         if destination.is_symlink():
