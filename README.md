@@ -219,6 +219,7 @@ docker run --rm -e CHROMIUM_NO_SANDBOX=1 ghcr.io/forifor/launchloom \
 ```
 
 No Docker either? [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/FORIFOR/Launchloom) — the devcontainer installs
+[![Launchloom on StartupScores](https://startupscores.com/badge/launchloom.svg?style=shield&v=combo&theme=dark)](https://startupscores.com/open-source/launchloom)
 everything and prints the command.
 
 A failure is worth more to me than a pass. [TESTING.md](TESTING.md) lists what
